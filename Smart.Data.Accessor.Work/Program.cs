@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Smart.Data.Generative.Work
+namespace Smart.Data.Accessor.Work
 {
     class Program
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Smart.Data.Generative.CodeGenerator
+namespace Smart.Data.Accessor.CodeGenerator
 {
     class Program
     {

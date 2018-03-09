@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Generative", "Smart.Data.Generative\Smart.Data.Generative.csproj", "{3C5DDF27-D141-476A-98CA-918771B6D8FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor", "Smart.Data.Accessor\Smart.Data.Accessor.csproj", "{3C5DDF27-D141-476A-98CA-918771B6D8FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Generative.CodeGenerator", "Smart.Data.Generative.CodeGenerator\Smart.Data.Generative.CodeGenerator.csproj", "{3DD91703-EDE5-411A-8CDF-8F25D0921B48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.CodeGenerator", "Smart.Data.Accessor.CodeGenerator\Smart.Data.Accessor.CodeGenerator.csproj", "{3DD91703-EDE5-411A-8CDF-8F25D0921B48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Generative.Work", "Smart.Data.Generative.Work\Smart.Data.Generative.Work.csproj", "{00E65D00-B252-433C-994C-79F5D2C3502E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Work", "Smart.Data.Accessor.Work\Smart.Data.Accessor.Work.csproj", "{00E65D00-B252-433C-994C-79F5D2C3502E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +32,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9B48CB98-6A7F-4933-8D56-9FA15982042B}
+		        SolutionGuid = {9B48CB98-6A7F-4933-8D56-9FA15982042B}
+		SolutionGuid = {95C227CF-CCC5-4C53-BA5F-FAADF8DA2872}
 	EndGlobalSection
 EndGlobal
