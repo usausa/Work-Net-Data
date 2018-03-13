@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.CodeGen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Work", "Smart.Data.Accessor.Work\Smart.Data.Accessor.Work.csproj", "{00E65D00-B252-433C-994C-79F5D2C3502E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Dapper", "Smart.Data.Accessor.Dapper\Smart.Data.Accessor.Dapper.csproj", "{DC4F4E4B-C60A-4BD1-AA27-3C32FE35B39B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,12 +29,16 @@ Global
 		{00E65D00-B252-433C-994C-79F5D2C3502E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00E65D00-B252-433C-994C-79F5D2C3502E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00E65D00-B252-433C-994C-79F5D2C3502E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC4F4E4B-C60A-4BD1-AA27-3C32FE35B39B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC4F4E4B-C60A-4BD1-AA27-3C32FE35B39B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC4F4E4B-C60A-4BD1-AA27-3C32FE35B39B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC4F4E4B-C60A-4BD1-AA27-3C32FE35B39B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		        SolutionGuid = {9B48CB98-6A7F-4933-8D56-9FA15982042B}
 		SolutionGuid = {95C227CF-CCC5-4C53-BA5F-FAADF8DA2872}
+		        SolutionGuid = {9B48CB98-6A7F-4933-8D56-9FA15982042B}
 	EndGlobalSection
 EndGlobal
