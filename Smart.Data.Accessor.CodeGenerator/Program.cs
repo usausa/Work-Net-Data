@@ -1,10 +1,10 @@
-﻿using System;
-
-namespace Smart.Data.Accessor.CodeGenerator
+﻿namespace Smart.Data.Accessor.CodeGenerator
 {
-    class Program
+    using System;
+
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
         }
