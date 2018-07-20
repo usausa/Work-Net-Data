@@ -5,9 +5,8 @@
 
     public enum TokenType
     {
-        Blank,
         Comment,
-        String
+        Block
     }
 
     public class Token
