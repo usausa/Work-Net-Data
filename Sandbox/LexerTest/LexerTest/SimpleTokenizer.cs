@@ -5,8 +5,12 @@
 
     public enum TokenType
     {
-        Comment,
-        Block
+        CodeComment,
+        ParameterComment,
+        ReplaceComment,
+        Block,
+        OpenParenthesis,
+        CloseParenthesis
     }
 
     public class Token
@@ -89,10 +93,26 @@
             {
                 // Space
                 current += 1;
+
+                // TODO Skip?
             }
             else if (source[current] == '\'')
             {
                 // Quate
+
+                // TODO
+                current += 1;
+            }
+            else if (source[current] == '(')
+            {
+                // Open
+
+                // TODO
+                current += 1;
+            }
+            else if (source[current] == ')')
+            {
+                // Close
 
                 // TODO
                 current += 1;
