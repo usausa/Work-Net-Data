@@ -69,16 +69,28 @@
             else if ((source[current] == '-') && (source[current + 1] == '-'))
             {
                 // Line comment
-
-                // TODO
                 current += 2;
+
+                int remain;
+                while ((remain = source.Length - current) > 0)
+                {
+                    if ((remain >= 2) && (source[current] == '\r') && (source[current + 1] == '\n'))
+                    {
+                        current += 2;
+                        return;
+                    }
+                    if ((remain >= 1) && ((source[current] == '\r') || (source[current] == '\n')))
+                    {
+                        current += 1;
+                        return;
+                    }
+
+                    current++;
+                }
             }
             else if ((source[current] == '\r') && (source[current + 1] == '\n'))
             {
                 // EOL
-
-                // TODO
-
                 current += 2;
             }
             else
@@ -93,42 +105,92 @@
             {
                 // Space
                 current += 1;
-
-                // TODO Skip?
             }
             else if (source[current] == '\'')
             {
                 // Quate
+                var start = current;
+                current++;
 
-                // TODO
-                current += 1;
+                var closed = false;
+                while (current < source.Length && !closed)
+                {
+                    if (source[current] == '\'')
+                    {
+                        current++;
+
+                        if ((current < source.Length) && (source[current] == '\''))
+                        {
+                            current++;
+                        }
+                        else
+                        {
+                            closed = true;
+                        }
+                    }
+                    else
+                    {
+                        current++;
+                    }
+                }
+
+                if (!closed)
+                {
+                    // TODO
+                }
+
+                tokens.Add(new Token(TokenType.Block, source.Substring(start, current - start)));
             }
             else if (source[current] == '(')
             {
                 // Open
-
-                // TODO
+                tokens.Add(new Token(TokenType.OpenParenthesis, "("));
                 current += 1;
             }
             else if (source[current] == ')')
             {
                 // Close
-
-                // TODO
+                tokens.Add(new Token(TokenType.CloseParenthesis, ")"));
                 current += 1;
             }
             else if ((source[current] == '\r') || (source[current] == '\n'))
             {
                 // EOL
-
-                // TODO
                 current += 1;
             }
             else
             {
-                // TODO Word
-                current += 1;   // dummy
+                // Block
+                var start = current;
+                current++;
+
+                while ((current < source.Length) && IsBlockChar(source[current]))
+                {
+                    current++;
+                }
+
+                tokens.Add(new Token(TokenType.Block, source.Substring(start, current - start)));
             }
+        }
+
+        private bool IsBlockChar(char c)
+        {
+            if (Char.IsWhiteSpace(c))
+            {
+                return false;
+            }
+
+            switch (c)
+            {
+                case '\'':
+                case '(':
+                case ')':
+                case '\r':
+                case '\n':
+                    return false;
+            }
+
+            return true;
         }
     }
 }
