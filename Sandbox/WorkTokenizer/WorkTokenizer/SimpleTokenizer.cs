@@ -14,6 +14,7 @@
 
     public enum TokenType
     {
+        Comment,
         CodeComment,
         ParameterComment,
         ReplaceComment,
@@ -98,29 +99,26 @@
             else if ((source[current] == '/') && (source[current + 1] == '*'))
             {
                 // Block comment
+                var start = current;
                 current += 2;
 
-                var start = 0;
-                var tokenType = default(TokenType?);
+                var tokenType = TokenType.Comment;
                 if (current < source.Length)
                 {
                     if (source[current] == '@')
                     {
                         tokenType = TokenType.ParameterComment;
                         current++;
-                        start = current;
                     }
                     else if (source[current] == '#')
                     {
                         tokenType = TokenType.ReplaceComment;
                         current++;
-                        start = current;
                     }
                     else if (source[current] == '%')
                     {
                         tokenType = TokenType.CodeComment;
                         current++;
-                        start = current;
                     }
                 }
 
@@ -128,12 +126,12 @@
                 {
                     if ((source[current] == '*') && (source[current + 1] == '/'))
                     {
-                        if (tokenType.HasValue)
-                        {
-                            tokens.Add(new Token(tokenType.Value, source.Substring(start, current - start).Trim()));
-                        }
-
                         current += 2;
+
+                        tokens.Add(
+                            tokenType == TokenType.Comment
+                            ? new Token(tokenType, source.Substring(start, current - start).Trim())
+                            : new Token(tokenType, source.Substring(start + 3, current - start - 5).Trim()));
 
                         return;
                     }
