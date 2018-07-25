@@ -4,8 +4,12 @@ namespace WorkTokenizer.Tests
 
     public class SimpleTokenizerTest
     {
+        //--------------------------------------------------------------------------------
+        // Basic
+        //--------------------------------------------------------------------------------
+
         [Fact]
-        public void TestSimple()
+        public void TestBasic()
         {
             var tokenizer = new SimpleTokenizer("SELECT * FROM User WHERE Id = /*@ id */ 1");
             var tokens = tokenizer.Tokenize();
@@ -32,7 +36,7 @@ namespace WorkTokenizer.Tests
         }
 
         [Fact]
-        public void TestSimple2()
+        public void TestBasic2()
         {
             var tokenizer = new SimpleTokenizer("SELECT * FROM User WHERE Id=/*@id*/1");
             var tokens = tokenizer.Tokenize();
@@ -54,6 +58,27 @@ namespace WorkTokenizer.Tests
             Assert.Equal("id", tokens[6].Value);
             Assert.Equal(TokenType.Block, tokens[7].TokenType);
             Assert.Equal("1", tokens[7].Value);
+        }
+
+        //--------------------------------------------------------------------------------
+        // EOL
+        //--------------------------------------------------------------------------------
+
+        [Fact]
+        public void TestEol()
+        {
+            var tokenizer = new SimpleTokenizer("SELECT\r\n  *\r\nFROM\r\n  User\r\n");
+            var tokens = tokenizer.Tokenize();
+
+            Assert.Equal(4, tokens.Count);
+            Assert.Equal(TokenType.Block, tokens[0].TokenType);
+            Assert.Equal("SELECT", tokens[0].Value);
+            Assert.Equal(TokenType.Block, tokens[1].TokenType);
+            Assert.Equal("*", tokens[1].Value);
+            Assert.Equal(TokenType.Block, tokens[2].TokenType);
+            Assert.Equal("FROM", tokens[2].Value);
+            Assert.Equal(TokenType.Block, tokens[3].TokenType);
+            Assert.Equal("User", tokens[3].Value);
         }
     }
 }
