@@ -1,4 +1,4 @@
-﻿namespace LexerTest
+﻿namespace WorkTokenizer
 {
     using System;
     using System.Collections.Generic;
@@ -130,8 +130,10 @@
                     {
                         if (tokenType.HasValue)
                         {
-                            tokens.Add(new Token(TokenType.Block, source.Substring(start, current - start).Trim()));
+                            tokens.Add(new Token(tokenType.Value, source.Substring(start, current - start).Trim()));
                         }
+
+                        current += 2;
 
                         return;
                     }
@@ -233,6 +235,7 @@
                 case ')':
                 case '\r':
                 case '\n':
+                case '/':
                     return false;
             }
 
