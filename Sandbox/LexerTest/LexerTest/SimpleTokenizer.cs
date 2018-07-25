@@ -3,6 +3,15 @@
     using System;
     using System.Collections.Generic;
 
+    [Serializable]
+    public class TokenizerException : Exception
+    {
+        public TokenizerException(string message)
+            : base(message)
+        {
+        }
+    }
+
     public enum TokenType
     {
         CodeComment,
@@ -59,11 +68,9 @@
 
         private void Peek2Chars()
         {
-            if ((source[current] == '/') && (source[current + 1] == '*'))
+            if ((source[current] == '\r') && (source[current + 1] == '\n'))
             {
-                // Block comment
-
-                // TODO
+                // EOL
                 current += 2;
             }
             else if ((source[current] == '-') && (source[current + 1] == '-'))
@@ -88,15 +95,54 @@
                     current++;
                 }
             }
-            else if ((source[current] == '\r') && (source[current + 1] == '\n'))
+            else if ((source[current] == '/') && (source[current + 1] == '*'))
             {
-                // EOL
+                // Block comment
                 current += 2;
+
+                var start = 0;
+                var tokenType = default(TokenType?);
+                if (current < source.Length)
+                {
+                    if (source[current] == '@')
+                    {
+                        tokenType = TokenType.ParameterComment;
+                        current++;
+                        start = current;
+                    }
+                    else if (source[current] == '#')
+                    {
+                        tokenType = TokenType.ReplaceComment;
+                        current++;
+                        start = current;
+                    }
+                    else if (source[current] == '%')
+                    {
+                        tokenType = TokenType.CodeComment;
+                        current++;
+                        start = current;
+                    }
+                }
+
+                while (current < source.Length - 1)
+                {
+                    if ((source[current] == '*') && (source[current + 1] == '/'))
+                    {
+                        if (tokenType.HasValue)
+                        {
+                            tokens.Add(new Token(TokenType.Block, source.Substring(start, current - start).Trim()));
+                        }
+
+                        return;
+                    }
+
+                    current++;
+                }
+
+                throw new TokenizerException("Invalid sql. Comment is not closed.");
             }
-            else
-            {
-                Peek1Chars();
-            }
+
+            Peek1Chars();
         }
 
         private void Peek1Chars()
@@ -136,7 +182,7 @@
 
                 if (!closed)
                 {
-                    // TODO
+                    throw new TokenizerException("Invalid sql. Quate is not closed.");
                 }
 
                 tokens.Add(new Token(TokenType.Block, source.Substring(start, current - start)));
