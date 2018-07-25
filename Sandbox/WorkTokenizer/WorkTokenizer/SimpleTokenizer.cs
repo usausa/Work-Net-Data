@@ -141,8 +141,10 @@
 
                 throw new TokenizerException("Invalid sql. Comment is not closed.");
             }
-
-            Peek1Chars();
+            else
+            {
+                Peek1Chars();
+            }
         }
 
         private void Peek1Chars()
