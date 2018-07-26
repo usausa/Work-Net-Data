@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor", "Smar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Dapper", "Smart.Data.Accessor.Dapper\Smart.Data.Accessor.Dapper.csproj", "{50584D76-0DEA-438F-8A3A-2144797939A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Tests", "Smart.Data.Accessor.Tests\Smart.Data.Accessor.Tests.csproj", "{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{50584D76-0DEA-438F-8A3A-2144797939A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50584D76-0DEA-438F-8A3A-2144797939A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50584D76-0DEA-438F-8A3A-2144797939A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
