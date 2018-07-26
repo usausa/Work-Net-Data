@@ -4,7 +4,7 @@
 
     using WorkResolver.Library;
 
-    public class HogeDaoImpl : IHogeDao
+    public sealed class HogeDaoImpl : IHogeDao
     {
         private readonly IExecutor executor;
 
