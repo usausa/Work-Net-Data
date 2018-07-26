@@ -1,8 +1,10 @@
 ﻿namespace WorkResolver.Library
 {
+    using System.Data;
+
     public class ExecutorImpl : IExecutor
     {
-        public void Execute(IConnection con)
+        public void Execute(IDbConnection con)
         {
         }
     }

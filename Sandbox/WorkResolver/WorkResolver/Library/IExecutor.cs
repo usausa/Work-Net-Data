@@ -1,7 +1,9 @@
 ﻿namespace WorkResolver.Library
 {
+    using System.Data;
+
     public interface IExecutor
     {
-        void Execute(IConnection con);
+        void Execute(IDbConnection con);
     }
 }

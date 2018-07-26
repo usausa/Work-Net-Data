@@ -1,6 +1,7 @@
 ﻿namespace WorkResolver.Accessor
 {
     using System;
+    using System.Data;
 
     using WorkResolver.Library;
 
@@ -8,7 +9,7 @@
     {
         private readonly IExecutor executor;
 
-        private readonly Func<IConnection> connectionFactory;
+        private readonly Func<IDbConnection> connectionFactory;
 
         public HogeDaoImpl(IExecutor executor, IConnectionManager connectionManager)
         {

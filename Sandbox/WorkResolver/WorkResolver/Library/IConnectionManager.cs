@@ -1,9 +1,10 @@
 ﻿namespace WorkResolver.Library
 {
     using System;
+    using System.Data;
 
     public interface IConnectionManager
     {
-        Func<IConnection> GetFactory(string name);
+        Func<IDbConnection> GetFactory(string name);
     }
 }
