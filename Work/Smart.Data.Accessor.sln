@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor", "Smart.Data.Accessor\Smart.Data.Accessor.csproj", "{8727490F-526C-4DF0-AA4F-42228E1A3B5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Dapper", "Smart.Data.Accessor.Dapper\Smart.Data.Accessor.Dapper.csproj", "{50584D76-0DEA-438F-8A3A-2144797939A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8727490F-526C-4DF0-AA4F-42228E1A3B5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8727490F-526C-4DF0-AA4F-42228E1A3B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8727490F-526C-4DF0-AA4F-42228E1A3B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8727490F-526C-4DF0-AA4F-42228E1A3B5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50584D76-0DEA-438F-8A3A-2144797939A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50584D76-0DEA-438F-8A3A-2144797939A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50584D76-0DEA-438F-8A3A-2144797939A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50584D76-0DEA-438F-8A3A-2144797939A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0168AD11-E746-4D4A-B82F-9982B3EE8ACD}
+	EndGlobalSection
+EndGlobal
