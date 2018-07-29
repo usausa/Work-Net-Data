@@ -16,6 +16,7 @@
     {
         Comment,
         CodeComment,
+        PragmaComment,
         ParameterComment,
         ReplaceComment,
         Block,
@@ -118,6 +119,11 @@
                     else if (source[current] == '%')
                     {
                         tokenType = TokenType.CodeComment;
+                        current++;
+                    }
+                    else if (source[current] == '!')
+                    {
+                        tokenType = TokenType.PragmaComment;
                         current++;
                     }
                 }
@@ -236,6 +242,7 @@
                 case '\r':
                 case '\n':
                 case '/':
+                case '-':
                     return false;
             }
 
