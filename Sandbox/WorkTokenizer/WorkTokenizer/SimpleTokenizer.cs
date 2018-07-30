@@ -155,7 +155,12 @@
 
         private void Peek1Chars()
         {
-            if (Char.IsWhiteSpace(source[current]))
+            if ((source[current] == '\r') || (source[current] == '\n'))
+            {
+                // EOL
+                current += 1;
+            }
+            else if (Char.IsWhiteSpace(source[current]))
             {
                 // Space
                 current += 1;
@@ -205,11 +210,6 @@
             {
                 // Close
                 tokens.Add(new Token(TokenType.CloseParenthesis, ")"));
-                current += 1;
-            }
-            else if ((source[current] == '\r') || (source[current] == '\n'))
-            {
-                // EOL
                 current += 1;
             }
             else

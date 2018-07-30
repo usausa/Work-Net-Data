@@ -110,13 +110,92 @@ namespace WorkTokenizer.Tests
         // Code
         //--------------------------------------------------------------------------------
 
+        [Fact]
+        public void TestCode()
+        {
+            var tokenizer = new SimpleTokenizer(
+                "/*! System */\r\n" +
+                "SELECT * FROM Employee\r\n" +
+                "/*% if (!String.IsNullOrEmpty(sort)) { */\r\n" +
+                "ORDER BY /*# sort */ Id\r\n" +
+                "/*% } */\r\n");
+            var tokens = tokenizer.Tokenize();
+
+            Assert.Equal(11, tokens.Count);
+            Assert.Equal(TokenType.PragmaComment, tokens[0].TokenType);
+            Assert.Equal("System", tokens[0].Value);
+            Assert.Equal(TokenType.Block, tokens[1].TokenType);
+            Assert.Equal("SELECT", tokens[1].Value);
+            Assert.Equal(TokenType.Block, tokens[2].TokenType);
+            Assert.Equal("*", tokens[2].Value);
+            Assert.Equal(TokenType.Block, tokens[3].TokenType);
+            Assert.Equal("FROM", tokens[3].Value);
+            Assert.Equal(TokenType.Block, tokens[4].TokenType);
+            Assert.Equal("Employee", tokens[4].Value);
+            Assert.Equal(TokenType.CodeComment, tokens[5].TokenType);
+            Assert.Equal("if (!String.IsNullOrEmpty(sort)) {", tokens[5].Value);
+            Assert.Equal(TokenType.Block, tokens[6].TokenType);
+            Assert.Equal("ORDER", tokens[6].Value);
+            Assert.Equal(TokenType.Block, tokens[7].TokenType);
+            Assert.Equal("BY", tokens[7].Value);
+            Assert.Equal(TokenType.ReplaceComment, tokens[8].TokenType);
+            Assert.Equal("sort", tokens[8].Value);
+            Assert.Equal(TokenType.Block, tokens[9].TokenType);
+            Assert.Equal("Id", tokens[9].Value);
+            Assert.Equal(TokenType.CodeComment, tokens[10].TokenType);
+            Assert.Equal("}", tokens[10].Value);
+        }
+
         // TODO pragma, code
 
         //--------------------------------------------------------------------------------
         // Quate
         //--------------------------------------------------------------------------------
 
-        // TODO
+        [Fact]
+        public void TestQuate()
+        {
+            var tokenizer = new SimpleTokenizer("Name = 'abc'");
+            var tokens = tokenizer.Tokenize();
+
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.Block, tokens[0].TokenType);
+            Assert.Equal("Name", tokens[0].Value);
+            Assert.Equal(TokenType.Block, tokens[1].TokenType);
+            Assert.Equal("=", tokens[1].Value);
+            Assert.Equal(TokenType.Block, tokens[2].TokenType);
+            Assert.Equal("'abc'", tokens[2].Value);
+        }
+
+        [Fact]
+        public void TestQuateEscaped()
+        {
+            var tokenizer = new SimpleTokenizer("Name = 'abc'''");
+            var tokens = tokenizer.Tokenize();
+
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.Block, tokens[0].TokenType);
+            Assert.Equal("Name", tokens[0].Value);
+            Assert.Equal(TokenType.Block, tokens[1].TokenType);
+            Assert.Equal("=", tokens[1].Value);
+            Assert.Equal(TokenType.Block, tokens[2].TokenType);
+            Assert.Equal("'abc'''", tokens[2].Value);
+        }
+
+
+        [Fact]
+        public void TestQuateNotClosed()
+        {
+            var tokenizer = new SimpleTokenizer("Name = 'abc");
+            Assert.Throws<TokenizerException>(() => tokenizer.Tokenize());
+        }
+
+        [Fact]
+        public void TestQuateEscapedNotClosed()
+        {
+            var tokenizer = new SimpleTokenizer("Name = 'abc''xyz''");
+            Assert.Throws<TokenizerException>(() => tokenizer.Tokenize());
+        }
 
         //--------------------------------------------------------------------------------
         // EOL
@@ -172,8 +251,6 @@ namespace WorkTokenizer.Tests
             Assert.Equal(TokenType.Block, tokens[3].TokenType);
             Assert.Equal("User", tokens[3].Value);
         }
-
-        // TODO single \r \n ?
 
         //--------------------------------------------------------------------------------
         // Comment
