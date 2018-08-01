@@ -11,7 +11,7 @@
             // TODO use connection
             var factory = new DaoFactory(
                 new ExecutorImpl(),
-                new SingleConnectionManager());
+                new SingleConnectionManager(() => null));
 
             var hogeDao = factory.Create<IHogeDao>();
             hogeDao.Execute();
