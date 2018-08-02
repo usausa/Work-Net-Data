@@ -4,13 +4,11 @@
 
     public sealed class DapperParameter : IParameter
     {
-        private readonly DynamicParameters parameters = new DynamicParameters();
-
-        public object Value => parameters;
+        public DynamicParameters Parameters { get; } = new DynamicParameters();
 
         public void Add(string name, object value)
         {
-            parameters.Add(name, value);
+            Parameters.Add(name, value);
         }
     }
 }

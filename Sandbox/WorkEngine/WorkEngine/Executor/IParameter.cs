@@ -2,8 +2,6 @@
 {
     public interface IParameter
     {
-        object Value { get; }
-
         void Add(string name, object value);
 
         // TODO ?
