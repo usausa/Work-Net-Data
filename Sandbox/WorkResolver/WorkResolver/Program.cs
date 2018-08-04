@@ -2,10 +2,12 @@
 {
     using WorkResolver.Usage;
 
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main()
         {
+            ServiceCollectionUsage.UseSimple();
+            ServiceCollectionUsage.UseMultiple();
             StandardUsage.Use();
         }
     }

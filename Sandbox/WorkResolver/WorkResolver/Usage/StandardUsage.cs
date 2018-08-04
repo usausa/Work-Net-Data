@@ -9,9 +9,10 @@
     {
         public static void Use()
         {
-            var factory = new AccessorFactory(
-                new ExecutorImpl(),
-                new SingleConnectionManager(() => new SqliteConnection("Data Source=:memory:")));
+            var factory = new AccessorFactoryConfig()
+                .UseExecutor(new ExecutorImpl())
+                .UseConnectionManager(new SingleConnectionManager(() => new SqliteConnection("Data Source=:memory:")))
+                .ToAccessorFactory();
 
             var hogeDao = factory.Create<IHogeDao>();
             hogeDao.Execute();

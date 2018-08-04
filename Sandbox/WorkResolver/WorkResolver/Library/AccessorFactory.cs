@@ -2,16 +2,13 @@
 {
     using System;
 
-    public class AccessorFactory
+    public class AccessorFactory : IAccessorFactory
     {
-        private readonly IExecutor executor;
+        private readonly IAccessorFactoryConfig config;
 
-        private readonly IConnectionManager connectionManager;
-
-        public AccessorFactory(IExecutor executor, IConnectionManager connectionManager)
+        public AccessorFactory(IAccessorFactoryConfig config)
         {
-            this.executor = executor;
-            this.connectionManager = connectionManager;
+            this.config = config;
         }
 
         public T Create<T>()
@@ -19,7 +16,7 @@
             var ifType = typeof(T);
             var implName = ifType.Namespace + "." + ifType.Name.Substring(1) + "Impl";
             var implType = ifType.Assembly.GetType(implName);
-            return (T)Activator.CreateInstance(implType, executor, connectionManager);
+            return (T)Activator.CreateInstance(implType, config.Executor, config.ConnectionManager);
         }
     }
 }
