@@ -5,5 +5,7 @@
     public interface IAccessorFactory
     {
         T Create<T>();
+
+        object Create(Type type);
     }
 }

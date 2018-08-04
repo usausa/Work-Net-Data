@@ -13,10 +13,14 @@
 
         public T Create<T>()
         {
-            var ifType = typeof(T);
-            var implName = ifType.Namespace + "." + ifType.Name.Substring(1) + "Impl";
-            var implType = ifType.Assembly.GetType(implName);
-            return (T)Activator.CreateInstance(implType, config.Executor, config.ConnectionManager);
+            return (T)Create(typeof(T));
+        }
+
+        public object Create(Type type)
+        {
+            var implName = type.Namespace + "." + type.Name.Substring(1) + "Impl";
+            var implType = type.Assembly.GetType(implName);
+            return Activator.CreateInstance(implType, config.Executor, config.ConnectionManager);
         }
     }
 }

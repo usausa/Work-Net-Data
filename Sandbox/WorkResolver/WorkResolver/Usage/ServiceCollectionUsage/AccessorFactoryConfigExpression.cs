@@ -4,7 +4,7 @@
 
     using WorkResolver.Library;
 
-    internal sealed class AccessorConfigExpression : IAccessorConfigExpression
+    internal sealed class AccessorFactoryConfigExpression : IAccessorFactoryConfigExpression
     {
         public IExecutor Executor { get; private set; }
 
@@ -18,7 +18,7 @@
 
         public Func<IServiceProvider, IConnectionManager> ConnectionManagerFactory { get; set; }
 
-        public IAccessorConfigExpression UseExecutor<T>() where T : IExecutor
+        public IAccessorFactoryConfigExpression UseExecutor<T>() where T : IExecutor
         {
             Executor = null;
             ExecutorType = typeof(T);
@@ -26,7 +26,7 @@
             return this;
         }
 
-        public IAccessorConfigExpression UseExecutor(IExecutor executor)
+        public IAccessorFactoryConfigExpression UseExecutor(IExecutor executor)
         {
             Executor = executor;
             ExecutorType = null;
@@ -34,7 +34,7 @@
             return this;
         }
 
-        public IAccessorConfigExpression UseExecutor(Func<IServiceProvider, IExecutor> facory)
+        public IAccessorFactoryConfigExpression UseExecutor(Func<IServiceProvider, IExecutor> facory)
         {
             Executor = null;
             ExecutorType = null;
@@ -42,7 +42,7 @@
             return this;
         }
 
-        public IAccessorConfigExpression UseConnectionManager<T>() where T : IConnectionManager
+        public IAccessorFactoryConfigExpression UseConnectionManager<T>() where T : IConnectionManager
         {
             ConnectionManager = null;
             ConnectionManagerType = typeof(T);
@@ -50,7 +50,7 @@
             return this;
         }
 
-        public IAccessorConfigExpression UseConnectionManager(IConnectionManager connectionManager)
+        public IAccessorFactoryConfigExpression UseConnectionManager(IConnectionManager connectionManager)
         {
             ConnectionManager = connectionManager;
             ConnectionManagerType = null;
@@ -58,7 +58,7 @@
             return this;
         }
 
-        public IAccessorConfigExpression UseConnectionManager(Func<IServiceProvider, IConnectionManager> facory)
+        public IAccessorFactoryConfigExpression UseConnectionManager(Func<IServiceProvider, IConnectionManager> facory)
         {
             ConnectionManager = null;
             ConnectionManagerType = null;

@@ -20,10 +20,10 @@
             services.AddSingleton<IConnectionFactory>(p =>
                 new CallbackConnectionFactory(() => new SqliteConnection("Data Source=:memory:")));
 
-            services.AddAccessorFactory(config =>
+            services.AddAccessorFactory(c =>
             {
-                config.UseExecutor<ExecutorImpl>();
-                config.UseConnectionManager<ConnectionFactoryConnectionManager>();
+                c.UseExecutor<ExecutorImpl>();
+                c.UseConnectionManager<ConnectionFactoryConnectionManager>();
             });
 
             services.AddSingleton<Service>();
@@ -38,12 +38,12 @@
         {
             var services = new ServiceCollection();
 
-            services.AddAccessorFactory(config =>
+            services.AddAccessorFactory(c =>
             {
-                config.UseExecutor<ExecutorImpl>();
-                config.UseConnectionManager(new MultipleConnectionManager(new Dictionary<string, Func<IDbConnection>>
+                c.UseExecutor<ExecutorImpl>();
+                c.UseConnectionManager(new MultipleConnectionManager(new Dictionary<string, Func<IDbConnection>>
                 {
-                    { "", () => new SqliteConnection("Data Source=:memory:") }
+                    { string.Empty, () => new SqliteConnection("Data Source=:memory:") }
                 }));
             });
 

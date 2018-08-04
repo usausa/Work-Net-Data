@@ -13,10 +13,10 @@
             return services.AddAccessorFactory(config => { });
         }
 
-        public static IServiceCollection AddAccessorFactory(this IServiceCollection services, Action<IAccessorConfigExpression> config)
+        public static IServiceCollection AddAccessorFactory(this IServiceCollection services, Action<IAccessorFactoryConfigExpression> action)
         {
-            var expression = new AccessorConfigExpression();
-            config(expression);
+            var expression = new AccessorFactoryConfigExpression();
+            action(expression);
 
             if (expression.Executor != null)
             {
