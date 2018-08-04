@@ -1,14 +1,13 @@
 ﻿namespace WorkResolver
 {
-    using WorkResolver.Usage;
-
     public static class Program
     {
         public static void Main()
         {
-            ServiceCollectionUsage.UseSimple();
-            ServiceCollectionUsage.UseMultiple();
-            StandardUsage.Use();
+            //WorkResolver.Usage.SmartResolverUsage.Usage.UseSimple();
+            WorkResolver.Usage.ServiceCollectionUsage.Usage.UseSimple();
+            WorkResolver.Usage.ServiceCollectionUsage.Usage.UseMultiple();
+            WorkResolver.Usage.StandardUsage.Usage.Use();
         }
     }
 }

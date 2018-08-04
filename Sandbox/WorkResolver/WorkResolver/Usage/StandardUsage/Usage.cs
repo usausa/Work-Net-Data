@@ -1,11 +1,11 @@
-﻿namespace WorkResolver.Usage
+﻿namespace WorkResolver.Usage.StandardUsage
 {
     using Microsoft.Data.Sqlite;
 
     using WorkResolver.Accessor;
     using WorkResolver.Library;
 
-    public static class StandardUsage
+    public static class Usage
     {
         public static void Use()
         {
