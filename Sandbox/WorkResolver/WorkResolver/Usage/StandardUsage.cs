@@ -1,5 +1,7 @@
 ﻿namespace WorkResolver.Usage
 {
+    using Microsoft.Data.Sqlite;
+
     using WorkResolver.Accessor;
     using WorkResolver.Library;
 
@@ -7,11 +9,9 @@
     {
         public static void Use()
         {
-            // TODO use executor
-            // TODO use connection
-            var factory = new DaoFactory(
+            var factory = new AccessorFactory(
                 new ExecutorImpl(),
-                new SingleConnectionManager(() => null));
+                new SingleConnectionManager(() => new SqliteConnection("Data Source=:memory:")));
 
             var hogeDao = factory.Create<IHogeDao>();
             hogeDao.Execute();

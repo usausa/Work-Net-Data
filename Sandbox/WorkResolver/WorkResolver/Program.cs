@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace WorkResolver
+﻿namespace WorkResolver
 {
+    using WorkResolver.Usage;
+
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            StandardUsage.Use();
         }
     }
 }
