@@ -9,21 +9,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Dapper"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Tests", "Smart.Data.Accessor.Tests\Smart.Data.Accessor.Tests.csproj", "{C6A74F79-2256-4618-B4CB-4932D5E6F9CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Generator.App", "Smart.Data.Accessor.Generator.App\Smart.Data.Accessor.Generator.App.csproj", "{44CFBDD7-8E4B-49F5-BA30-D9F8341025B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Generator.App", "Smart.Data.Accessor.Generator.App\Smart.Data.Accessor.Generator.App.csproj", "{44CFBDD7-8E4B-49F5-BA30-D9F8341025B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Generator.Core", "Smart.Data.Accessor.Generator.Core\Smart.Data.Accessor.Generator.Core.csproj", "{2D1891C1-7C96-44D8-B702-411DD9F212E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Generator.Core", "Smart.Data.Accessor.Generator.Core\Smart.Data.Accessor.Generator.Core.csproj", "{2D1891C1-7C96-44D8-B702-411DD9F212E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Generator.BuildTasks", "Smart.Data.Accessor.Generator.BuildTasks\Smart.Data.Accessor.Generator.BuildTasks.csproj", "{E4600F0B-2723-4C32-9C62-B9C7BD1B0CF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Generator.BuildTasks", "Smart.Data.Accessor.Generator.BuildTasks\Smart.Data.Accessor.Generator.BuildTasks.csproj", "{E4600F0B-2723-4C32-9C62-B9C7BD1B0CF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Generator", "Generator", "{666F2965-B607-4B31-86A9-A4FE8DFDB6C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Resolver", "Smart.Data.Accessor.Resolver\Smart.Data.Accessor.Resolver.csproj", "{2B842ABF-406A-49FC-AB41-7D9E192983B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Resolver", "Smart.Data.Accessor.Resolver\Smart.Data.Accessor.Resolver.csproj", "{2B842ABF-406A-49FC-AB41-7D9E192983B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{DC49C6BF-E597-423C-B3D2-DA71B8DF718D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{67E5FF82-B35F-4C1A-BB16-111BE91316FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.DependencyInjection", "Smart.Data.Accessor.DependencyInjection\Smart.Data.Accessor.DependencyInjection.csproj", "{FE613659-E207-48F5-A97E-2315C8F93065}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.DependencyInjection", "Smart.Data.Accessor.DependencyInjection\Smart.Data.Accessor.DependencyInjection.csproj", "{FE613659-E207-48F5-A97E-2315C8F93065}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AA756B05-4507-4389-B820-C9A4AAF2CB9F}"
+	ProjectSection(SolutionItems) = preProject
+		Smart.Data.Accessor.ruleset = Smart.Data.Accessor.ruleset
+		Smart.Data.Accessor.sln.DotSettings = Smart.Data.Accessor.sln.DotSettings
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
