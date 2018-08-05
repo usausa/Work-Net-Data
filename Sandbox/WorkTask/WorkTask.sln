@@ -3,13 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkTask", "WorkTask\WorkTask.csproj", "{10987471-EA65-4A4A-B34A-DD0EF303FBF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTask", "WorkTask\WorkTask.csproj", "{10987471-EA65-4A4A-B34A-DD0EF303FBF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkTaskSampleStandard", "WorkTaskSampleStandard\WorkTaskSampleStandard.csproj", "{B0A44F60-7C62-43B8-A35E-3552DFB9CF8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTaskSampleStandard", "WorkTaskSampleStandard\WorkTaskSampleStandard.csproj", "{B0A44F60-7C62-43B8-A35E-3552DFB9CF8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkTaskSampleCore", "WorkTaskSampleCore\WorkTaskSampleCore.csproj", "{CA1377EE-4B3F-42D9-8688-4311A7A0CF5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTaskSampleCore", "WorkTaskSampleCore\WorkTaskSampleCore.csproj", "{CA1377EE-4B3F-42D9-8688-4311A7A0CF5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkTaskSampleNet", "WorkTaskSampleNet\WorkTaskSampleNet.csproj", "{C7E0C9B7-FF3A-40D9-9CA1-4DB3D9CB5947}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{73035095-3977-4D9B-B892-066388412871}"
+	ProjectSection(SolutionItems) = preProject
+		WorkTask.targets = WorkTask.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
