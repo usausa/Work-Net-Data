@@ -6,13 +6,26 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(MSBuildProjectDirectory)obj\$(Configuration)\</IntermediateOutputPath>
+	<!--
+	<TaskFolder Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</TaskFolder>
+    <TaskFolder Condition="'$(MSBuildRuntimeType)' != 'Core'">net46</TaskFolder>
+    <TaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(TaskFolder)\WorkTask.dll</TaskAssembly>
+	-->
+    <TaskAssembly>$(MSBuildProjectDirectory)\..\WorkTask\bin\Release\netstandard2.0\WorkTask.dll</TaskAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="WorkTask.WorkBuildTask" AssemblyFile="$(TaskAssembly)" />
+
+  <PropertyGroup>
+    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(MSBuildProjectDirectory)\obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
   <Target Name="GenerateWork" BeforeTargets="CoreCompile">
-<!--
-    TODO
--->
+
+	<Message Text="$(MSBuildRuntimeType)" />
+
+	<!-- TODO -->
+    <WorkBuildTask SourceFiles="@(Compile)" OutputFile="$(IntermediateOutputPath)\WorkGenerate.g.cs" />
 
     <Message Text="Work generated" />
 
