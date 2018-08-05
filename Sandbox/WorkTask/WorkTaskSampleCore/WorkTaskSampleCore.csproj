@@ -5,6 +5,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <WorkBuildBaseDirectory>$(MSBuildProjectDirectory)\Dao</WorkBuildBaseDirectory>
+  </PropertyGroup>
+
   <Import Project="..\WorkTask.targets"/>  
 
 </Project>
