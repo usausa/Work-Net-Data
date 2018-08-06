@@ -8,6 +8,15 @@
 
     public sealed class DapperExecutor : IExecutor
     {
+        // Parameter
+
+        public IParameter CreateParameter()
+        {
+            return new DapperParameter();
+        }
+
+        // Sync
+
         public int Execute(IDbConnection con, string sql, IParameter parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null)
         {
             return con.Execute(sql, (parameter as DapperParameter)?.Parameters, tx, timeout, commandType);

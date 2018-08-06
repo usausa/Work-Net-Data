@@ -6,6 +6,12 @@
 
     public interface IExecutor
     {
+        // Parameter
+
+        IParameter CreateParameter();
+
+        // Sync
+
         int Execute(IDbConnection con, string sql, IParameter parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null);
 
         T ExecuteScalar<T>(IDbConnection con, string sql, IParameter parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null);
