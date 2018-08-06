@@ -3,7 +3,7 @@
     using System;
 
     [Serializable]
-    public class AccessorException : Exception
+    public sealed class AccessorException : Exception
     {
         public AccessorException()
         {

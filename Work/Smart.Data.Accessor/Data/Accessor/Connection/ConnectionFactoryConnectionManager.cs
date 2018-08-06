@@ -3,7 +3,7 @@
     using System;
     using System.Data;
 
-    public class ConnectionFactoryConnectionManager : IConnectionManager
+    public sealed class ConnectionFactoryConnectionManager : IConnectionManager
     {
         private readonly IConnectionFactory factory;
 

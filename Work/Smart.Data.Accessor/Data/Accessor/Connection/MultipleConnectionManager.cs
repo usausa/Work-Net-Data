@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Data;
 
-    public class MultipleConnectionManager : IConnectionManager
+    public sealed class MultipleConnectionManager : IConnectionManager
     {
         private readonly IDictionary<string, Func<IDbConnection>> factories;
 

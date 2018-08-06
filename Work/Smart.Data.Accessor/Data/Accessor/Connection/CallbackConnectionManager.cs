@@ -3,7 +3,7 @@
     using System;
     using System.Data;
 
-    public class CallbackConnectionManager : IConnectionManager
+    public sealed class CallbackConnectionManager : IConnectionManager
     {
         private readonly Func<string, Func<IDbConnection>> callback;
 

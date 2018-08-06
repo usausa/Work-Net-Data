@@ -3,7 +3,7 @@
     using Smart.Data.Accessor.Connection;
     using Smart.Data.Accessor.Executor;
 
-    public class AccessorFactoryConfig : IAccessorFactoryConfig
+    public sealed class AccessorFactoryConfig : IAccessorFactoryConfig
     {
         public IExecutor Executor { get; private set; }
 

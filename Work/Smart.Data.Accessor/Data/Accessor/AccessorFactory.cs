@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class AccessorFactory : IAccessorFactory
+    public sealed class AccessorFactory : IAccessorFactory
     {
         private readonly IAccessorFactoryConfig config;
 

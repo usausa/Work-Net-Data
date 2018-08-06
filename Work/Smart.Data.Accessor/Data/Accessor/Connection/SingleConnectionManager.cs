@@ -3,7 +3,7 @@
     using System;
     using System.Data;
 
-    public class SingleConnectionManager : IConnectionManager
+    public sealed class SingleConnectionManager : IConnectionManager
     {
         private readonly Func<IDbConnection> func;
 
