@@ -5,6 +5,7 @@
     <LangVersion>latest</LangVersion>
     <CodeAnalysisRuleSet>..\Smart.Data.Accessor.ruleset</CodeAnalysisRuleSet>
     <Version>0.0.1</Version>
+    <RootNamespace>Smart</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
