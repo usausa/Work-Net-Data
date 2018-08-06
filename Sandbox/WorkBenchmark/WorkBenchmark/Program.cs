@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Text;
 using Dapper;
 
 namespace WorkBenchmark
@@ -80,9 +81,46 @@ namespace WorkBenchmark
 
     public sealed class ManualBenchmarkDao : IBenchmarkDao
     {
+        private readonly Func<IDbConnection> factory;
+
+        public ManualBenchmarkDao(Func<IDbConnection> factory)
+        {
+            this.factory = factory;
+        }
+
         public DataEntity QueryFirstOrDefault(int? id)
         {
-            throw new NotImplementedException();
+            var sql = new StringBuilder(32);
+            sql.Append("SELECT * FROM Data");
+            if (id != null)
+            {
+                sql.Append(" WHERE id = @id");
+            }
+
+            using (var con = factory())
+            {
+                return con.QueryFirstOrDefault<DataEntity>(sql.ToString(), new { id });
+            }
+        }
+    }
+
+    public interface IConnectionManager
+    {
+        Func<IDbConnection> GetFactory(string name);
+    }
+
+    public sealed class SingleConnectionManager : IConnectionManager
+    {
+        private readonly Func<IDbConnection> func;
+
+        public SingleConnectionManager(Func<IDbConnection> func)
+        {
+            this.func = func;
+        }
+
+        public Func<IDbConnection> GetFactory(string name)
+        {
+            return func;
         }
     }
 
