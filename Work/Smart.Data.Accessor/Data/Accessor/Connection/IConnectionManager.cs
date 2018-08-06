@@ -1,0 +1,10 @@
+﻿namespace Smart.Data.Accessor.Connection
+{
+    using System;
+    using System.Data;
+
+    public interface IConnectionManager
+    {
+        Func<IDbConnection> GetFactory(string name);
+    }
+}
