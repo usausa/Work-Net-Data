@@ -31,6 +31,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Smart.Data.Accessor.sln.DotSettings = Smart.Data.Accessor.sln.DotSettings
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark", "Benchmark", "{63F0DDA7-1034-4994-9C58-D1B24EA3998B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Data.Accessor.Benchmark", "Smart.Data.Accessor.Benchmark\Smart.Data.Accessor.Benchmark.csproj", "{B0917F08-6622-4B23-B41B-91C8F40ED532}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,10 @@ Global
 		{FE613659-E207-48F5-A97E-2315C8F93065}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE613659-E207-48F5-A97E-2315C8F93065}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE613659-E207-48F5-A97E-2315C8F93065}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0917F08-6622-4B23-B41B-91C8F40ED532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0917F08-6622-4B23-B41B-91C8F40ED532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0917F08-6622-4B23-B41B-91C8F40ED532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0917F08-6622-4B23-B41B-91C8F40ED532}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +90,7 @@ Global
 		{E4600F0B-2723-4C32-9C62-B9C7BD1B0CF8} = {666F2965-B607-4B31-86A9-A4FE8DFDB6C1}
 		{2B842ABF-406A-49FC-AB41-7D9E192983B1} = {67E5FF82-B35F-4C1A-BB16-111BE91316FD}
 		{FE613659-E207-48F5-A97E-2315C8F93065} = {67E5FF82-B35F-4C1A-BB16-111BE91316FD}
+		{B0917F08-6622-4B23-B41B-91C8F40ED532} = {63F0DDA7-1034-4994-9C58-D1B24EA3998B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0168AD11-E746-4D4A-B82F-9982B3EE8ACD}
