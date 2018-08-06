@@ -3,7 +3,7 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ExecuteAttribute : Attribute
+    public sealed class ExecuteAttribute : Attribute, IExecutorAttribute
     {
         public string Text { get; }
 

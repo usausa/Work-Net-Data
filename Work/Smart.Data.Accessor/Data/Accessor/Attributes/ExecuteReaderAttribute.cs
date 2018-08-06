@@ -3,11 +3,11 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class QueryAttribute : Attribute, IExecutorAttribute
+    public sealed class ExecuteReaderAttribute : Attribute, IExecutorAttribute
     {
         public string Text { get; }
 
-        public QueryAttribute(string text)
+        public ExecuteReaderAttribute(string text)
         {
             Text = text;
         }

@@ -3,11 +3,11 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class QueryAttribute : Attribute, IExecutorAttribute
+    public sealed class ExecuteScalarAttribute : Attribute, IExecutorAttribute
     {
         public string Text { get; }
 
-        public QueryAttribute(string text)
+        public ExecuteScalarAttribute(string text)
         {
             Text = text;
         }
