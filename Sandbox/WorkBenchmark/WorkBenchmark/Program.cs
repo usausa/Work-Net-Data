@@ -1,10 +1,11 @@
-﻿using System.Data;
-using System.Text;
-using Dapper;
-
-namespace WorkBenchmark
+﻿namespace WorkBenchmark
 {
     using System;
+    using System.Data;
+    using System.IO;
+    using System.Text;
+
+    using Dapper;
 
     using BenchmarkDotNet.Attributes;
     using BenchmarkDotNet.Configs;
@@ -12,6 +13,8 @@ namespace WorkBenchmark
     using BenchmarkDotNet.Exporters;
     using BenchmarkDotNet.Jobs;
     using BenchmarkDotNet.Running;
+
+    using Microsoft.Data.Sqlite;
 
     public static class Program
     {
@@ -34,18 +37,34 @@ namespace WorkBenchmark
     [Config(typeof(BenchmarkConfig))]
     public class Benchmark
     {
-        private const int N = 10000;
+        private const int N = 1000;
+
+        private IBenchmarkDao manualDao;
+
+        private IBenchmarkDao generatedDao;
 
         [GlobalSetup]
         public void Setup()
         {
-            // TODO
-        }
+            File.Delete("data.db");
+            using (var con = new SqliteConnection("Data Source=data.db"))
+            {
+                con.Open();
 
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            // TODO
+                con.Execute("CREATE TABLE Data(Id INTEGER NOT NULL, Name TEXT NOT NULL, PRIMARY KEY(Id))");
+                using (var tx = con.BeginTransaction())
+                {
+                    for (var i = 0; i < N; i++)
+                    {
+                        con.Execute("INSERT INTO Data(Id, Name) VALUES (@Id, @Name)", new { Id = i, Name = $"Name-{i}" });
+                    }
+
+                    tx.Commit();
+                }
+            }
+
+            manualDao = new ManualBenchmarkDao(() => new SqliteConnection("Data Source=data.db"));
+            generatedDao = new GeneratedBenchmarkDao(new DapperExecutor(), new SingleConnectionManager(() => new SqliteConnection("Data Source=data.db")));
         }
 
         [Benchmark(OperationsPerInvoke = N)]
@@ -53,7 +72,7 @@ namespace WorkBenchmark
         {
             for (var i = 0; i < N; i++)
             {
-                // TODO
+                manualDao.QueryFirstOrDefault(i);
             }
         }
 
@@ -62,7 +81,7 @@ namespace WorkBenchmark
         {
             for (var i = 0; i < N; i++)
             {
-                // TODO
+                generatedDao.QueryFirstOrDefault(i);
             }
         }
     }
@@ -71,7 +90,7 @@ namespace WorkBenchmark
     {
         public int Id { get; set; }
 
-        public string Text { get; set; }
+        public string Name { get; set; }
     }
 
     public interface IBenchmarkDao
@@ -161,9 +180,32 @@ namespace WorkBenchmark
 
     public sealed class GeneratedBenchmarkDao : IBenchmarkDao
     {
+        private readonly IExecutor executor;
+
+        private readonly Func<IDbConnection> factory;
+
+        public GeneratedBenchmarkDao(IExecutor executor, IConnectionManager connectionManager)
+        {
+            this.executor = executor;
+            factory = connectionManager.GetFactory(string.Empty);
+        }
+
         public DataEntity QueryFirstOrDefault(int? id)
         {
-            throw new NotImplementedException();
+            var parameter = executor.CreateParameter();
+            var sql = new StringBuilder(32);
+
+            sql.Append("SELECT * FROM Data");
+            if (id != null)
+            {
+                sql.Append(" WHERE id = @id");
+                parameter.Add("id", id);
+            }
+
+            using (var con = factory())
+            {
+                return executor.QueryFirstOrDefault<DataEntity>(con, sql.ToString(), parameter);
+            }
         }
     }
 }
