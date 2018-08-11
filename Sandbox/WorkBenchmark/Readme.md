@@ -11,8 +11,11 @@ Job=MediumRun  IterationCount=15  LaunchCount=2
 WarmupCount=10  
 
 ```
-|           Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
-|----------------- |---------:|---------:|---------:|-------:|----------:|
-|     SimpleManual | 386.8 us | 1.463 us | 2.190 us | 0.9000 |   4.07 KB |
-|  SimpleGenerated | 407.8 us | 2.776 us | 4.069 us | 0.9000 |   4.07 KB |
-| SimpleGenerated2 | 412.2 us | 2.822 us | 4.137 us | 1.1000 |   4.55 KB |
+|           Method |      Mean |      Error |     StdDev |  Gen 0 |  Gen 1 | Allocated |
+|----------------- |----------:|-----------:|-----------:|-------:|-------:|----------:|
+|       FileManual | 389.88 us |  2.2694 us |  3.3967 us | 0.9000 |      - |   4.08 KB |
+|    FileGenerated | 405.15 us |  4.7787 us |  7.0046 us | 0.9000 |      - |   4.08 KB |
+|   FileGenerated2 | 423.10 us | 10.7775 us | 15.4568 us | 1.1000 |      - |   4.57 KB |
+|     MemoryManual |  10.33 us |  0.4239 us |  0.6213 us | 0.5333 | 0.1000 |    2.2 KB |
+|  MemoryGenerated |  10.78 us |  0.2058 us |  0.3081 us | 0.5200 | 0.1200 |    2.2 KB |
+| MemoryGenerated2 |  13.05 us |  0.2195 us |  0.3286 us | 0.6333 | 0.1333 |   2.69 KB |
