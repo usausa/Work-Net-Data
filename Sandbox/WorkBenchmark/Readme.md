@@ -13,5 +13,6 @@ WarmupCount=10
 ```
 |           Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
 |----------------- |---------:|---------:|---------:|-------:|----------:|
-|     SimpleManual | 384.6 us | 2.924 us | 4.376 us | 0.9000 |   4.07 KB |
-|  SimpleGenerated | 392.9 us | 1.333 us | 1.995 us | 1.1000 |   4.55 KB |
+|     SimpleManual | 386.8 us | 1.463 us | 2.190 us | 0.9000 |   4.07 KB |
+|  SimpleGenerated | 407.8 us | 2.776 us | 4.069 us | 0.9000 |   4.07 KB |
+| SimpleGenerated2 | 412.2 us | 2.822 us | 4.137 us | 1.1000 |   4.55 KB |

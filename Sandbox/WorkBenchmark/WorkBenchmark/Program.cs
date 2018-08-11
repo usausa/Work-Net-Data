@@ -43,6 +43,8 @@
 
         private IBenchmarkDao generatedDao;
 
+        private IBenchmarkDao generatedDao2;
+
         [GlobalSetup]
         public void Setup()
         {
@@ -65,6 +67,7 @@
 
             manualDao = new ManualBenchmarkDao(() => new SqliteConnection("Data Source=data.db"));
             generatedDao = new GeneratedBenchmarkDao(new DapperExecutor(), new SingleConnectionManager(() => new SqliteConnection("Data Source=data.db")));
+            generatedDao2 = new GeneratedBenchmarkDao2(new DapperExecutor(), new SingleConnectionManager(() => new SqliteConnection("Data Source=data.db")));
         }
 
         [Benchmark(OperationsPerInvoke = N)]
@@ -82,6 +85,15 @@
             for (var i = 0; i < N; i++)
             {
                 generatedDao.QueryFirstOrDefault(i);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = N)]
+        public void SimpleGenerated2()
+        {
+            for (var i = 0; i < N; i++)
+            {
+                generatedDao2.QueryFirstOrDefault(i);
             }
         }
     }
@@ -152,6 +164,8 @@
     {
         IParameter CreateParameter();
 
+        T QueryFirstOrDefault<T>(IDbConnection con, string sql, object parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null);
+
         T QueryFirstOrDefault<T>(IDbConnection con, string sql, IParameter parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null);
     }
 
@@ -172,6 +186,11 @@
             return new DapperParameter();
         }
 
+        public T QueryFirstOrDefault<T>(IDbConnection con, string sql, object parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null)
+        {
+            return con.QueryFirstOrDefault<T>(sql, parameter, tx, timeout, commandType);
+        }
+
         public T QueryFirstOrDefault<T>(IDbConnection con, string sql, IParameter parameter = null, IDbTransaction tx = null, int? timeout = null, CommandType? commandType = null)
         {
             return con.QueryFirstOrDefault<T>(sql, (parameter as DapperParameter)?.Parameters, tx, timeout, commandType);
@@ -185,6 +204,35 @@
         private readonly Func<IDbConnection> factory;
 
         public GeneratedBenchmarkDao(IExecutor executor, IConnectionManager connectionManager)
+        {
+            this.executor = executor;
+            factory = connectionManager.GetFactory(string.Empty);
+        }
+
+        public DataEntity QueryFirstOrDefault(int? id)
+        {
+            var sql = new StringBuilder(32);
+
+            sql.Append("SELECT * FROM Data");
+            if (id != null)
+            {
+                sql.Append(" WHERE id = @id");
+            }
+
+            using (var con = factory())
+            {
+                return executor.QueryFirstOrDefault<DataEntity>(con, sql.ToString(), new { id });
+            }
+        }
+    }
+
+    public sealed class GeneratedBenchmarkDao2 : IBenchmarkDao
+    {
+        private readonly IExecutor executor;
+
+        private readonly Func<IDbConnection> factory;
+
+        public GeneratedBenchmarkDao2(IExecutor executor, IConnectionManager connectionManager)
         {
             this.executor = executor;
             factory = connectionManager.GetFactory(string.Empty);
