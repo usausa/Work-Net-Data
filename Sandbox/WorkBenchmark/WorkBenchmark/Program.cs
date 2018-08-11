@@ -41,8 +41,6 @@
 
         private const string MemoryConnectionString = "Data Source=bench;Mode=memory";
 
-        private const int N = 10000;
-
         private IBenchmarkDao manualDao;
 
         private IBenchmarkDao generatedDao;
@@ -85,7 +83,7 @@
             con.Execute("CREATE TABLE Data(Id INTEGER NOT NULL, Name TEXT NOT NULL, PRIMARY KEY(Id))");
             using (var tx = con.BeginTransaction())
             {
-                for (var i = 0; i < N; i++)
+                for (var i = 0; i < 10000; i++)
                 {
                     con.Execute("INSERT INTO Data(Id, Name) VALUES (@Id, @Name)", new { Id = i, Name = $"Name-{i}" });
                 }
@@ -100,58 +98,40 @@
             memoryCon.Close();
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void FileManual()
         {
-            for (var i = 0; i < N; i++)
-            {
-                manualDao.QueryFirstOrDefault(i);
-            }
+            manualDao.QueryFirstOrDefault(1000);
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void FileGenerated()
         {
-            for (var i = 0; i < N; i++)
-            {
-                generatedDao.QueryFirstOrDefault(i);
-            }
+            generatedDao.QueryFirstOrDefault(1000);
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void FileGenerated2()
         {
-            for (var i = 0; i < N; i++)
-            {
-                generatedDao2.QueryFirstOrDefault(i);
-            }
+            generatedDao2.QueryFirstOrDefault(1000);
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void MemoryManual()
         {
-            for (var i = 0; i < N; i++)
-            {
-                memoryManualDao.QueryFirstOrDefault(i);
-            }
+            memoryManualDao.QueryFirstOrDefault(1000);
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void MemoryGenerated()
         {
-            for (var i = 0; i < N; i++)
-            {
-                memoryGeneratedDao.QueryFirstOrDefault(i);
-            }
+            memoryGeneratedDao.QueryFirstOrDefault(1000);
         }
 
-        [Benchmark(OperationsPerInvoke = N)]
+        [Benchmark]
         public void MemoryGenerated2()
         {
-            for (var i = 0; i < N; i++)
-            {
-                memoryGeneratedDao2.QueryFirstOrDefault(i);
-            }
+            memoryGeneratedDao2.QueryFirstOrDefault(1000);
         }
     }
 
