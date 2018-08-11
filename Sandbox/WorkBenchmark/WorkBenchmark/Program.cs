@@ -37,7 +37,7 @@
     [Config(typeof(BenchmarkConfig))]
     public class Benchmark
     {
-        private const int N = 1000;
+        private const int N = 10000;
 
         private IBenchmarkDao manualDao;
 
