@@ -10,6 +10,6 @@
         HogeEntity QueryHoge(int id);
 
         [Execute("UpdateHoge.sql")]
-        int UpdateHoge(HogeEntity entity);
+        int UpdateHoge(HogeEntity entity, [Timeout] int timeout);
     }
 }

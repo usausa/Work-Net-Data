@@ -1,12 +1,17 @@
-﻿using System;
-
-namespace WorkGenerator
+﻿namespace WorkGenerator
 {
-    class Program
+    using System.IO;
+
+    using WorkGenerator.Generators.Misc;
+
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var source = File.ReadAllText("ISampleDao.cs");
+            var generator = new MiscCodeGenerator(source);
+
+            generator.Test();
         }
     }
 }
