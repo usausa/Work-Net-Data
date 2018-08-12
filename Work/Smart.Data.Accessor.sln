@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Smart.Data.Accessor.ruleset = Smart.Data.Accessor.ruleset
 		Smart.Data.Accessor.sln.DotSettings = Smart.Data.Accessor.sln.DotSettings
+		Smart.Data.Accessor.targets = Smart.Data.Accessor.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark", "Benchmark", "{63F0DDA7-1034-4994-9C58-D1B24EA3998B}"
