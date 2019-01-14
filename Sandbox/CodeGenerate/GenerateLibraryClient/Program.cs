@@ -1,6 +1,6 @@
 ﻿namespace GenerateLibraryClient
 {
-    using System.Diagnostics;
+    using System;
 
     using GenerateLibrary;
     using GenerateLibraryClient.Service;
@@ -10,10 +10,11 @@
         public static void Main(string[] args)
         {
             var builder = new Builder();
+            var factory = builder.ToFactory(typeof(IService));
+            var service = factory.Create<IService>();
 
-            var service = builder.Build<IService>();
-            Debug.WriteLine(service.Method1("test", false));
-            Debug.WriteLine(service.Method2(null));
+            Console.WriteLine(service.Method1("test", false));
+            Console.WriteLine(service.Method2(null));
         }
     }
 

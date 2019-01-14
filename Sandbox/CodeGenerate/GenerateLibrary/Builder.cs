@@ -1,11 +1,13 @@
 ﻿namespace GenerateLibrary
 {
+    using System;
+
     public class Builder
     {
-        public T Build<T>()
+        public Factory ToFactory(Type type)
         {
             // TODO
-            return default(T);
+            return new Factory(null, new Engine());
         }
     }
 }
