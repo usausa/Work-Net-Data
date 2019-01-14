@@ -9,8 +9,9 @@
     {
         public static void Main(string[] args)
         {
-            var builder = new Builder();
-            var factory = builder.ToFactory(typeof(IService));
+            var builder = new Builder("InMemoryAssembly")
+                .AddType(typeof(IService));
+            var factory = builder.ToFactory();
             var service = factory.Create<IService>();
 
             Console.WriteLine(service.Method1("test", false));
