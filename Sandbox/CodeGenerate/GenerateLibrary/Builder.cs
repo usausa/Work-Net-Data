@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -72,13 +73,31 @@ namespace GenerateLibrary
         private IEnumerable<Type> GatherTypes(Type type)
         {
             yield return type;
-            // TODO
+            yield return type.BaseType;
+
+            foreach (var propertyInfo in type.GetProperties())
+            {
+                yield return propertyInfo.PropertyType;
+            }
+
+            foreach (var methodInfo in type.GetMethods())
+            {
+                yield return methodInfo.ReturnType;
+                foreach (var parameterInfo in methodInfo.GetParameters())
+                {
+                    yield return parameterInfo.ParameterType;
+                }
+            }
+
+            // TODO Generic, Attribute?
         }
 
         private string GenerateSource(Type type)
         {
+            var source = new StringBuilder();
+
             // TODO
-            return "";
+            return source.ToString();
         }
     }
 }
