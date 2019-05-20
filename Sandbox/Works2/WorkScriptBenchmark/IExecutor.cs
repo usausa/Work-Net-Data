@@ -1,6 +1,6 @@
 ﻿namespace WorkScriptBenchmark
 {
-    public interface IExecutor
+    public interface IFactory
     {
         object Create();
     }

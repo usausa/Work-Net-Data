@@ -1,17 +1,13 @@
-﻿using WorkLibrary;
-
-namespace WorkScriptBenchmark
+﻿namespace WorkScriptBenchmark
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Reflection;
-
     using BenchmarkDotNet.Attributes;
     using BenchmarkDotNet.Configs;
     using BenchmarkDotNet.Diagnosers;
     using BenchmarkDotNet.Exporters;
     using BenchmarkDotNet.Jobs;
     using BenchmarkDotNet.Running;
+
+    using WorkLibrary;
 
     public static class Program
     {
@@ -34,30 +30,31 @@ namespace WorkScriptBenchmark
     [Config(typeof(BenchmarkConfig))]
     public class Benchmark
     {
-        private IExecutor preCompiled;
+        private IFactory preCompiled;
 
-        //private IExecutor runtimeCompiled;
+        private IFactory runtimeCompiled;
 
         [GlobalSetup]
         public void Setup()
         {
-            preCompiled = new PreCompiledExecutor(new Engine());
+            preCompiled = new PreCompiledFactory(new Engine());
 
-            // TODO
+            var generator = new Generator();
+            runtimeCompiled = generator.Create<IFactory>();
         }
 
         [Benchmark]
         public object PreCompiled() => preCompiled.Create();
 
-        //[Benchmark]
-        //public object RuntimeCompiled() => runtimeCompiled.Create();
+        [Benchmark]
+        public object RuntimeCompiled() => runtimeCompiled.Create();
     }
 
-    public sealed class PreCompiledExecutor : IExecutor
+    public sealed class PreCompiledFactory : IFactory
     {
         private readonly Engine engine;
 
-        public PreCompiledExecutor(Engine engine)
+        public PreCompiledFactory(Engine engine)
         {
             this.engine = engine;
         }
