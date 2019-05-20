@@ -2,6 +2,6 @@
 {
     public interface IExecutor
     {
-        object Create();
+        int Add(int x, int y);
     }
 }
