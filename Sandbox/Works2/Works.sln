@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkLibrary", "WorkLibrary\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenScript", "GenScript", "{F0C76E2F-0860-490F-8637-A5FDB122E81F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkRuntime", "WorkRuntime\WorkRuntime.csproj", "{C98C484F-B7CF-4120-B8EF-B2A04F60FA77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkRuntimeLibrary", "WorkRuntimeLibrary\WorkRuntimeLibrary.csproj", "{BC889609-B50F-4D85-AA35-78123BCFD536}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +51,14 @@ Global
 		{6EDEE1D7-5FE5-414D-837B-415F11129712}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EDEE1D7-5FE5-414D-837B-415F11129712}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EDEE1D7-5FE5-414D-837B-415F11129712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C98C484F-B7CF-4120-B8EF-B2A04F60FA77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C98C484F-B7CF-4120-B8EF-B2A04F60FA77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C98C484F-B7CF-4120-B8EF-B2A04F60FA77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C98C484F-B7CF-4120-B8EF-B2A04F60FA77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC889609-B50F-4D85-AA35-78123BCFD536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC889609-B50F-4D85-AA35-78123BCFD536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC889609-B50F-4D85-AA35-78123BCFD536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC889609-B50F-4D85-AA35-78123BCFD536}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
