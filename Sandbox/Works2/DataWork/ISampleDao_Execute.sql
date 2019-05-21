@@ -1,0 +1,1 @@
+﻿DELETE FROM Test WHERE Id = /* @id */1
