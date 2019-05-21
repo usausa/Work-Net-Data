@@ -5,6 +5,7 @@
     using System.Reflection;
     using System.Text;
 
+    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Scripting;
     using Microsoft.CodeAnalysis.Scripting;
 
@@ -98,6 +99,7 @@
             source.Append($"Types.Add(typeof({type}), typeof({type.Name}_Impl));");
 
             var options = ScriptOptions.Default
+                .WithOptimizationLevel(OptimizationLevel.Release)
                 .WithReferences(references);
             var script = CSharpScript.Create(source.ToString(), options, typeof(ScriptGlobals));
             script.Compile();

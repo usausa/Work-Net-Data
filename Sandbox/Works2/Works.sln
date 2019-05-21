@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkScript", "WorkScript\Wo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkScriptBenchmark", "WorkScriptBenchmark\WorkScriptBenchmark.csproj", "{A67AE299-ACFD-4EAE-8F8D-87BF154B66BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkLibrary", "WorkLibrary\WorkLibrary.csproj", "{6EDEE1D7-5FE5-414D-837B-415F11129712}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkLibrary", "WorkLibrary\WorkLibrary.csproj", "{6EDEE1D7-5FE5-414D-837B-415F11129712}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenScript", "GenScript", "{F0C76E2F-0860-490F-8637-A5FDB122E81F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C2FF73A3-2C07-40B9-BA0A-3C28D9B55C20} = {F0C76E2F-0860-490F-8637-A5FDB122E81F}
+		{A67AE299-ACFD-4EAE-8F8D-87BF154B66BC} = {F0C76E2F-0860-490F-8637-A5FDB122E81F}
+		{6EDEE1D7-5FE5-414D-837B-415F11129712} = {F0C76E2F-0860-490F-8637-A5FDB122E81F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D8C329A3-BC4A-4076-AC1E-42262658F1AE}
