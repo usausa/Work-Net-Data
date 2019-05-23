@@ -10,14 +10,7 @@ namespace WorkParser
             TestIf();
         }
 
-        // TODO if, if else, for
-
-        // ! 拡張(using、IF(cond)、END、ELSE、ELSE_IF?(cond)、FOR(col in var)
-        // @ パラメータ
-        // # 置換
-        // % コード
-
-        // SQLとパラメータだけなら最適化が可能MaybeDynamic
+        // TODO ローカルバインド変数宣言？
 
         private static void TestIf()
         {
@@ -36,45 +29,37 @@ namespace WorkParser
             var parser = new Parser();
             // TODO コンテキスト(パラメータ)
             var methodMetadata = new MethodMetadata();
+            methodMetadata.AddParameter("name");
             var result = parser.Parse(methodMetadata, list);
             //parser.
         }
     }
 
     //--------------------------------------------------------------------------------
-    // Token
+    // Builder
     //--------------------------------------------------------------------------------
 
-    public enum TokenType
-    {
-        Comment,
-        Block,
-        OpenParenthesis,
-        CloseParenthesis
-    }
+    // TODO 通常版
 
-    public sealed class Token
-    {
-        public TokenType TokenType { get; }
-
-        public string Value { get; }
-
-        public Token(TokenType tokenType, string value)
-        {
-            TokenType = tokenType;
-            Value = value;
-        }
-    }
+    // TODO 最適化版
 
     //--------------------------------------------------------------------------------
     // Parser
     //--------------------------------------------------------------------------------
 
-    // TODO Parserが直接Buildする方式はだめ、最適化ができないから
+    // TODO parameter型、引数パラメータの最適化用に必要？、いや決まっているはずだからContextから取得か？
+    // TODO Parserが直接Buildする方式はだめ、最適化ができないから?
 
     public class MethodMetadata
     {
-        // TODO parameter型、引数パラメータの最適化用に必要？、いや決まっているはずだからContextから取得か？
+        private readonly HashSet<string> parameters = new HashSet<string>();
+
+        public void AddParameter(string parameter)
+        {
+            parameters.Add(parameter);
+        }
+
+        public bool ContainsParameter(string parameter) => parameter.Contains(parameter);
     }
 
     public class ImportEntry
@@ -90,13 +75,31 @@ namespace WorkParser
         }
     }
 
+    public interface IParserHandler
+    {
+        bool Handle(Token token, ParserContext context);
+    }
+
+    // TODO コンテキスト統合
     public class ParseResult
     {
-        private readonly StringBuilder source = new StringBuilder();
+        // TODO Block(code, sql)
+        // Dynamic? sqlとsourceのテンポラリ
+        // パラメータはダイナミックと固定、ダイナミックビルダーは単一インスタンス
+        // ではなくローカルか？、いや、実際の情報は都度評価しないとダメか？
+        // %parameterとかで事前定義を必須にする？
+
+        private readonly StringBuilder sqlTemporary = new StringBuilder();
+
+        private readonly StringBuilder sourceTemporary = new StringBuilder();
+
+        // TODO パラメータもテンポラリ化？
 
         public bool MaybeDynamic { get; set; }
 
         public IList<ImportEntry> Imports { get; } = new List<ImportEntry>();
+
+        public IList<IBlock> Blocks { get; } = new List<IBlock>();
 
         public void AddImport(bool helper, string value)
         {
@@ -105,15 +108,26 @@ namespace WorkParser
 
         public void AddSource(string str)
         {
-            source.AppendLine(str);
+            // TODO 前処理(未確定SQL、(パラメータを処理))
+
+            //source.AppendLine(str);
         }
 
-        public string GetSource() => source.ToString();
-    }
+        public void AddSql(string str)
+        {
+            // TODO 前処理(未確定ソース確定)
 
-    public interface IParserHandler
-    {
-        bool Handle(Token token, ParserContext context);
+            //source.AppendLine(str);
+        }
+
+        // TODO AddParameter(with sql) パラメータチェック？、遅延させる？
+
+        //public string GetSource() => source.ToString();
+
+        public void Flush()
+        {
+
+        }
     }
 
     public class ParserContext
@@ -143,6 +157,7 @@ namespace WorkParser
             new CodeParserHandler()
         };
 
+        // TODO 戻りはブロックリスト
         public ParseResult Parse(MethodMetadata methodMetadata, IEnumerable<Token> tokens)
         {
             var context = new ParserContext(methodMetadata, tokens);
@@ -231,58 +246,71 @@ namespace WorkParser
     // }
     // .で区切られている場合はそこを追っていく、その属性を見る
 
-    //public interface INode
-    //{
-    //    bool MaybeDynamic { get; }
+    // TODO Visitorは拡張可能でない？、その拡張必要？
+    // TODO パラメータが配列ならDynamicになる
+    // TODO クラスを呼び返すVisitorではなく、メソッドAddSqlとかを呼ぶ形のビルダー？
+    // TODO replace ?
 
-    //    void Build(IBuildContext context);
-    //}
+    public interface IBlockVisitor
+    {
+        void VisitSql(SqlBlock block);
+
+        void VisitSource(SourceBlock block);
+
+        void VisitParameter();
+    }
+
+    public interface IBlock
+    {
+        // TODO コンテキストにより異なるパターンあり、配列
+        bool MaybeDynamic { get; }
+
+        void Visit(IBlockVisitor visitor);
+    }
+
+    public class SqlBlock : IBlock
+    {
+        public bool MaybeDynamic => false;
+
+        public string Sql { get; }
+
+        public SqlBlock(string sql)
+        {
+            Sql = sql;
+        }
+
+        public void Visit(IBlockVisitor visitor) => visitor.VisitSql(this);
+    }
+
+    public class SourceBlock : IBlock
+    {
+        public bool MaybeDynamic => true;
+
+        public string Source { get; }
+
+        public SourceBlock(string source)
+        {
+            Source = source;
+        }
+
+        public void Visit(IBlockVisitor visitor) => visitor.VisitSource(this);
+    }
+
+
+    // TODO ブロックは情報だけ保持する形にするか コードの作りは呼び出し側で
 
     //public class SqlNode : INode
     //{
-    //    private readonly string value;
-
-    //    public bool MaybeDynamic => false;
-
-    //    public SqlNode(string value)
-    //    {
-    //        this.value = value;
-    //    }
-
     //    public void Build(IBuildContext context)
-    //    {
     //        context.AddSource($"text(\"{value}\");");
-    //    }
-    //}
 
     //public class ReplaceNode : INode
-    //{
-    //    private readonly string value;
-
-    //    public bool MaybeDynamic => true;
-
-    //    public ReplaceNode(string value)
-    //    {
-    //        this.value = value;
-    //    }
-
     //    public void Build(IBuildContext context)
-    //    {
     //        context.AddSource($"text({value});");
-    //    }
-    //}
 
+    // TODO 配列だとDynamicか！、
     //public class ParameterNode : INode
-    //{
     //    private readonly string value;
-
-    //    public bool MaybeDynamic => false;
-
-    //    public ParameterNode(string value)
-    //    {
-    //        this.value = value;
-    //    }
-
     //    public void Build(IBuildContext context)
     //    {
     //        context.AddParameter(value);
@@ -293,4 +321,29 @@ namespace WorkParser
     //        // 動的変数の展開には対応しないよ
     //    }
     //}
+
+    //--------------------------------------------------------------------------------
+    // Token
+    //--------------------------------------------------------------------------------
+
+    public enum TokenType
+    {
+        Comment,
+        Block,
+        OpenParenthesis,
+        CloseParenthesis
+    }
+
+    public sealed class Token
+    {
+        public TokenType TokenType { get; }
+
+        public string Value { get; }
+
+        public Token(TokenType tokenType, string value)
+        {
+            TokenType = tokenType;
+            Value = value;
+        }
+    }
 }
