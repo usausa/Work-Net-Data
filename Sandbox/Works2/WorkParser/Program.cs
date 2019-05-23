@@ -52,6 +52,11 @@ namespace WorkParser
     // Parser
     //--------------------------------------------------------------------------------
 
+    public class ParseResult
+    {
+
+    }
+
     public interface IParserContext
     {
         void AddNode(INode node);
@@ -123,6 +128,20 @@ namespace WorkParser
         public bool Handle(Token token, IParserContext context)
         {
             if (!token.Value.StartsWith("!using "))
+            {
+                return false;
+            }
+
+            context.AddNode(new ImportNode(token.Value.Substring(7).Trim()));
+            return true;
+        }
+    }
+
+    public class HelperParserHandler : IParserHandler
+    {
+        public bool Handle(Token token, IParserContext context)
+        {
+            if (!token.Value.StartsWith("!helper "))
             {
                 return false;
             }
