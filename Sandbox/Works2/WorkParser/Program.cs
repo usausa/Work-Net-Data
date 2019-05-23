@@ -23,14 +23,21 @@ namespace WorkParser
         {
             var list = new List<Token>
             {
-                new Token("a"),
-                new Token("%IF b"),
-                new Token("@b"),
-                new Token("%END"),
-                new Token("c"),
+                new Token(TokenType.Comment, "%using System"),
+                new Token(TokenType.Comment, "%helper Library.Helper"),
+                new Token(TokenType.Block  , "SELECT * FROM Test WHERE 1 = 1"),
+                new Token(TokenType.Comment, "% if (name != null) {"),
+                new Token(TokenType.Block  , "AND Name ="),
+                new Token(TokenType.Comment, "@name"),
+                new Token(TokenType.Block  , "'test'"),
+                new Token(TokenType.Comment, "% }"),
             };
 
-
+            var parser = new Parser();
+            // TODO コンテキスト(パラメータ)
+            var methodMetadata = new MethodMetadata();
+            var result = parser.Parse(methodMetadata, list);
+            //parser.
         }
     }
 
@@ -38,12 +45,23 @@ namespace WorkParser
     // Token
     //--------------------------------------------------------------------------------
 
-    public class Token
+    public enum TokenType
     {
+        Comment,
+        Block,
+        OpenParenthesis,
+        CloseParenthesis
+    }
+
+    public sealed class Token
+    {
+        public TokenType TokenType { get; }
+
         public string Value { get; }
 
-        public Token(string value)
+        public Token(TokenType tokenType, string value)
         {
+            TokenType = tokenType;
             Value = value;
         }
     }
@@ -52,37 +70,66 @@ namespace WorkParser
     // Parser
     //--------------------------------------------------------------------------------
 
-    public class ParseResult
-    {
+    // TODO Parserが直接Buildする方式はだめ、最適化ができないから
 
+    public class MethodMetadata
+    {
+        // TODO parameter型、引数パラメータの最適化用に必要？、いや決まっているはずだからContextから取得か？
     }
 
-    public interface IParserContext
+    public class ImportEntry
     {
-        void AddNode(INode node);
+        public bool Helper { get; }
+
+        public string Value { get; }
+
+        public ImportEntry(bool helper, string value)
+        {
+            Helper = helper;
+            Value = value;
+        }
+    }
+
+    public class ParseResult
+    {
+        private readonly StringBuilder source = new StringBuilder();
+
+        public bool MaybeDynamic { get; set; }
+
+        public IList<ImportEntry> Imports { get; } = new List<ImportEntry>();
+
+        public void AddImport(bool helper, string value)
+        {
+            Imports.Add(new ImportEntry(helper, value));
+        }
+
+        public void AddSource(string str)
+        {
+            source.AppendLine(str);
+        }
+
+        public string GetSource() => source.ToString();
     }
 
     public interface IParserHandler
     {
-        bool Handle(Token token, IParserContext context);
+        bool Handle(Token token, ParserContext context);
     }
 
-    public class ParserContext : IParserContext
+    public class ParserContext
     {
         private readonly Queue<Token> tokens;
 
-        public List<INode> Nodes { get; } = new List<INode>();
+        public MethodMetadata MethodMetadata { get; }
+
+        public ParseResult Result { get; } = new ParseResult();
 
         public bool HasNext => tokens.Count > 0;
 
-        public ParserContext(IEnumerable<Token> tokens)
+        public ParserContext(MethodMetadata methodMetadata, IEnumerable<Token> tokens)
         {
+            MethodMetadata = methodMetadata;
             this.tokens = new Queue<Token>(tokens);
-        }
-
-        public void AddNode(INode node)
-        {
-            Nodes.Add(node);
         }
 
         public Token DequeueToken() => tokens.Dequeue();
@@ -96,16 +143,9 @@ namespace WorkParser
             new CodeParserHandler()
         };
 
-        private readonly List<Token> tokens;
-
-        public Parser(List<Token> tokens)
+        public ParseResult Parse(MethodMetadata methodMetadata, IEnumerable<Token> tokens)
         {
-            this.tokens = tokens;
-        }
-
-        public IList<INode> Parse()
-        {
-            var context = new ParserContext(tokens);
+            var context = new ParserContext(methodMetadata, tokens);
 
             while (context.HasNext)
             {
@@ -119,65 +159,66 @@ namespace WorkParser
                 }
             }
 
-            return context.Nodes;
+            return context.Result;
         }
     }
 
     public class ImportParserHandler : IParserHandler
     {
-        public bool Handle(Token token, IParserContext context)
+        public bool Handle(Token token, ParserContext context)
         {
-            if (!token.Value.StartsWith("!using "))
+            if ((token.TokenType != TokenType.Comment) || !token.Value.StartsWith("%using "))
             {
                 return false;
             }
 
-            context.AddNode(new ImportNode(token.Value.Substring(7).Trim()));
+            context.Result.AddImport(false, token.Value.Substring(7).Trim());
             return true;
         }
     }
 
     public class HelperParserHandler : IParserHandler
     {
-        public bool Handle(Token token, IParserContext context)
+        public bool Handle(Token token, ParserContext context)
         {
-            if (!token.Value.StartsWith("!helper "))
+            if ((token.TokenType != TokenType.Comment) || !token.Value.StartsWith("%using "))
             {
                 return false;
             }
 
-            context.AddNode(new ImportNode(token.Value.Substring(7).Trim()));
+            context.Result.AddImport(true, token.Value.Substring(7).Trim());
             return true;
         }
     }
 
     public class CodeParserHandler : IParserHandler
     {
-        public bool Handle(Token token, IParserContext context)
+        public bool Handle(Token token, ParserContext context)
         {
-            if (!token.Value.StartsWith("%"))
+            if ((token.TokenType != TokenType.Comment) || !token.Value.StartsWith("%"))
             {
                 return false;
             }
 
-            context.AddNode(new CodeNode(token.Value.Substring(1).Trim()));
+            context.Result.AddSource(token.Value.Substring(1).Trim());
+            context.Result.MaybeDynamic = true;
             return true;
         }
     }
 
-    public class ReplaceParserHandler : IParserHandler
-    {
-        public bool Handle(Token token, IParserContext context)
-        {
-            if (!token.Value.Trim().StartsWith("#"))
-            {
-                return false;
-            }
+    //public class ReplaceParserHandler : IParserHandler
+    //{
+    //    public bool Handle(Token token, IParserContext context)
+    //    {
+    //        if (!token.Value.Trim().StartsWith("#"))
+    //        {
+    //            return false;
+    //        }
 
-            context.AddNode(new ReplaceNode(token.Value.Substring(1).Trim()));
-            return true;
-        }
-    }
+    //        context.AddNode(new ReplaceNode(token.Value.Substring(1).Trim()));
+    //        return true;
+    //    }
+    //}
 
     // TODO パラメータ Peek, ()数が一致するまで, 終了するまでになくなれば例外！
 
@@ -190,155 +231,66 @@ namespace WorkParser
     // }
     // .で区切られている場合はそこを追っていく、その属性を見る
 
-    //--------------------------------------------------------------------------------
-    // Node
-    //--------------------------------------------------------------------------------
+    //public interface INode
+    //{
+    //    bool MaybeDynamic { get; }
 
-    public class Parameter
-    {
-        public int No { get; }
+    //    void Build(IBuildContext context);
+    //}
 
-        public string Source { get; }
+    //public class SqlNode : INode
+    //{
+    //    private readonly string value;
 
-        public Parameter(int no, string source)
-        {
-            No = no;
-            Source = source;
-        }
-    }
+    //    public bool MaybeDynamic => false;
 
-    public interface IBuildContext
-    {
-        void AddImport(string value);
+    //    public SqlNode(string value)
+    //    {
+    //        this.value = value;
+    //    }
 
-        void AddParameter(string value);
+    //    public void Build(IBuildContext context)
+    //    {
+    //        context.AddSource($"text(\"{value}\");");
+    //    }
+    //}
 
-        void AddSource(string str);
-    }
+    //public class ReplaceNode : INode
+    //{
+    //    private readonly string value;
 
-    public class BuildContext : IBuildContext
-    {
-        private readonly StringBuilder source = new StringBuilder();
+    //    public bool MaybeDynamic => true;
 
-        public IList<string> Imports { get; } = new List<string>();
+    //    public ReplaceNode(string value)
+    //    {
+    //        this.value = value;
+    //    }
 
-        public IList<Parameter> Parameters { get; } = new List<Parameter>();
+    //    public void Build(IBuildContext context)
+    //    {
+    //        context.AddSource($"text({value});");
+    //    }
+    //}
 
-        public void AddImport(string value)
-        {
-            Imports.Add(value);
-        }
+    //public class ParameterNode : INode
+    //{
+    //    private readonly string value;
 
-        public void AddParameter(string value)
-        {
-            Parameters.Add(new Parameter(Parameters.Count, value));
-        }
+    //    public bool MaybeDynamic => false;
 
-        public void AddSource(string str)
-        {
-            source.Append(str);
-        }
+    //    public ParameterNode(string value)
+    //    {
+    //        this.value = value;
+    //    }
 
-        public string GetSource() => source.ToString();
-    }
+    //    public void Build(IBuildContext context)
+    //    {
+    //        context.AddParameter(value);
+    //        context.AddSource($"param({value});");
+    //        context.AddSource("\r\n");
 
-    public interface INode
-    {
-        bool MaybeDynamic { get; }
-
-        void Build(IBuildContext context);
-    }
-
-    public class SqlNode : INode
-    {
-        private readonly string value;
-
-        public bool MaybeDynamic => false;
-
-        public SqlNode(string value)
-        {
-            this.value = value;
-        }
-
-        public void Build(IBuildContext context)
-        {
-            context.AddSource($"text(\"{value}\");");
-            context.AddSource("\r\n");
-        }
-    }
-
-    public class CodeNode : INode
-    {
-        private readonly string value;
-
-        public bool MaybeDynamic => true;
-
-        public CodeNode(string value)
-        {
-            this.value = value;
-        }
-
-        public void Build(IBuildContext context)
-        {
-            context.AddSource(value);
-            context.AddSource("\r\n");
-        }
-    }
-
-    public class ImportNode : INode
-    {
-        private readonly string value;
-
-        public bool MaybeDynamic => false;
-
-        public ImportNode(string value)
-        {
-            this.value = value;
-        }
-
-        public void Build(IBuildContext context)
-        {
-            context.AddImport(value);
-        }
-    }
-
-    public class ReplaceNode : INode
-    {
-        private readonly string value;
-
-        public bool MaybeDynamic => true;
-
-        public ReplaceNode(string value)
-        {
-            this.value = value;
-        }
-
-        public void Build(IBuildContext context)
-        {
-            context.AddSource($"text({value});");
-            context.AddSource("\r\n");
-        }
-    }
-
-    public class ParameterNode : INode
-    {
-        private readonly string value;
-
-        public bool MaybeDynamic => false;
-
-        public ParameterNode(string value)
-        {
-            this.value = value;
-        }
-
-        public void Build(IBuildContext context)
-        {
-            context.AddParameter(value);
-            context.AddSource($"param({value});");
-            context.AddSource("\r\n");
-
-            // TODO IE<>なら複数のコード、この時点で引数飲めたデータにアクセスできている必要あり
-            // 動的変数の展開には対応しないよ
-        }
-    }
+    //        // TODO IE<>なら複数のコード、この時点で引数飲めたデータにアクセスできている必要あり
+    //        // 動的変数の展開には対応しないよ
+    //    }
+    //}
 }
