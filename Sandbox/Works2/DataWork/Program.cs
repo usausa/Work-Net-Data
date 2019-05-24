@@ -23,7 +23,7 @@ namespace DataWork
         // TODO default sql search
         // TODO parameter 1, n ?
 
-        [Execute(nameof(Execute))]
+        [Execute]
         int Execute(int id);
     }
 
@@ -39,7 +39,8 @@ namespace DataWork
 
         public int Execute(int id)
         {
-            return engine.Execute();
+            return 0;
+            //return engine.Execute();
         }
     }
 }

@@ -3,35 +3,23 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ExecuteAttribute : Attribute
+    public abstract class MethodAttribute : Attribute
     {
-        public string Source { get; }
-
-        public ExecuteAttribute(string source)
-        {
-            Source = source;
-        }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ExecuteScalarAttribute : Attribute
+    public sealed class ExecuteAttribute : MethodAttribute
     {
-        public string Source { get; }
-
-        public ExecuteScalarAttribute(string source)
-        {
-            Source = source;
-        }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class QueryAttribute : Attribute
+    public sealed class ExecuteScalarAttribute : MethodAttribute
     {
-        public string Source { get; }
+    }
 
-        public QueryAttribute(string source)
-        {
-            Source = source;
-        }
+    // TODO ExecuteReader CommandBehavior
+
+    // TODO FirstOrDefault ?
+
+    public sealed class QueryAttribute : MethodAttribute
+    {
     }
 }

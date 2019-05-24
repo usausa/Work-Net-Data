@@ -52,6 +52,7 @@ namespace WorkParser
 
     public class MethodMetadata
     {
+        // TODO 列挙型なら動的になるため、型も必要
         private readonly HashSet<string> parameters = new HashSet<string>();
 
         public void AddParameter(string parameter)
