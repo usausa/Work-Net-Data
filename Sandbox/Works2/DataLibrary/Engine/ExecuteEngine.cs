@@ -26,7 +26,7 @@
         // Core
         //--------------------------------------------------------------------------------
 
-        private static IDbCommand SetupCommand(IDbConnection con, IDbTransaction transaction, string sql, CommandType commandType, int? commandTimeout)
+        private static IDbCommand SetupCommand(IDbConnection con, IDbTransaction transaction, string sql, CommandType commandType, int? commandTimeout, IList<DbParameter> parameters)
         {
             var cmd = con.CreateCommand();
 
@@ -43,13 +43,21 @@
                 cmd.CommandTimeout = commandTimeout.Value;
             }
 
+            if (parameters != null)
+            {
+                for (var i = 0; i < parameters.Count; i++)
+                {
+                    cmd.Parameters.Add(parameters[i]);
+                }
+            }
+
             return cmd;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static DbCommand SetupAsyncCommand(IDbConnection con, IDbTransaction transaction, string sql, CommandType commandType, int? commandTimeout)
+        private static DbCommand SetupAsyncCommand(IDbConnection con, IDbTransaction transaction, string sql, CommandType commandType, int? commandTimeout, IList<DbParameter> parameters)
         {
-            if (SetupCommand(con, transaction, sql, commandType, commandTimeout) is DbCommand dbCommand)
+            if (SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters) is DbCommand dbCommand)
             {
                 return dbCommand;
             }
@@ -81,14 +89,11 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor)
+            IList<DbParameter> parameters)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -96,11 +101,7 @@
                         con.Open();
                     }
 
-                    var result = cmd.ExecuteNonQuery();
-
-                    postProcessor?.Invoke(cmd);
-
-                    return result;
+                    return cmd.ExecuteNonQuery();
                 }
                 finally
                 {
@@ -118,15 +119,12 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             CancellationToken cancel)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -134,11 +132,7 @@
                         await OpenAsync(con, cancel).ConfigureAwait(false);
                     }
 
-                    var result = await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
-
-                    postProcessor?.Invoke(cmd);
-
-                    return result;
+                    return await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -160,15 +154,12 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
-            Func<object, T> converter)
+            IList<DbParameter> parameters,
+            Func<object, object> converter)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -177,8 +168,6 @@
                     }
 
                     var result = cmd.ExecuteScalar();
-
-                    postProcessor?.Invoke(cmd);
 
                     if (result is DBNull)
                     {
@@ -190,7 +179,7 @@
                         return scalar;
                     }
 
-                    return converter(result);
+                    return (T)converter(result);
                 }
                 finally
                 {
@@ -208,16 +197,13 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
-            Func<object, T> converter,
+            IList<DbParameter> parameters,
+            Func<object, object> converter,
             CancellationToken cancel)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -226,8 +212,6 @@
                     }
 
                     var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
-
-                    postProcessor?.Invoke(cmd);
 
                     if (result is DBNull)
                     {
@@ -239,7 +223,7 @@
                         return scalar;
                     }
 
-                    return converter(result);
+                    return (T)converter(result);
                 }
                 finally
                 {
@@ -262,16 +246,14 @@
             CommandType commandType,
             int? commandTimeout,
             CommandBehavior commandBehavior,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor)
+            IList<DbParameter> parameters)
         {
             var wasClosed = con.State == ConnectionState.Closed;
             var cmd = default(IDbCommand);
             var reader = default(IDataReader);
             try
             {
-                cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout);
-                builder?.Invoke(cmd);
+                cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters);
 
                 if (wasClosed)
                 {
@@ -282,8 +264,6 @@
                     ? commandBehavior | CommandBehavior.CloseConnection
                     : commandBehavior);
                 wasClosed = false;
-
-                postProcessor?.Invoke(cmd);
 
                 return new WrappedReader(cmd, reader);
             }
@@ -309,8 +289,7 @@
             CommandType commandType,
             int? commandTimeout,
             CommandBehavior commandBehavior,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             CancellationToken cancel)
         {
             var wasClosed = con.State == ConnectionState.Closed;
@@ -318,8 +297,7 @@
             var reader = default(IDataReader);
             try
             {
-                cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout);
-                builder?.Invoke(cmd);
+                cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout, parameters);
 
                 if (wasClosed)
                 {
@@ -328,8 +306,6 @@
 
                 reader = await cmd.ExecuteReaderAsync(wasClosed ? commandBehavior | CommandBehavior.CloseConnection : commandBehavior, cancel).ConfigureAwait(false);
                 wasClosed = false;
-
-                postProcessor?.Invoke(cmd);
 
                 return new WrappedReader(cmd, reader);
             }
@@ -383,8 +359,7 @@
             CommandType commandType,
             int? commandTimeout,
             bool buffered,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             Func<IDataRecord, T> mapper)
         {
             var wasClosed = con.State == ConnectionState.Closed;
@@ -392,8 +367,7 @@
             var reader = default(IDataReader);
             try
             {
-                cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout);
-                builder?.Invoke(cmd);
+                cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters);
 
                 if (wasClosed)
                 {
@@ -402,8 +376,6 @@
 
                 reader = cmd.ExecuteReader(wasClosed ? CommandBehaviorQueryWithClose : CommandBehaviorQuery);
                 wasClosed = false;
-
-                postProcessor?.Invoke(cmd);
 
                 if (buffered)
                 {
@@ -436,8 +408,7 @@
             CommandType commandType,
             int? commandTimeout,
             bool buffered,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             Func<IDataRecord, T> mapper,
             CancellationToken cancel)
         {
@@ -446,8 +417,7 @@
             var reader = default(DbDataReader);
             try
             {
-                cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout);
-                builder?.Invoke(cmd);
+                cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout, parameters);
 
                 if (wasClosed)
                 {
@@ -456,8 +426,6 @@
 
                 reader = await cmd.ExecuteReaderAsync(wasClosed ? CommandBehaviorQueryWithClose : CommandBehaviorQuery, cancel).ConfigureAwait(false);
                 wasClosed = false;
-
-                postProcessor?.Invoke(cmd);
 
                 if (buffered)
                 {
@@ -493,15 +461,12 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             Func<IDataRecord, T> mapper)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -512,9 +477,6 @@
                     using (var reader = cmd.ExecuteReader(wasClosed ? CommandBehaviorQueryFirstOrDefaultWithClose : CommandBehaviorQueryFirstOrDefault))
                     {
                         wasClosed = false;
-
-                        postProcessor?.Invoke(cmd);
-
                         return reader.Read() ? mapper(reader) : default;
                     }
                 }
@@ -534,16 +496,13 @@
             string sql,
             CommandType commandType,
             int? commandTimeout,
-            Action<IDbCommand> builder,
-            Action<IDbCommand> postProcessor,
+            IList<DbParameter> parameters,
             Func<IDataRecord, T> mapper,
             CancellationToken cancel)
         {
             var wasClosed = con.State == ConnectionState.Closed;
-            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout))
+            using (var cmd = SetupAsyncCommand(con, transaction, sql, commandType, commandTimeout, parameters))
             {
-                builder?.Invoke(cmd);
-
                 try
                 {
                     if (wasClosed)
@@ -554,9 +513,6 @@
                     using (var reader = await cmd.ExecuteReaderAsync(wasClosed ? CommandBehaviorQueryFirstOrDefaultWithClose : CommandBehaviorQueryFirstOrDefault, cancel).ConfigureAwait(false))
                     {
                         wasClosed = false;
-
-                        postProcessor?.Invoke(cmd);
-
                         return await reader.ReadAsync(cancel).ConfigureAwait(false) ? mapper(reader) : default;
                     }
                 }

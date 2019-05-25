@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace WorkParser
@@ -29,9 +30,11 @@ namespace WorkParser
             var parser = new Parser();
             // TODO コンテキスト(パラメータ)
             var methodMetadata = new MethodMetadata();
-            methodMetadata.AddParameter("name");
+            methodMetadata.AddParameter("name", typeof(string));
             var result = parser.Parse(methodMetadata, list);
             //parser.
+
+            // TODO dynamic check
         }
     }
 
@@ -39,9 +42,54 @@ namespace WorkParser
     // Builder
     //--------------------------------------------------------------------------------
 
-    // TODO 通常版
+    public class DefaultMethodBuilder : IMethodBuilder
+    {
 
-    // TODO 最適化版
+        public void AddSql(string sql)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSource(string source)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Flush()
+        {
+
+        }
+
+        public string GetSource()
+        {
+            // TODO 通常版 1st
+            throw new NotImplementedException();
+        }
+    }
+
+    public class OptimizedMethodBuilder : IMethodBuilder
+    {
+        public void AddSql(string sql)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSource(string source)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Flush()
+        {
+
+        }
+
+        public string GetSource()
+        {
+            // TODO 最適化版 1st
+            throw new NotImplementedException();
+        }
+    }
 
     //--------------------------------------------------------------------------------
     // Parser
@@ -52,12 +100,11 @@ namespace WorkParser
 
     public class MethodMetadata
     {
-        // TODO 列挙型なら動的になるため、型も必要
-        private readonly HashSet<string> parameters = new HashSet<string>();
+        private readonly Dictionary<string, Type> parameters = new Dictionary<string, Type>();
 
-        public void AddParameter(string parameter)
+        public void AddParameter(string parameter, Type type)
         {
-            parameters.Add(parameter);
+            parameters.Add(parameter, type);
         }
 
         public bool ContainsParameter(string parameter) => parameter.Contains(parameter);
@@ -96,8 +143,6 @@ namespace WorkParser
 
         // TODO パラメータもテンポラリ化？
 
-        public bool MaybeDynamic { get; set; }
-
         public IList<ImportEntry> Imports { get; } = new List<ImportEntry>();
 
         public IList<IBlock> Blocks { get; } = new List<IBlock>();
@@ -127,7 +172,6 @@ namespace WorkParser
 
         public void Flush()
         {
-
         }
     }
 
@@ -217,7 +261,6 @@ namespace WorkParser
             }
 
             context.Result.AddSource(token.Value.Substring(1).Trim());
-            context.Result.MaybeDynamic = true;
             return true;
         }
     }
@@ -252,13 +295,11 @@ namespace WorkParser
     // TODO クラスを呼び返すVisitorではなく、メソッドAddSqlとかを呼ぶ形のビルダー？
     // TODO replace ?
 
-    public interface IBlockVisitor
+    public interface IMethodBuilder
     {
-        void VisitSql(SqlBlock block);
+        void AddSql(string sql);
 
-        void VisitSource(SourceBlock block);
-
-        void VisitParameter();
+        void AddSource(string source);
     }
 
     public interface IBlock
@@ -266,7 +307,7 @@ namespace WorkParser
         // TODO コンテキストにより異なるパターンあり、配列
         bool MaybeDynamic { get; }
 
-        void Visit(IBlockVisitor visitor);
+        void Accept(IMethodBuilder builder);
     }
 
     public class SqlBlock : IBlock
@@ -280,7 +321,7 @@ namespace WorkParser
             Sql = sql;
         }
 
-        public void Visit(IBlockVisitor visitor) => visitor.VisitSql(this);
+        public void Accept(IMethodBuilder builder) => builder.AddSql(Sql);
     }
 
     public class SourceBlock : IBlock
@@ -294,7 +335,7 @@ namespace WorkParser
             Source = source;
         }
 
-        public void Visit(IBlockVisitor visitor) => visitor.VisitSource(this);
+        public void Accept(IMethodBuilder builder) => builder.AddSql(Source);
     }
 
 

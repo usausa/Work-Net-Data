@@ -2,7 +2,8 @@ namespace DataLibrary.Engine
 {
     using System;
 
-    public class EngineException : Exception
+    [Serializable]
+    public class EngineException : AccessorException
     {
         public EngineException()
         {
