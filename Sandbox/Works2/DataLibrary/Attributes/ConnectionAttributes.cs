@@ -16,7 +16,7 @@
     {
         public string Name { get; }
 
-        public Type FactoryType { get; } = typeof(NamedConnectionFactory);
+        public Type FactoryType { get; } = typeof(INamedConnectionFactory);
 
         public ConnectionNameAttribute(string name)
         {

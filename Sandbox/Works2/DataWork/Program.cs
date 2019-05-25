@@ -1,12 +1,10 @@
-﻿using DataLibrary.Engine;
-
-namespace DataWork
+﻿namespace DataWork
 {
     using DataLibrary.Attributes;
 
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
         }
     }
@@ -23,20 +21,13 @@ namespace DataWork
         // TODO default sql search
         // TODO parameter 1, n ?
 
-        [Execute]
+        //[Execute]
         int Execute(int id);
     }
 
     // TODO
-    public sealed class ISampleDaoImpl : ISampleDao
+    public sealed class SampleDaoImpl : ISampleDao
     {
-        private readonly ExecuteEngine engine;
-
-        public ISampleDaoImpl(ExecuteEngine engine)
-        {
-            this.engine = engine;
-        }
-
         public int Execute(int id)
         {
             return 0;
