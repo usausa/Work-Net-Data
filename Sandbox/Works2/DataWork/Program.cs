@@ -21,176 +21,181 @@ namespace DataWork
         }
     }
 
+    // TRYが二重になるコスト
+    // TODO ExecuteReader 正常時はCmdをクローズしない
+    // TODO Query !bufferdで正常ならcmd=nullして、finallyでcmd?.Dispose
+
+
     // TODO
     public sealed class SampleDaoImpl
     {
-        private readonly IDbProvider provider;
+    //    private readonly IDbProvider provider;
 
-        private readonly Func<object, object> converter;
+    //    private readonly Func<object, object> converter;
 
-        //--------------------------------------------------------------------------------
-        // Basic
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Basic
+    //    //--------------------------------------------------------------------------------
 
-        public int Execute()
-        {
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.Execute(
-                    con,
-                    null,
-                    "xxx",
-                    CommandType.Text,
-                    null,
-                    null);
-            }
-        }
+    //    public int Execute()
+    //    {
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.Execute(
+    //                con,
+    //                null,
+    //                "xxx",
+    //                CommandType.Text,
+    //                null,
+    //                null);
+    //        }
+    //    }
 
-        public Task<int> ExecuteAsync()
-        {
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.ExecuteAsync(
-                    con,
-                    null,
-                    "xxx",
-                    CommandType.Text,
-                    null,
-                    null,
-                    default);
-            }
-        }
+    //    public Task<int> ExecuteAsync()
+    //    {
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.ExecuteAsync(
+    //                con,
+    //                null,
+    //                "xxx",
+    //                CommandType.Text,
+    //                null,
+    //                null,
+    //                default);
+    //        }
+    //    }
 
-        public long ExecuteScalar()
-        {
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.ExecuteScalar<long>(
-                    con,
-                    null,
-                    "xxx",
-                    CommandType.Text,
-                    null,
-                    null,
-                    converter);
-            }
-        }
+    //    public long ExecuteScalar()
+    //    {
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.ExecuteScalar<long>(
+    //                con,
+    //                null,
+    //                "xxx",
+    //                CommandType.Text,
+    //                null,
+    //                null,
+    //                converter);
+    //        }
+    //    }
 
-        public Task<long> ExecuteScalarAsync()
-        {
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.ExecuteScalarAsync<long>(
-                    con,
-                    null,
-                    "xxx",
-                    CommandType.Text,
-                    null,
-                    null,
-                    converter,
-                    default);
-            }
-        }
+    //    public Task<long> ExecuteScalarAsync()
+    //    {
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.ExecuteScalarAsync<long>(
+    //                con,
+    //                null,
+    //                "xxx",
+    //                CommandType.Text,
+    //                null,
+    //                null,
+    //                converter,
+    //                default);
+    //        }
+    //    }
 
-        // TODO reader, query, queryFoD 2
+    //    // TODO reader, query, queryFoD 2
 
-        //--------------------------------------------------------------------------------
-        // Extra
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Extra
+    //    //--------------------------------------------------------------------------------
 
-        // TODO Procedure(*), Insert(*)
+    //    // TODO Procedure(*), Insert(*)
 
-        //--------------------------------------------------------------------------------
-        // Connection
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Connection
+    //    //--------------------------------------------------------------------------------
 
-        // TODO parameter
+    //    // TODO parameter
 
-        // TODO parameter with tx
+    //    // TODO parameter with tx
 
-        // TODO named connection
+    //    // TODO named connection
 
-        //--------------------------------------------------------------------------------
-        // Parameter
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Parameter
+    //    //--------------------------------------------------------------------------------
 
-        // TODO out
+    //    // TODO out
 
-        // TODO class with direction
+    //    // TODO class with direction
 
-        // TODO dbType and Size with parameter
+    //    // TODO dbType and Size with parameter
 
-        // TODO dbType and Size with class
+    //    // TODO dbType and Size with class
 
-        // TODO TypeHandler with parameter
+    //    // TODO TypeHandler with parameter
 
-        // TODO TypeHandler with class
+    //    // TODO TypeHandler with class
 
-        //--------------------------------------------------------------------------------
-        // Option
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Option
+    //    //--------------------------------------------------------------------------------
 
-        // TODO Timeout by attribute
+    //    // TODO Timeout by attribute
 
-        // TODO Timeout by parameter
+    //    // TODO Timeout by parameter
 
-        // TODO Buffer by attribute
+    //    // TODO Buffer by attribute
 
-        // TODO Buffer by parameter
+    //    // TODO Buffer by parameter
 
-        // TODO cancel
+    //    // TODO cancel
 
-        // TODO Reader option
+    //    // TODO Reader option
 
-        //--------------------------------------------------------------------------------
-        // Condition
-        //--------------------------------------------------------------------------------
+    //    //--------------------------------------------------------------------------------
+    //    // Condition
+    //    //--------------------------------------------------------------------------------
 
-        public int ParameterOptimized(int id)
-        {
-            var parameters = new List<DbParameter>();
-            //parameters.Add(); TODO
+    //    public int ParameterOptimized(int id)
+    //    {
+    //        var parameters = new List<DbParameter>();
+    //        //parameters.Add(); TODO
 
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.Execute(
-                    con,
-                    null,
-                    "SELECT * FROM Test WHERE Id = @id",
-                    CommandType.Text,
-                    null,
-                    null);
-            }
-        }
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.Execute(
+    //                con,
+    //                null,
+    //                "SELECT * FROM Test WHERE Id = @id",
+    //                CommandType.Text,
+    //                null,
+    //                null);
+    //        }
+    //    }
 
-        public int ParameterConditional(int? id)
-        {
-            var parameters = new List<DbParameter>();
+    //    public int ParameterConditional(int? id)
+    //    {
+    //        var parameters = new List<DbParameter>();
 
-            var sql = new StringBuilder(32);
-            sql.Append("SELECT * FROM Test");
-            if (id != null)
-            {
-                sql.Append(" WHERE Id = @id");
-                //parameters.Add(); TODO
-            }
+    //        var sql = new StringBuilder(32);
+    //        sql.Append("SELECT * FROM Test");
+    //        if (id != null)
+    //        {
+    //            sql.Append(" WHERE Id = @id");
+    //            //parameters.Add(); TODO
+    //        }
 
-            using (var con = provider.CreateConnection())
-            {
-                return ExecuteEngine.Execute(
-                    con,
-                    null,
-                    sql.ToString(),
-                    CommandType.Text,
-                    null,
-                    null);
-            }
-        }
+    //        using (var con = provider.CreateConnection())
+    //        {
+    //            return ExecuteEngine.Execute(
+    //                con,
+    //                null,
+    //                sql.ToString(),
+    //                CommandType.Text,
+    //                null,
+    //                null);
+    //        }
+    //    }
 
-        // TODO parameter 2
+    //    // TODO parameter 2
 
-        // TODO parameter class
-    }
+    //    // TODO parameter class
+    //}
 
     //public class ParameterBinder
     //{
@@ -214,4 +219,5 @@ namespace DataWork
     //        parameter.Value = value;
     //    }
     //}
+    }
 }
