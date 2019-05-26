@@ -1,9 +1,16 @@
 ﻿namespace WorkGenerated
 {
-    using System.Data;
+    using System.Data.Common;
 
     public interface IDbProvider
     {
-        IDbConnection CreateConnection();
+        DbConnection CreateConnection();
+    }
+
+    public class DataEntity
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
     }
 }
