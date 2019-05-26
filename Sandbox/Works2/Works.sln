@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataLibrary", "DataLibrary\DataLibrary.csproj", "{A270689B-4CD1-4753-9A9C-885B4EC66110}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataWork", "DataWork\DataWork.csproj", "{6FCB31FD-5B74-4591-A97D-15C6216136B8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataLibrary.Tests", "DataLibrary.Tests\DataLibrary.Tests.csproj", "{43E03094-7769-4AD1-B882-279F902CEF8A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkScript", "WorkScript\WorkScript.csproj", "{C2FF73A3-2C07-40B9-BA0A-3C28D9B55C20}"
@@ -25,7 +23,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenRuntime", "GenRuntime", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkRuntimeBenchmark", "WorkRuntimeBenchmark\WorkRuntimeBenchmark.csproj", "{CABF14E5-B1F9-4FC5-B26B-85D17C8291D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkParser", "WorkParser\WorkParser.csproj", "{5B3E09FB-2D1F-417F-B464-2F43FC6A4555}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkParser", "WorkParser\WorkParser.csproj", "{5B3E09FB-2D1F-417F-B464-2F43FC6A4555}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkGenerated.Tests", "WorkGenerated.Tests\WorkGenerated.Tests.csproj", "{A7140DD0-FE8E-4015-B922-BD0CAB1A3071}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkGenerated", "WorkGenerated\WorkGenerated.csproj", "{3C167727-9828-4079-A771-9AFFD82DBB08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +39,6 @@ Global
 		{A270689B-4CD1-4753-9A9C-885B4EC66110}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A270689B-4CD1-4753-9A9C-885B4EC66110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A270689B-4CD1-4753-9A9C-885B4EC66110}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6FCB31FD-5B74-4591-A97D-15C6216136B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FCB31FD-5B74-4591-A97D-15C6216136B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FCB31FD-5B74-4591-A97D-15C6216136B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FCB31FD-5B74-4591-A97D-15C6216136B8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{43E03094-7769-4AD1-B882-279F902CEF8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43E03094-7769-4AD1-B882-279F902CEF8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43E03094-7769-4AD1-B882-279F902CEF8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -73,6 +71,14 @@ Global
 		{5B3E09FB-2D1F-417F-B464-2F43FC6A4555}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B3E09FB-2D1F-417F-B464-2F43FC6A4555}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B3E09FB-2D1F-417F-B464-2F43FC6A4555}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7140DD0-FE8E-4015-B922-BD0CAB1A3071}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7140DD0-FE8E-4015-B922-BD0CAB1A3071}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7140DD0-FE8E-4015-B922-BD0CAB1A3071}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7140DD0-FE8E-4015-B922-BD0CAB1A3071}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C167727-9828-4079-A771-9AFFD82DBB08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C167727-9828-4079-A771-9AFFD82DBB08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C167727-9828-4079-A771-9AFFD82DBB08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C167727-9828-4079-A771-9AFFD82DBB08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -35,6 +35,7 @@ namespace DataLibrary.Attributes
 
     // TODO FirstOrDefault ?
 
+    // TODO buffer default ? (false dapperとは違うが)  IListとIEで変更する手もある！
     //public sealed class QueryAttribute : MethodAttribute
     //{
     //}
