@@ -24,6 +24,10 @@
 
         // TODO パラメータは連番方式か？ @:はそのまま？ Providerで指定でも良いが
 
+        // TODO Array,IEは自動展開？、stringは除外？
+
+        // TODO フラット化？、特定型以外？、明示的フラット/非フラット属性？
+
         public DaoGenerator(DaoGeneratorOption option, IComponentResolver resolver)
         {
         }

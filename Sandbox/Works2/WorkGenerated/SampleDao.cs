@@ -10,29 +10,306 @@ namespace WorkGenerated
 {
     public static class DaoHelper
     {
-        public const CommandBehavior CommandBehaviorForEnumerable =
+        private const CommandBehavior CommandBehaviorForEnumerable =
             CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection;
 
-        public const CommandBehavior CommandBehaviorForList =
+        private const CommandBehavior CommandBehaviorForList =
             CommandBehavior.SequentialAccess;
 
-        public const CommandBehavior CommandBehaviorForSingle =
+        private const CommandBehavior CommandBehaviorForSingle =
             CommandBehavior.SequentialAccess | CommandBehavior.SingleRow;
 
-        // TODO Execute *2
-
-        // TODO Scalar helper *2
+        //--------------------------------------------------------------------------------
+        // Execute
+        //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IList<T> ReaderToList<T>(IDataReader reader, Func<IDataReader, T> mapper)
+        public static int Execute(DbConnection con, DbCommand cmd)
         {
-            var list = new List<T>();
-            while (reader.Read())
+            if (con.State == ConnectionState.Closed)
             {
-                list.Add(mapper(reader));
+                try
+                {
+                    con.Open();
+
+                    return cmd.ExecuteNonQuery();
+                }
+                finally
+                {
+                    con.Close();
+                }
             }
 
-            return list;
+            return cmd.ExecuteNonQuery();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<int> ExecuteAsync(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+
+                    return await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
+        }
+
+        //--------------------------------------------------------------------------------
+        // ExecuteScalar
+        //--------------------------------------------------------------------------------
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ExecuteScalar<T>(DbCommand cmd, Func<object, object> converter)
+        {
+            var result = cmd.ExecuteScalar();
+
+            if (result is DBNull)
+            {
+                return default;
+            }
+
+            if (result is T scalar)
+            {
+                return scalar;
+            }
+
+            return (T)converter(result);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, Func<object, object> converter, CancellationToken cancel = default)
+        {
+            var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
+
+            if (result is DBNull)
+            {
+                return default;
+            }
+
+            if (result is T scalar)
+            {
+                return scalar;
+            }
+
+            return (T)converter(result);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ExecuteScalar<T>(DbConnection con, DbCommand cmd, Func<object, object> converter)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    con.Open();
+
+                    return ExecuteScalar<T>(cmd, converter);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return ExecuteScalar<T>(cmd, converter);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, Func<object, object> converter, CancellationToken cancel = default)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+
+                    return await ExecuteScalarAsync<T>(cmd, converter, cancel).ConfigureAwait(false);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return await ExecuteScalarAsync<T>(cmd, converter, cancel).ConfigureAwait(false);
+        }
+
+        //--------------------------------------------------------------------------------
+        // ExecuteReader
+        //--------------------------------------------------------------------------------
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DbDataReader ExecuteReader(DbCommand cmd)
+        {
+            return cmd.ExecuteReader(CommandBehaviorForEnumerable);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, CancellationToken cancel)
+        {
+            return cmd.ExecuteReaderAsync(CommandBehaviorForEnumerable, cancel);
+        }
+
+        //--------------------------------------------------------------------------------
+        // ReaderToDefer
+        //--------------------------------------------------------------------------------
+
+        public static IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, Func<IDataRecord, T> mapper)
+        {
+            using (cmd)
+            using (reader)
+            {
+                while (reader.Read())
+                {
+                    yield return mapper(reader);
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // QueryBuffer
+        //--------------------------------------------------------------------------------
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IList<T> QueryBuffer<T>(DbCommand cmd, Func<IDataReader, T> mapper)
+        {
+            using (var reader = cmd.ExecuteReader(CommandBehaviorForList))
+            {
+                var list = new List<T>();
+                while (reader.Read())
+                {
+                    list.Add(mapper(reader));
+                }
+
+                return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        {
+            using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForList, cancel).ConfigureAwait(false))
+            {
+                var list = new List<T>();
+                while (reader.Read())
+                {
+                    list.Add(mapper(reader));
+                }
+
+                return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IList<T> QueryBuffer<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    con.Open();
+
+                    return QueryBuffer(cmd, mapper);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+
+            return QueryBuffer(cmd, mapper);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<IList<T>> QueryBufferAsync<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+
+                    return await QueryBufferAsync(cmd, mapper, cancel).ConfigureAwait(false);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return await QueryBufferAsync(cmd, mapper, cancel).ConfigureAwait(false);
+        }
+
+        //--------------------------------------------------------------------------------
+        // QueryFirstOrDefault
+        //--------------------------------------------------------------------------------
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T QueryFirstOrDefault<T>(DbCommand cmd, Func<IDataReader, T> mapper)
+        {
+            using (var reader = cmd.ExecuteReader(CommandBehaviorForSingle))
+            {
+                return reader.Read() ? mapper(reader) : default;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        {
+            using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForSingle, cancel))
+            {
+                return reader.Read() ? mapper(reader) : default;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T QueryFirstOrDefault<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    con.Open();
+
+                    return QueryFirstOrDefault<T>(cmd, mapper);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return QueryFirstOrDefault<T>(cmd, mapper);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        {
+            if (con.State == ConnectionState.Closed)
+            {
+                try
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+
+                    return await QueryFirstOrDefaultAsync<T>(cmd, mapper, cancel).ConfigureAwait(false);
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+
+            return await QueryFirstOrDefaultAsync<T>(cmd, mapper, cancel).ConfigureAwait(false);
         }
     }
 
@@ -64,60 +341,53 @@ namespace WorkGenerated
 
         public int Execute()
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                // Command
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
+                // Build command
+                cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
-                    // Execute
-                    con.Open();
+                // Execute
+                con.Open();
 
-                    var result = cmd.ExecuteNonQuery();
+                var result = cmd.ExecuteNonQuery();
 
-                    // Post action
+                // Post action
 
-                    return result;
-                }
+                return result;
             }
         }
 
         // With Cancel
         public async Task<int> ExecuteAsync(CancellationToken cancel)
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                // Command
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
+                // Build command
+                cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
-                    // Execute
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    var result = await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
+                var result = await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
 
-                    // Post action
+                // Post action
 
-                    return result;
-                }
+                return result;
             }
         }
 
         // With Connection
         public int Execute(DbConnection con)
         {
-            // Command
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
-                // TODO con open ?
                 // Execute
-                var result = cmd.ExecuteNonQuery();
+                var result = DaoHelper.Execute(con, cmd);
 
                 // Post action
 
@@ -128,14 +398,13 @@ namespace WorkGenerated
         // With Connection, Cancel
         public async Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel)
         {
-            // Command
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
-                // TODO con open ?
                 // Execute
-                var result = await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
+                var result = await DaoHelper.ExecuteAsync(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -149,122 +418,74 @@ namespace WorkGenerated
 
         public long ExecuteScalar()
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                // Command
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT COUNT(*) FROM Data";
+                // Build command
+                cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
-                    // Execute
-                    con.Open();
+                // Execute
+                con.Open();
 
-                    var result = cmd.ExecuteScalar();
+                var result = DaoHelper.ExecuteScalar<long>(cmd, converter);
 
-                    // Post action
+                // Post action
 
-                    if (result is DBNull)
-                    {
-                        return default;
-                    }
-
-                    if (result is long scalar)
-                    {
-                        return scalar;
-                    }
-
-                    return (long)converter(result);
-                }
+                return result;
             }
         }
 
         // With Cancel
         public async Task<long> ExecuteScalarAsync(CancellationToken cancel)
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                // Command
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT COUNT(*) FROM Data";
+                // Build command
+                cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
-                    // Execute
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
+                var result = await DaoHelper.ExecuteScalarAsync<long>(cmd, converter, cancel).ConfigureAwait(false); ;
 
-                    // Post action
+                // Post action
 
-                    if (result is DBNull)
-                    {
-                        return default;
-                    }
-
-                    if (result is long scalar)
-                    {
-                        return scalar;
-                    }
-
-                    return (long)converter(result);
-                }
+                return result;
             }
         }
 
         // With Connection
         public long ExecuteScalar(DbConnection con)
         {
-            // Command
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
-                // TODO con open ?
                 // Execute
-                var result = cmd.ExecuteScalar();
+                var result = DaoHelper.ExecuteScalar<long>(con, cmd, converter);
 
                 // Post action
 
-                if (result is DBNull)
-                {
-                    return default;
-                }
-
-                if (result is long scalar)
-                {
-                    return scalar;
-                }
-
-                return (long)converter(result);
+                return result;
             }
         }
 
         // With Connection, Cancel
         public async Task<long> ExecuteScalarAsync(DbConnection con, CancellationToken cancel)
         {
-            // Command
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
-                // TODO con open ?
                 // Execute
-                var result = await cmd.ExecuteScalarAsync(cancel);
+                var result = await DaoHelper.ExecuteScalarAsync<long>(con, cmd, converter, cancel).ConfigureAwait(false); ;
 
                 // Post action
 
-                if (result is DBNull)
-                {
-                    return default;
-                }
-
-                if (result is long scalar)
-                {
-                    return scalar;
-                }
-
-                return (long)converter(result);
+                return result;
             }
         }
 
@@ -274,77 +495,86 @@ namespace WorkGenerated
 
         public IDataReader ExecuteReader()
         {
-            // TODO con ?
-            // Connection
-            using (var con = provider.CreateConnection())
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            var con = provider.CreateConnection();
+            try
             {
-                var reader = default(IDataReader);
-                var cmd = con.CreateCommand();
-                try
-                {
-                    cmd.CommandText = "SELECT * FROM Data";
+                cmd = con.CreateCommand();
 
-                    // Execute
-                    con.Open();
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data";
 
-                    reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForEnumerable);
+                // Execute
+                con.Open();
 
-                    // Post action
+                reader = DaoHelper.ExecuteReader(cmd);
 
-                    return new WrappedReader(cmd, reader);
-                }
-                catch (Exception)
-                {
-                    reader?.Dispose();
-                    cmd.Dispose();
-                    throw;
-                }
+                // Post action
+
+                return new WrappedReader(cmd, reader);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                con.Close();
+                throw;
             }
         }
 
         // With Cancel
         public async Task<IDataReader> ExecuteReaderAsync(CancellationToken cancel)
         {
-            // TODO con ?
-            // Connection
-            using (var con = provider.CreateConnection())
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            var con = provider.CreateConnection();
+            try
             {
-                var reader = default(IDataReader);
-                var cmd = con.CreateCommand();
-                try
-                {
-                    cmd.CommandText = "SELECT * FROM Data";
+                cmd = con.CreateCommand();
 
-                    // Execute
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data";
 
-                    reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForEnumerable, cancel).ConfigureAwait(false);
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    // Post action
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
 
-                    return new WrappedReader(cmd, reader);
-                }
-                catch (Exception)
-                {
-                    reader?.Dispose();
-                    cmd.Dispose();
-                    throw;
-                }
+                // Post action
+
+                return new WrappedReader(cmd, reader);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                con.Close();
+                throw;
             }
         }
 
         // With Connection
         public IDataReader ExecuteReader(DbConnection con)
         {
+            var wasClosed = con.State == ConnectionState.Closed;
             var reader = default(IDataReader);
-            var cmd = con.CreateCommand();
+            var cmd = default(DbCommand);
             try
             {
+                cmd = con.CreateCommand();
+
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data";
 
-                // TODO con open ?(try統合)
                 // Execute
-                reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForEnumerable);
+                if (wasClosed)
+                {
+                    con.Open();
+                }
+
+                reader = DaoHelper.ExecuteReader(cmd);
+                wasClosed = false;
 
                 // Post action
 
@@ -353,23 +583,39 @@ namespace WorkGenerated
             catch (Exception)
             {
                 reader?.Dispose();
-                cmd.Dispose();
+                cmd?.Dispose();
                 throw;
+            }
+            finally
+            {
+                if (wasClosed)
+                {
+                    con.Close();
+                }
             }
         }
 
         // With Connection, Cancel
         public async Task<IDataReader> ExecuteReaderAsync(DbConnection con, CancellationToken cancel)
         {
+            var wasClosed = con.State == ConnectionState.Closed;
             var reader = default(IDataReader);
-            var cmd = con.CreateCommand();
+            var cmd = default(DbCommand);
             try
             {
+                cmd = con.CreateCommand();
+
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data";
 
-                // TODO con open ?(try統合)
                 // Execute
-                reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForEnumerable, cancel).ConfigureAwait(false);
+                if (wasClosed)
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                }
+
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                wasClosed = false;
 
                 // Post action
 
@@ -378,8 +624,158 @@ namespace WorkGenerated
             catch (Exception)
             {
                 reader?.Dispose();
-                cmd.Dispose();
+                cmd?.Dispose();
                 throw;
+            }
+            finally
+            {
+                if (wasClosed)
+                {
+                    con.Close();
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Query(NonBuffered)
+        //--------------------------------------------------------------------------------
+
+        public IEnumerable<DataEntity> QueryNonBuffer()
+        {
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            var con = provider.CreateConnection();
+            try
+            {
+                cmd = con.CreateCommand();
+
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data";
+
+                // Execute
+                con.Open();
+
+                reader = DaoHelper.ExecuteReader(cmd);
+
+                // Post action
+
+                return DaoHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                con.Close();
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DataEntity>> QueryNonBufferAsync(CancellationToken cancel)
+        {
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            var con = provider.CreateConnection();
+            try
+            {
+                cmd = con.CreateCommand();
+
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data";
+
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
+
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+
+                // Post action
+
+                return DaoHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                con.Close();
+                throw;
+            }
+        }
+
+        public IEnumerable<DataEntity> QueryNonBuffer(DbConnection con)
+        {
+            var wasClosed = con.State == ConnectionState.Closed;
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            try
+            {
+                cmd = con.CreateCommand();
+
+                cmd.CommandText = "SELECT * FROM Data";
+
+                // Execute
+                if (wasClosed)
+                {
+                    con.Open();
+                }
+
+                reader = DaoHelper.ExecuteReader(cmd);
+                wasClosed = false;
+
+                // Post action
+
+                return DaoHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                throw;
+            }
+            finally
+            {
+                if (wasClosed)
+                {
+                    con.Close();
+                }
+            }
+        }
+
+        public async Task<IEnumerable<DataEntity>> QueryNonBufferAsync(DbConnection con, CancellationToken cancel)
+        {
+            var wasClosed = con.State == ConnectionState.Closed;
+            var reader = default(IDataReader);
+            var cmd = default(DbCommand);
+            try
+            {
+                cmd = con.CreateCommand();
+
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data";
+
+                // Execute
+                if (wasClosed)
+                {
+                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                }
+
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                wasClosed = false;
+
+                // Post action
+
+                return DaoHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+            }
+            catch (Exception)
+            {
+                reader?.Dispose();
+                cmd?.Dispose();
+                throw;
+            }
+            finally
+            {
+                if (wasClosed)
+                {
+                    con.Close();
+                }
             }
         }
 
@@ -389,45 +785,40 @@ namespace WorkGenerated
 
         public IList<DataEntity> QueryBuffer()
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                    // Execute
-                    con.Open();
+                // Execute
+                con.Open();
 
-                    using (var reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForList))
-                    {
-                        // Post action
+                var list = DaoHelper.QueryBuffer(cmd, mapperDataEntity);
 
-                        return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                    }
-                }
+                // Post action
+
+                return list;
             }
         }
 
         // With Cancel
         public async Task<IList<DataEntity>> QueryBufferAsync(CancellationToken cancel)
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    using (var reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForList, cancel))
-                    {
-                        // Post action
+                var list = await DaoHelper.QueryBufferAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
 
-                        return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                    }
-                }
+                // Post action
+
+                return list;
             }
         }
 
@@ -436,37 +827,15 @@ namespace WorkGenerated
         {
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                if (con.State == ConnectionState.Closed)
-                {
-                    try
-                    {
-                        con.Open();
+                // Execute
+                var list = DaoHelper.QueryBuffer(con, cmd, mapperDataEntity);
 
-                        // Execute
-                        using (var reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForList))
-                        {
-                            // Post action
+                // Post action
 
-                            return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                        }
-                    }
-                    finally
-                    {
-                        con.Close();
-                    }
-                }
-                else
-                {
-                    // Execute
-                    using (var reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForList))
-                    {
-                        // Post action
-
-                        return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                    }
-                }
+                return list;
             }
         }
 
@@ -475,201 +844,15 @@ namespace WorkGenerated
         {
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                if (con.State == ConnectionState.Closed)
-                {
-                    try
-                    {
-                        await con.OpenAsync(cancel).ConfigureAwait(false);
-
-                        // Execute
-                        using (var reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForList, cancel))
-                        {
-                            // Post action
-
-                            return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                        }
-                    }
-                    finally
-                    {
-                        con.Close();
-                    }
-                }
-                else
-                {
-                    // Execute
-                    using (var reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForList, cancel))
-                    {
-                        // Post action
-
-                        return DaoHelper.ReaderToList(reader, mapperDataEntity);
-                    }
-                }
-            }
-        }
-
-        //--------------------------------------------------------------------------------
-        // Query(NonBuffered)
-        //--------------------------------------------------------------------------------
-
-        private static IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, Func<IDataRecord, T> mapper)
-        {
-            using (cmd)
-            using (reader)
-            {
-                while (reader.Read())
-                {
-                    yield return mapper(reader);
-                }
-            }
-        }
-
-        public IEnumerable<DataEntity> QueryNonBuffer()
-        {
-            var close = true;
-            var reader = default(IDataReader);
-            var cmd = default(DbCommand);
-            var con = provider.CreateConnection();
-            try
-            {
-                cmd = con.CreateCommand();
-
-                cmd.CommandText = "SELECT * FROM Data";
-
                 // Execute
-                con.Open();
-
-                reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForEnumerable);
-                close = false;
+                var list = await DaoHelper.QueryBufferAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
 
                 // Post action
 
-                var deferred = ReaderToDefer(cmd, reader, mapperDataEntity);
-                cmd = null;
-                reader = null;
-                return deferred;
-            }
-            finally
-            {
-                reader?.Dispose();
-                cmd?.Dispose();
-                if (close)
-                {
-                    con.Close();
-                }
-            }
-        }
-
-        public async Task<IEnumerable<DataEntity>> QueryNonBufferAsync(CancellationToken cancel)
-        {
-            var close = true;
-            var reader = default(IDataReader);
-            var cmd = default(DbCommand);
-            var con = provider.CreateConnection();
-            try
-            {
-                cmd = con.CreateCommand();
-
-                cmd.CommandText = "SELECT * FROM Data";
-
-                // Execute
-                await con.OpenAsync(cancel).ConfigureAwait(false);
-
-                reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForEnumerable, cancel).ConfigureAwait(false);
-                close = false;
-
-                // Post action
-
-                var deferred = ReaderToDefer(cmd, reader, mapperDataEntity);
-                cmd = null;
-                reader = null;
-                return deferred;
-            }
-            finally
-            {
-                reader?.Dispose();
-                cmd?.Dispose();
-                if (close)
-                {
-                    con.Close();
-                }
-            }
-        }
-
-        public IEnumerable<DataEntity> QueryNonBuffer(DbConnection con)
-        {
-            var close = con.State == ConnectionState.Closed;
-            var reader = default(IDataReader);
-            var cmd = default(DbCommand);
-            try
-            {
-                cmd = con.CreateCommand();
-
-                cmd.CommandText = "SELECT * FROM Data";
-
-                // Execute
-                if (close)
-                {
-                    con.Open();
-                }
-
-                reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForEnumerable);
-                close = false;
-
-                // Post action
-
-                var deferred = ReaderToDefer(cmd, reader, mapperDataEntity);
-                cmd = null;
-                reader = null;
-                return deferred;
-            }
-            finally
-            {
-                reader?.Dispose();
-                cmd?.Dispose();
-                if (close)
-                {
-                    con.Close();
-                }
-            }
-        }
-
-        public async Task<IEnumerable<DataEntity>> QueryNonBufferAsync(DbConnection con, CancellationToken cancel)
-        {
-            var close = con.State == ConnectionState.Closed;
-            var reader = default(IDataReader);
-            var cmd = default(DbCommand);
-            try
-            {
-                cmd = con.CreateCommand();
-
-                cmd.CommandText = "SELECT * FROM Data";
-
-                // Execute
-                if (close)
-                {
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
-                }
-
-                reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForEnumerable, cancel).ConfigureAwait(false);
-                close = false;
-
-                // Post action
-
-                var deferred = ReaderToDefer(cmd, reader, mapperDataEntity);
-                cmd = null;
-                reader = null;
-                return deferred;
-            }
-            finally
-            {
-                reader?.Dispose();
-                cmd?.Dispose();
-                if (close)
-                {
-                    con.Close();
-                }
+                return list;
             }
         }
 
@@ -679,46 +862,40 @@ namespace WorkGenerated
 
         public DataEntity QueryFirstOrDefault()
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                    // Execute
-                    con.Open();
+                // Execute
+                con.Open();
 
-                    using (var reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForSingle))
-                    {
-                        // Post action
+                var result = DaoHelper.QueryFirstOrDefault(cmd, mapperDataEntity);
 
-                        return reader.Read() ? mapperDataEntity(reader) : default;
-                    }
-                }
+                // Post action
+
+                return result;
             }
         }
 
         // With Cancel
         public async Task<DataEntity> QueryFirstOrDefault(CancellationToken cancel)
         {
-            // Connection
             using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
             {
-                using (var cmd = con.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
+                // Build command
+                cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
-                    // Execute
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
+                // Execute
+                await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    using (var reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForSingle, cancel).ConfigureAwait(false))
-                    {
-                        // Post action
+                var result = await DaoHelper.QueryFirstOrDefaultAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
 
-                        return reader.Read() ? mapperDataEntity(reader) : default;
-                    }
-                }
+                // Post action
+
+                return result;
             }
         }
 
@@ -727,15 +904,17 @@ namespace WorkGenerated
         {
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                using (var reader = cmd.ExecuteReader(DaoHelper.CommandBehaviorForSingle))
-                {
-                    // Post action
+                con.Open();
 
-                    return reader.Read() ? mapperDataEntity(reader) : default;
-                }
+                var result = DaoHelper.QueryFirstOrDefault(con, cmd, mapperDataEntity);
+
+                // Post action
+
+                return result;
             }
         }
 
@@ -744,15 +923,15 @@ namespace WorkGenerated
         {
             using (var cmd = con.CreateCommand())
             {
+                // Build command
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                using (var reader = await cmd.ExecuteReaderAsync(DaoHelper.CommandBehaviorForSingle, cancel).ConfigureAwait(false))
-                {
-                    // Post action
+                var result = await DaoHelper.QueryFirstOrDefaultAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
 
-                    return reader.Read() ? mapperDataEntity(reader) : default;
-                }
+                // Post action
+
+                return result;
             }
         }
 
