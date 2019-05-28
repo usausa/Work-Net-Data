@@ -10,7 +10,7 @@ namespace WorkGenerated.Tests
 
     using Xunit;
 
-    public class SampleDaoQueryFirstOrDefaultTest
+    public class SampleDaoExecuteScalarTest
     {
         //--------------------------------------------------------------------------------
         // Auto Connection
@@ -18,7 +18,7 @@ namespace WorkGenerated.Tests
 
         [Fact]
 
-        public void QueryFirstOrDefault()
+        public void ExecuteScalar()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -29,15 +29,15 @@ namespace WorkGenerated.Tests
                 // Test
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
-                var entity = dao.QueryFirstOrDefault();
+                var count = dao.ExecuteScalar();
 
-                Assert.NotNull(entity);
+                Assert.Equal(1, count);
             }
         }
 
         [Fact]
 
-        public async Task QueryFirstOrDefaultAsync()
+        public async Task ExecuteScalarAsync()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -49,9 +49,9 @@ namespace WorkGenerated.Tests
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
                 var cancel = new CancellationToken();
-                var entity = await dao.QueryFirstOrDefaultAsync(cancel).ConfigureAwait(false);
+                var count = await dao.ExecuteScalarAsync(cancel).ConfigureAwait(false);
 
-                Assert.NotNull(entity);
+                Assert.Equal(1, count);
             }
         }
 
@@ -61,7 +61,7 @@ namespace WorkGenerated.Tests
 
         [Fact]
 
-        public void QueryFirstOrDefaultManualWithOpen()
+        public void ExecuteScalarManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -75,9 +75,9 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
-                    var entity = dao.QueryFirstOrDefault(con2);
+                    var count = dao.ExecuteScalar(con2);
 
-                    Assert.NotNull(entity);
+                    Assert.Equal(1, count);
 
                     Assert.Equal(ConnectionState.Open, con2.State);
                 }
@@ -86,7 +86,7 @@ namespace WorkGenerated.Tests
 
         [Fact]
 
-        public void QueryFirstOrDefaultManualWithoutOpen()
+        public void ExecuteScalarManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -98,9 +98,9 @@ namespace WorkGenerated.Tests
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
                 using (var con2 = new SqliteConnection(Connections.Memory))
                 {
-                    var entity = dao.QueryFirstOrDefault(con2);
+                    var count = dao.ExecuteScalar(con2);
 
-                    Assert.NotNull(entity);
+                    Assert.Equal(1, count);
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
@@ -109,7 +109,7 @@ namespace WorkGenerated.Tests
 
         [Fact]
 
-        public async Task QueryFirstOrDefaultAsyncManualWithOpen()
+        public async Task ExecuteScalarAsyncManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -124,9 +124,9 @@ namespace WorkGenerated.Tests
                     con2.Open();
 
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
+                    var count = await dao.ExecuteScalarAsync(con2, cancel).ConfigureAwait(false);
 
-                    Assert.NotNull(entity);
+                    Assert.Equal(1, count);
 
                     Assert.Equal(ConnectionState.Open, con2.State);
                 }
@@ -135,7 +135,7 @@ namespace WorkGenerated.Tests
 
         [Fact]
 
-        public async Task QueryFirstOrDefaultAsyncManualWithoutOpen()
+        public async Task ExecuteScalarAsyncManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -148,9 +148,9 @@ namespace WorkGenerated.Tests
                 using (var con2 = new SqliteConnection(Connections.Memory))
                 {
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
+                    var count = await dao.ExecuteScalarAsync(con2, cancel).ConfigureAwait(false);
 
-                    Assert.NotNull(entity);
+                    Assert.Equal(1, count);
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
