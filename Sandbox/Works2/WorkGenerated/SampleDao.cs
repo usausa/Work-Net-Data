@@ -281,7 +281,7 @@ namespace WorkGenerated
                 {
                     con.Open();
 
-                    return QueryFirstOrDefault<T>(cmd, mapper);
+                    return QueryFirstOrDefault(cmd, mapper);
                 }
                 finally
                 {
@@ -289,7 +289,7 @@ namespace WorkGenerated
                 }
             }
 
-            return QueryFirstOrDefault<T>(cmd, mapper);
+            return QueryFirstOrDefault(cmd, mapper);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -301,7 +301,7 @@ namespace WorkGenerated
                 {
                     await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    return await QueryFirstOrDefaultAsync<T>(cmd, mapper, cancel).ConfigureAwait(false);
+                    return await QueryFirstOrDefaultAsync(cmd, mapper, cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -309,7 +309,7 @@ namespace WorkGenerated
                 }
             }
 
-            return await QueryFirstOrDefaultAsync<T>(cmd, mapper, cancel).ConfigureAwait(false);
+            return await QueryFirstOrDefaultAsync(cmd, mapper, cancel).ConfigureAwait(false);
         }
     }
 
@@ -457,7 +457,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await DaoHelper.ExecuteScalarAsync<long>(cmd, converter, cancel).ConfigureAwait(false); ;
+                var result = await DaoHelper.ExecuteScalarAsync<long>(cmd, converter, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -491,7 +491,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = await DaoHelper.ExecuteScalarAsync<long>(con, cmd, converter, cancel).ConfigureAwait(false); ;
+                var result = await DaoHelper.ExecuteScalarAsync<long>(con, cmd, converter, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -824,7 +824,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var list = await DaoHelper.QueryBufferAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
+                var list = await DaoHelper.QueryBufferAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -858,7 +858,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var list = await DaoHelper.QueryBufferAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
+                var list = await DaoHelper.QueryBufferAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -890,7 +890,7 @@ namespace WorkGenerated
         }
 
         // With Cancel
-        public async Task<DataEntity> QueryFirstOrDefault(CancellationToken cancel)
+        public async Task<DataEntity> QueryFirstOrDefaultAsync(CancellationToken cancel)
         {
             using (var con = provider.CreateConnection())
             using (var cmd = con.CreateCommand())
@@ -901,7 +901,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await DaoHelper.QueryFirstOrDefaultAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
+                var result = await DaoHelper.QueryFirstOrDefaultAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -918,8 +918,6 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                con.Open();
-
                 var result = DaoHelper.QueryFirstOrDefault(con, cmd, mapperDataEntity);
 
                 // Post action
@@ -929,7 +927,7 @@ namespace WorkGenerated
         }
 
         // With Connection, Cancel
-        public async Task<DataEntity> QueryFirstOrDefault(DbConnection con, CancellationToken cancel)
+        public async Task<DataEntity> QueryFirstOrDefaultAsync(DbConnection con, CancellationToken cancel)
         {
             using (var cmd = con.CreateCommand())
             {
@@ -937,7 +935,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var result = await DaoHelper.QueryFirstOrDefaultAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false); ;
+                var result = await DaoHelper.QueryFirstOrDefaultAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false);
 
                 // Post action
 
