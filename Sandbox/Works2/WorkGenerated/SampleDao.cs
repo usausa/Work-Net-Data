@@ -335,6 +335,16 @@ namespace WorkGenerated
 
         private readonly Func<IDataRecord, DataEntity> mapperDataEntity;
 
+        public SampleDao(
+            IDbProvider provider,
+            Func<object, object> converter,
+            Func<IDataRecord, DataEntity> mapperDataEntity)
+        {
+            this.provider = provider;
+            this.converter = converter;
+            this.mapperDataEntity = mapperDataEntity;
+        }
+
         //--------------------------------------------------------------------------------
         // Execute
         //--------------------------------------------------------------------------------
