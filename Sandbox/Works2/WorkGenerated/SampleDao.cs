@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,7 +69,7 @@ namespace WorkGenerated
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ExecuteScalar<T>(DbCommand cmd, Func<object, object> converter)
+        public static T ExecuteScalar<T>(DbCommand cmd)
         {
             var result = cmd.ExecuteScalar();
 
@@ -82,11 +83,11 @@ namespace WorkGenerated
                 return default;
             }
 
-            return (T)converter(result);
+            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, Func<object, object> converter, CancellationToken cancel = default)
+        public static async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, CancellationToken cancel = default)
         {
             var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
 
@@ -100,11 +101,11 @@ namespace WorkGenerated
                 return default;
             }
 
-            return (T)converter(result);
+            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ExecuteScalar<T>(DbConnection con, DbCommand cmd, Func<object, object> converter)
+        public static T ExecuteScalar<T>(DbConnection con, DbCommand cmd)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -112,7 +113,7 @@ namespace WorkGenerated
                 {
                     con.Open();
 
-                    return ExecuteScalar<T>(cmd, converter);
+                    return ExecuteScalar<T>(cmd);
                 }
                 finally
                 {
@@ -120,11 +121,11 @@ namespace WorkGenerated
                 }
             }
 
-            return ExecuteScalar<T>(cmd, converter);
+            return ExecuteScalar<T>(cmd);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, Func<object, object> converter, CancellationToken cancel = default)
+        public static async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -132,7 +133,7 @@ namespace WorkGenerated
                 {
                     await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    return await ExecuteScalarAsync<T>(cmd, converter, cancel).ConfigureAwait(false);
+                    return await ExecuteScalarAsync<T>(cmd, cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -140,7 +141,7 @@ namespace WorkGenerated
                 }
             }
 
-            return await ExecuteScalarAsync<T>(cmd, converter, cancel).ConfigureAwait(false);
+            return await ExecuteScalarAsync<T>(cmd, cancel).ConfigureAwait(false);
         }
 
         //--------------------------------------------------------------------------------
@@ -330,18 +331,13 @@ namespace WorkGenerated
     {
         private readonly IDbProvider provider;
 
-        // MEMO 今はConverterの利用を検討
-        private readonly Func<object, object> converter;
-
         private readonly Func<IDataRecord, DataEntity> mapperDataEntity;
 
         public SampleDao(
             IDbProvider provider,
-            Func<object, object> converter,
             Func<IDataRecord, DataEntity> mapperDataEntity)
         {
             this.provider = provider;
-            this.converter = converter;
             this.mapperDataEntity = mapperDataEntity;
         }
 
@@ -437,7 +433,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = DaoHelper.ExecuteScalar<long>(cmd, converter);
+                var result = DaoHelper.ExecuteScalar<long>(cmd);
 
                 // Post action
 
@@ -457,7 +453,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await DaoHelper.ExecuteScalarAsync<long>(cmd, converter, cancel).ConfigureAwait(false);
+                var result = await DaoHelper.ExecuteScalarAsync<long>(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -474,7 +470,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = DaoHelper.ExecuteScalar<long>(con, cmd, converter);
+                var result = DaoHelper.ExecuteScalar<long>(con, cmd);
 
                 // Post action
 
@@ -491,7 +487,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = await DaoHelper.ExecuteScalarAsync<long>(con, cmd, converter, cancel).ConfigureAwait(false);
+                var result = await DaoHelper.ExecuteScalarAsync<long>(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 

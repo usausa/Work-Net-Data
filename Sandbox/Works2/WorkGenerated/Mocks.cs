@@ -49,7 +49,6 @@ namespace WorkGenerated
         {
             return new SampleDao(
                 new DelegateDbProvider(factory),
-                x => Convert.ToInt64(x),
                 MapperFactory.CreateDataEntityMapper());
         }
     }
