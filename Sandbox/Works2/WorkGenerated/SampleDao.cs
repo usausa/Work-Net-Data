@@ -72,14 +72,14 @@ namespace WorkGenerated
         {
             var result = cmd.ExecuteScalar();
 
-            if (result is DBNull)
-            {
-                return default;
-            }
-
             if (result is T scalar)
             {
                 return scalar;
+            }
+
+            if (result is DBNull)
+            {
+                return default;
             }
 
             return (T)converter(result);
@@ -90,14 +90,14 @@ namespace WorkGenerated
         {
             var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
 
-            if (result is DBNull)
-            {
-                return default;
-            }
-
             if (result is T scalar)
             {
                 return scalar;
+            }
+
+            if (result is DBNull)
+            {
+                return default;
             }
 
             return (T)converter(result);
