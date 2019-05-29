@@ -17,7 +17,6 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-
         public void ExecuteScalar()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -36,7 +35,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task ExecuteScalarAsync()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -60,7 +58,6 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-
         public void ExecuteScalarManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -85,7 +82,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public void ExecuteScalarManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -108,7 +104,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task ExecuteScalarAsyncManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -134,7 +129,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task ExecuteScalarAsyncManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))

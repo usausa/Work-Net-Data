@@ -1,6 +1,7 @@
 namespace WorkGenerated.Tests
 {
     using System.Data;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -10,14 +11,14 @@ namespace WorkGenerated.Tests
 
     using Xunit;
 
-    public class SampleDaoQueryFirstOrDefaultTest
+    public class SampleDaoQueryNonBufferTest
     {
         //--------------------------------------------------------------------------------
         // Auto Connection
         //--------------------------------------------------------------------------------
 
         [Fact]
-        public void QueryFirstOrDefault()
+        public void QueryNonBuffer()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -28,14 +29,14 @@ namespace WorkGenerated.Tests
                 // Test
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
-                var entity = dao.QueryFirstOrDefault();
+                var list = dao.QueryNonBuffer().ToList();
 
-                Assert.NotNull(entity);
+                Assert.Single(list);
             }
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsync()
+        public async Task QueryNonBufferAsync()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -47,9 +48,9 @@ namespace WorkGenerated.Tests
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
                 var cancel = new CancellationToken();
-                var entity = await dao.QueryFirstOrDefaultAsync(cancel).ConfigureAwait(false);
+                var list = (await dao.QueryNonBufferAsync(cancel).ConfigureAwait(false)).ToList();
 
-                Assert.NotNull(entity);
+                Assert.Single(list);
             }
         }
 
@@ -58,7 +59,7 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-        public void QueryFirstOrDefaultManualWithOpen()
+        public void QueryNonBufferManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -72,31 +73,11 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
-                    var entity = dao.QueryFirstOrDefault(con2);
-
-                    Assert.NotNull(entity);
+                    var list = dao.QueryNonBuffer(con2);
 
                     Assert.Equal(ConnectionState.Open, con2.State);
-                }
-            }
-        }
 
-        [Fact]
-        public void QueryFirstOrDefaultManualWithoutOpen()
-        {
-            using (var con = new SqliteConnection(Connections.Memory))
-            {
-                con.Open();
-                con.Execute("CREATE TABLE IF NOT EXISTS Data (Id int PRIMARY KEY, Name text)");
-                con.Execute("INSERT INTO Data (Id, Name) VALUES (1, 'test1')");
-
-                // Test
-                var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
-                using (var con2 = new SqliteConnection(Connections.Memory))
-                {
-                    var entity = dao.QueryFirstOrDefault(con2);
-
-                    Assert.NotNull(entity);
+                    Assert.Single(list.ToList());
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
@@ -104,7 +85,29 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsyncManualWithOpen()
+        public void QueryNonBufferManualWithoutOpen()
+        {
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                con.Open();
+                con.Execute("CREATE TABLE IF NOT EXISTS Data (Id int PRIMARY KEY, Name text)");
+                con.Execute("INSERT INTO Data (Id, Name) VALUES (1, 'test1')");
+
+                // Test
+                var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+                using (var con2 = new SqliteConnection(Connections.Memory))
+                {
+                    var list = dao.QueryNonBuffer(con2).ToList();
+
+                    Assert.Single(list);
+
+                    Assert.Equal(ConnectionState.Closed, con2.State);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task QueryNonBufferAsyncManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -119,17 +122,19 @@ namespace WorkGenerated.Tests
                     con2.Open();
 
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
-
-                    Assert.NotNull(entity);
+                    var list = await dao.QueryNonBufferAsync(con2, cancel).ConfigureAwait(false);
 
                     Assert.Equal(ConnectionState.Open, con2.State);
+
+                    Assert.Single(list.ToList());
+
+                    Assert.Equal(ConnectionState.Closed, con2.State);
                 }
             }
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsyncManualWithoutOpen()
+        public async Task QueryNonBufferAsyncManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -142,9 +147,9 @@ namespace WorkGenerated.Tests
                 using (var con2 = new SqliteConnection(Connections.Memory))
                 {
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
+                    var list = (await dao.QueryNonBufferAsync(con2, cancel).ConfigureAwait(false)).ToList();
 
-                    Assert.NotNull(entity);
+                    Assert.Single(list);
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }

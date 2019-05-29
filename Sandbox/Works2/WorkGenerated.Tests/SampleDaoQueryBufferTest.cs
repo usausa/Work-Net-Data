@@ -17,7 +17,6 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-
         public void QueryBuffer()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -36,7 +35,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task QueryBufferAsync()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -60,7 +58,6 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-
         public void QueryBufferManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -85,7 +82,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public void QueryBufferManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -108,7 +104,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task QueryBufferAsyncManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
@@ -134,7 +129,6 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-
         public async Task QueryBufferAsyncManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))

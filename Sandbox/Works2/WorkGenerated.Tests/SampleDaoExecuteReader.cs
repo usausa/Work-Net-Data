@@ -10,14 +10,14 @@ namespace WorkGenerated.Tests
 
     using Xunit;
 
-    public class SampleDaoQueryFirstOrDefaultTest
+    public class SampleDaoExecuteReader
     {
         //--------------------------------------------------------------------------------
         // Auto Connection
         //--------------------------------------------------------------------------------
 
         [Fact]
-        public void QueryFirstOrDefault()
+        public void ExecuteReader()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -28,14 +28,16 @@ namespace WorkGenerated.Tests
                 // Test
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
-                var entity = dao.QueryFirstOrDefault();
-
-                Assert.NotNull(entity);
+                using (var reader = dao.ExecuteReader())
+                {
+                    Assert.True(reader.Read());
+                    Assert.False(reader.Read());
+                }
             }
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsync()
+        public async Task ExecuteReaderAsync()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -47,9 +49,11 @@ namespace WorkGenerated.Tests
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
 
                 var cancel = new CancellationToken();
-                var entity = await dao.QueryFirstOrDefaultAsync(cancel).ConfigureAwait(false);
-
-                Assert.NotNull(entity);
+                using (var reader = await dao.ExecuteReaderAsync(cancel).ConfigureAwait(false))
+                {
+                    Assert.True(reader.Read());
+                    Assert.False(reader.Read());
+                }
             }
         }
 
@@ -58,7 +62,7 @@ namespace WorkGenerated.Tests
         //--------------------------------------------------------------------------------
 
         [Fact]
-        public void QueryFirstOrDefaultManualWithOpen()
+        public void ExecuteReaderManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -72,9 +76,12 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
-                    var entity = dao.QueryFirstOrDefault(con2);
-
-                    Assert.NotNull(entity);
+                    // TODO Fix
+                    using (var reader = dao.ExecuteReader(con2))
+                    {
+                        Assert.True(reader.Read());
+                        Assert.False(reader.Read());
+                    }
 
                     Assert.Equal(ConnectionState.Open, con2.State);
                 }
@@ -82,7 +89,7 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-        public void QueryFirstOrDefaultManualWithoutOpen()
+        public void ExecuteReaderManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -94,9 +101,11 @@ namespace WorkGenerated.Tests
                 var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
                 using (var con2 = new SqliteConnection(Connections.Memory))
                 {
-                    var entity = dao.QueryFirstOrDefault(con2);
-
-                    Assert.NotNull(entity);
+                    using (var reader = dao.ExecuteReader(con2))
+                    {
+                        Assert.True(reader.Read());
+                        Assert.False(reader.Read());
+                    }
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
@@ -104,7 +113,7 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsyncManualWithOpen()
+        public async Task ExecuteReaderAsyncManualWithOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -118,10 +127,13 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
+                    // TODO Fix
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
-
-                    Assert.NotNull(entity);
+                    using (var reader = await dao.ExecuteReaderAsync(con2, cancel).ConfigureAwait(false))
+                    {
+                        Assert.True(reader.Read());
+                        Assert.False(reader.Read());
+                    }
 
                     Assert.Equal(ConnectionState.Open, con2.State);
                 }
@@ -129,7 +141,7 @@ namespace WorkGenerated.Tests
         }
 
         [Fact]
-        public async Task QueryFirstOrDefaultAsyncManualWithoutOpen()
+        public async Task ExecuteReaderAsyncManualWithoutOpen()
         {
             using (var con = new SqliteConnection(Connections.Memory))
             {
@@ -142,9 +154,11 @@ namespace WorkGenerated.Tests
                 using (var con2 = new SqliteConnection(Connections.Memory))
                 {
                     var cancel = new CancellationToken();
-                    var entity = await dao.QueryFirstOrDefaultAsync(con2, cancel).ConfigureAwait(false);
-
-                    Assert.NotNull(entity);
+                    using (var reader = await dao.ExecuteReaderAsync(con2, cancel).ConfigureAwait(false))
+                    {
+                        Assert.True(reader.Read());
+                        Assert.False(reader.Read());
+                    }
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
