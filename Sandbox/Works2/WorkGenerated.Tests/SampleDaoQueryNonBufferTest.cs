@@ -13,8 +13,6 @@ namespace WorkGenerated.Tests
 
     public class SampleDaoQueryNonBufferTest
     {
-        // TODO Close ?
-
         //--------------------------------------------------------------------------------
         // Auto Connection
         //--------------------------------------------------------------------------------
@@ -155,6 +153,64 @@ namespace WorkGenerated.Tests
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Manual Connection Close
+        //--------------------------------------------------------------------------------
+
+        [Fact]
+        public void ClosedConnectionMustClosedWhenQueryError()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                Assert.Throws<SqliteException>(() => dao.QueryNonBuffer(con).ToList());
+
+                Assert.Equal(ConnectionState.Closed, con.State);
+            }
+        }
+
+        [Fact]
+        public void OpenedConnectionMustOpenedWhenQueryError()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                con.Open();
+
+                Assert.Throws<SqliteException>(() => dao.QueryNonBuffer(con).ToList());
+
+                Assert.Equal(ConnectionState.Open, con.State);
+            }
+        }
+
+        [Fact]
+        public async Task ClosedConnectionMustClosedWhenQueryErrorAsync()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                var cancel = new CancellationToken();
+                await Assert.ThrowsAsync<SqliteException>(async () => await dao.QueryNonBufferAsync(con, cancel));
+
+                Assert.Equal(ConnectionState.Closed, con.State);
+            }
+        }
+
+        [Fact]
+        public async Task OpenedConnectionMustOpenedWhenQueryErrorAsync()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                con.Open();
+
+                var cancel = new CancellationToken();
+                await Assert.ThrowsAsync<SqliteException>(async () => await dao.QueryNonBufferAsync(con, cancel));
+
+                Assert.Equal(ConnectionState.Open, con.State);
             }
         }
     }

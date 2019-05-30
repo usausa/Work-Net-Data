@@ -58,7 +58,7 @@ namespace WorkGenerated.Tests
         }
 
         //--------------------------------------------------------------------------------
-        // Manual Connection
+        // Manual Connection Open
         //--------------------------------------------------------------------------------
 
         [Fact]
@@ -76,7 +76,6 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
-                    // TODO Fix
                     using (var reader = dao.ExecuteReader(con2))
                     {
                         Assert.True(reader.Read());
@@ -127,7 +126,6 @@ namespace WorkGenerated.Tests
                 {
                     con2.Open();
 
-                    // TODO Fix
                     var cancel = new CancellationToken();
                     using (var reader = await dao.ExecuteReaderAsync(con2, cancel).ConfigureAwait(false))
                     {
@@ -162,6 +160,64 @@ namespace WorkGenerated.Tests
 
                     Assert.Equal(ConnectionState.Closed, con2.State);
                 }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Manual Connection Close
+        //--------------------------------------------------------------------------------
+
+        [Fact]
+        public void ClosedConnectionMustClosedWhenQueryError()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                Assert.Throws<SqliteException>(() => dao.ExecuteReader(con));
+
+                Assert.Equal(ConnectionState.Closed, con.State);
+            }
+        }
+
+        [Fact]
+        public void OpenedConnectionMustOpenedWhenQueryError()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                con.Open();
+
+                Assert.Throws<SqliteException>(() => dao.ExecuteReader(con));
+
+                Assert.Equal(ConnectionState.Open, con.State);
+            }
+        }
+
+        [Fact]
+        public async Task ClosedConnectionMustClosedWhenQueryErrorAsync()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                var cancel = new CancellationToken();
+                await Assert.ThrowsAsync<SqliteException>(async () => await dao.ExecuteReaderAsync(con, cancel));
+
+                Assert.Equal(ConnectionState.Closed, con.State);
+            }
+        }
+
+        [Fact]
+        public async Task OpenedConnectionMustOpenedWhenQueryErrorAsync()
+        {
+            var dao = DaoFactory.CreateSampleDao(() => new SqliteConnection(Connections.Memory));
+            using (var con = new SqliteConnection(Connections.Memory))
+            {
+                con.Open();
+
+                var cancel = new CancellationToken();
+                await Assert.ThrowsAsync<SqliteException>(async () => await dao.ExecuteReaderAsync(con, cancel));
+
+                Assert.Equal(ConnectionState.Open, con.State);
             }
         }
     }
