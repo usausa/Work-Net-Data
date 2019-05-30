@@ -12,6 +12,9 @@ namespace WorkGenerated
     public static class DaoHelper
     {
         private const CommandBehavior CommandBehaviorForEnumerable =
+            CommandBehavior.SequentialAccess;
+
+        private const CommandBehavior CommandBehaviorForEnumerableWithClose =
             CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection;
 
         private const CommandBehavior CommandBehaviorForList =
@@ -151,13 +154,25 @@ namespace WorkGenerated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DbDataReader ExecuteReader(DbCommand cmd)
         {
-            return cmd.ExecuteReader(CommandBehaviorForEnumerable);
+            return cmd.ExecuteReader(CommandBehaviorForEnumerableWithClose);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, CancellationToken cancel)
         {
-            return cmd.ExecuteReaderAsync(CommandBehaviorForEnumerable, cancel);
+            return cmd.ExecuteReaderAsync(CommandBehaviorForEnumerableWithClose, cancel);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DbDataReader ExecuteReader(DbCommand cmd, bool withClose)
+        {
+            return cmd.ExecuteReader(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, bool withClose, CancellationToken cancel)
+        {
+            return cmd.ExecuteReaderAsync(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable, cancel);
         }
 
         //--------------------------------------------------------------------------------
@@ -579,7 +594,7 @@ namespace WorkGenerated
                     con.Open();
                 }
 
-                reader = DaoHelper.ExecuteReader(cmd);
+                reader = DaoHelper.ExecuteReader(cmd, wasClosed);
                 wasClosed = false;
 
                 // Post action
@@ -620,7 +635,7 @@ namespace WorkGenerated
                     await con.OpenAsync(cancel).ConfigureAwait(false);
                 }
 
-                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action
@@ -723,7 +738,7 @@ namespace WorkGenerated
                     con.Open();
                 }
 
-                reader = DaoHelper.ExecuteReader(cmd);
+                reader = DaoHelper.ExecuteReader(cmd, wasClosed);
                 wasClosed = false;
 
                 // Post action
@@ -763,7 +778,7 @@ namespace WorkGenerated
                     await con.OpenAsync(cancel).ConfigureAwait(false);
                 }
 
-                reader = await DaoHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                reader = await DaoHelper.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action

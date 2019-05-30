@@ -13,6 +13,8 @@ namespace WorkGenerated.Tests
 
     public class SampleDaoQueryNonBufferTest
     {
+        // TODO Close ?
+
         //--------------------------------------------------------------------------------
         // Auto Connection
         //--------------------------------------------------------------------------------
@@ -79,7 +81,7 @@ namespace WorkGenerated.Tests
 
                     Assert.Single(list.ToList());
 
-                    Assert.Equal(ConnectionState.Closed, con2.State);
+                    Assert.Equal(ConnectionState.Open, con2.State);
                 }
             }
         }
@@ -128,7 +130,7 @@ namespace WorkGenerated.Tests
 
                     Assert.Single(list.ToList());
 
-                    Assert.Equal(ConnectionState.Closed, con2.State);
+                    Assert.Equal(ConnectionState.Open, con2.State);
                 }
             }
         }
