@@ -958,40 +958,53 @@ namespace WorkGenerated
         // SpecialMethod
         //--------------------------------------------------------------------------------
 
+        // [低優先]
         // TODO procedure Executeになるのとパラメタの違い
-
         // TODO Insert Executeになるだけ
-
-        //--------------------------------------------------------------------------------
-        // Option
-        //--------------------------------------------------------------------------------
-
-        // TODO 引数にTimeout CMDが違うだけ
 
         //--------------------------------------------------------------------------------
         // Parameter
         //--------------------------------------------------------------------------------
 
-        // TODO optimized 単一SQL
-
-        // TODO conditional basic args1, 2, class
+        // TODO conditional basic args1, 2
+        // TODO class
 
         // TODO enumerable
-
         // TODO enumerable with dynamic parameter
-
-        // TODO size and dbTye, parameter / class 2*2
-
-        // TODO TypeHandler , parameter / class 1*2
-
-        // TODO out/ref
-
-        // TODO direction
 
         //--------------------------------------------------------------------------------
         // Full
         //--------------------------------------------------------------------------------
 
-        // TODO mixed?
+        // TODO parameter helper
+
+        // TODO size and dbTye, parameter / class 2*2
+        // TODO TypeHandler , parameter / class 1*2
+
+        // TODO out/ref
+        // TODO direction
+
+        // CommandType
+        // Timeout
+        public int ExecuteEx(ProcParameter parameter, int timeout)
+        {
+            using (var con = provider.CreateConnection())
+            using (var cmd = con.CreateCommand())
+            {
+                // Build command
+                cmd.CommandText = "PROC";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = timeout;
+
+                // Execute
+                con.Open();
+
+                var result = cmd.ExecuteNonQuery();
+
+                // Post action
+
+                return result;
+            }
+        }
     }
 }

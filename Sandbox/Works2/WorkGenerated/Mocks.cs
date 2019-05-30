@@ -29,6 +29,15 @@ namespace WorkGenerated
         public string Name { get; set; }
     }
 
+    public class ProcParameter
+    {
+        public int? InParam { get; set; }
+
+        public int InOutParam { get; set; }
+
+        public int OutParam { get; set; }
+    }
+
     public static class MapperFactory
     {
         public static Func<IDataRecord, DataEntity> CreateDataEntityMapper()
