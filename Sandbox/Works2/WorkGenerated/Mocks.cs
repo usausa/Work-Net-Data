@@ -33,7 +33,7 @@ namespace WorkGenerated
     {
         public int? InParam { get; set; }
 
-        public int InOutParam { get; set; }
+        public int? InOutParam { get; set; }
 
         public int OutParam { get; set; }
     }

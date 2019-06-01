@@ -996,15 +996,81 @@ namespace WorkGenerated
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = timeout;
 
+                // [MEMO] Direction.Returnは引数で扱えない
+                var outParam1 = default(DbParameter);
+                var outParam2 = default(DbParameter);
+
+                if (SqlHelper.IsNotNull(parameter.InParam))
+                {
+                    DbCommandHelper.AddParameter(cmd, "p1", parameter.InParam);
+                }
+
+                if (SqlHelper.IsNotNull(parameter.InOutParam))
+                {
+                    // TODO
+                    outParam1 = DbCommandHelper.AddParameterAndReturn(cmd, "p2", parameter.InOutParam);
+                }
+
+                // TODO
+                outParam2 = DbCommandHelper.AddParameterAndReturn(cmd, "p3", parameter.OutParam);
+
                 // Execute
                 con.Open();
 
                 var result = cmd.ExecuteNonQuery();
 
                 // Post action
+                // [MEMO] Dynamicでなければnullチェックが不要
+                // [MEMO] outで条件が動的の場合、defaultを設定する
+
+                // TODO check null or DBNull ? convert
+                if (outParam1 != null)
+                {
+                    parameter.InOutParam = (int)outParam1.Value;
+                }
+
+                if (outParam2 != null)
+                {
+                    parameter.OutParam = (int)outParam2.Value;
+                }
 
                 return result;
             }
         }
+    }
+
+    public static class SqlHelper
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNull(object value)
+        {
+            return value is null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotNull(object value)
+        {
+            return !(value is null);
+        }
+    }
+
+    public static class DbCommandHelper
+    {
+        public static DbParameter AddParameterAndReturn(DbCommand cmd, string name, object value)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            return parameter;
+        }
+
+        public static void AddParameter(DbCommand cmd, string name, object value)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+        }
+
+        // TODO version
     }
 }
