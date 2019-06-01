@@ -31,7 +31,7 @@ namespace WorkGenerated
 
     public class ProcParameter
     {
-        public int? InParam { get; set; }
+        public string InParam { get; set; }
 
         public int? InOutParam { get; set; }
 

@@ -976,67 +976,63 @@ namespace WorkGenerated
         // Full
         //--------------------------------------------------------------------------------
 
-        // TODO parameter helper
-
-        // TODO size and dbTye, parameter / class 2*2
-        // TODO TypeHandler , parameter / class 1*2
-
-        // TODO out/ref
-        // TODO direction
-
-        // CommandType
-        // Timeout
-        public int ExecuteEx(ProcParameter parameter, int timeout)
+        // ReSharper disable InconsistentNaming
+        public int ExecuteEx1(ProcParameter parameter, int timeout)
         {
-            using (var con = provider.CreateConnection())
-            using (var cmd = con.CreateCommand())
+            using (var _con = provider.CreateConnection())
+            using (var _cmd = _con.CreateCommand())
             {
                 // Build command
-                cmd.CommandText = "PROC";
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = timeout;
+                _cmd.CommandText = "PROC";
+                _cmd.CommandType = CommandType.StoredProcedure;
+                _cmd.CommandTimeout = timeout;
 
                 // [MEMO] Direction.Returnは引数で扱えない
-                var outParam1 = default(DbParameter);
-                var outParam2 = default(DbParameter);
+                var _outParam1 = default(DbParameter);
+                var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
-                if (SqlHelper.IsNotNull(parameter.InParam))
+                if (SqlHelper.IsEmpty(parameter.InParam))
                 {
-                    DbCommandHelper.AddParameter(cmd, "p1", parameter.InParam);
+                    DbCommandHelper.AddParameterWithDirection(
+                        _cmd, "p1", ParameterDirection.Input, parameter.InParam, DbType.AnsiString, 5);
                 }
 
                 if (SqlHelper.IsNotNull(parameter.InOutParam))
                 {
-                    // TODO
-                    outParam1 = DbCommandHelper.AddParameterAndReturn(cmd, "p2", parameter.InOutParam);
+                    _outParam1 = DbCommandHelper.AddParameterWithDirectionAndReturn(
+                        _cmd, "p2", ParameterDirection.InputOutput, parameter.InOutParam);
                 }
 
-                // TODO
-                outParam2 = DbCommandHelper.AddParameterAndReturn(cmd, "p3", parameter.OutParam);
+                // TODO TypeHandle
+                _outParam2 = DbCommandHelper.AddParameterWithDirectionAndReturn(
+                    _cmd, "p3", ParameterDirection.Output, parameter.OutParam);
 
                 // Execute
-                con.Open();
+                _con.Open();
 
-                var result = cmd.ExecuteNonQuery();
+                var _result = _cmd.ExecuteNonQuery();
 
                 // Post action
                 // [MEMO] Dynamicでなければnullチェックが不要
                 // [MEMO] outで条件が動的の場合、defaultを設定する
 
-                // TODO check null or DBNull ? convert
-                if (outParam1 != null)
+                if (_outParam1 != null)
                 {
-                    parameter.InOutParam = (int)outParam1.Value;
+                    // [MEMO] Nullable排除
+                    parameter.InOutParam = DbCommandHelper.Convert<int>(_outParam1.Value);
                 }
 
-                if (outParam2 != null)
+                if (_outParam2 != null)
                 {
-                    parameter.OutParam = (int)outParam2.Value;
+                    parameter.OutParam = DbCommandHelper.Convert<int>(_outParam2.Value);
                 }
 
-                return result;
+                return _result;
             }
         }
+        // ReSharper restore InconsistentNaming
+
+        // TODO 2: parameter basic 1*2 & TODO out/ref, ret?
     }
 
     public static class SqlHelper
@@ -1052,15 +1048,43 @@ namespace WorkGenerated
         {
             return !(value is null);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsEmpty(string value)
+        {
+            return value is null || value.Length == 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotEmpty(string value)
+        {
+            return !(value is null) && value.Length > 0;
+        }
     }
 
     public static class DbCommandHelper
     {
+        // TODO check null or DBNull ? convert, TypeHandler(直接使う？)
+        public static T Convert<T>(object value)
+        {
+            if (value is T value1)
+            {
+                return value1;
+            }
+
+            if (value is DBNull)
+            {
+                return default;
+            }
+
+            return (T)System.Convert.ChangeType(value, typeof(T));
+        }
+
         public static DbParameter AddParameterAndReturn(DbCommand cmd, string name, object value)
         {
             var parameter = cmd.CreateParameter();
             parameter.ParameterName = name;
-            parameter.Value = value;
+            parameter.Value = value ?? DBNull.Value;
             return parameter;
         }
 
@@ -1068,9 +1092,229 @@ namespace WorkGenerated
         {
             var parameter = cmd.CreateParameter();
             parameter.ParameterName = name;
-            parameter.Value = value;
+            parameter.Value = value ?? DBNull.Value;
         }
 
-        // TODO version
+        public static void AddParameter(DbCommand cmd, string name, object value, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.Size = size;
+            }
+        }
+
+        public static DbParameter AddParameterAndReturn(DbCommand cmd, string name, object value, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.Size = size;
+            }
+            return parameter;
+        }
+
+        public static void AddParameter(DbCommand cmd, string name, object value, DbType dbType)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+            }
+        }
+
+        public static DbParameter AddParameterAndReturn(DbCommand cmd, string name, object value, DbType dbType)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+            }
+            return parameter;
+        }
+
+        public static void AddParameter(DbCommand cmd, string name, object value, DbType dbType, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+                parameter.Size = size;
+            }
+        }
+
+        public static DbParameter AddParameterAndReturn(DbCommand cmd, string name, object value, DbType dbType, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+                parameter.Size = size;
+            }
+            return parameter;
+        }
+
+        public static DbParameter AddParameterWithDirectionAndReturn(DbCommand cmd, string name, ParameterDirection direction, object value)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value ?? DBNull.Value;
+            return parameter;
+        }
+
+        public static void AddParameterWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value ?? DBNull.Value;
+        }
+
+        public static void AddParameterWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.Size = size;
+            }
+        }
+
+        public static DbParameter AddParameterWithDirectionAndReturn(DbCommand cmd, string name, ParameterDirection direction, object value, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.Size = size;
+            }
+            return parameter;
+        }
+
+        public static void AddParameterWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value, DbType dbType)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+            }
+        }
+
+        public static DbParameter AddParameterAndReturnWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value, DbType dbType)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+            }
+            return parameter;
+        }
+
+        public static void AddParameterWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value, DbType dbType, int size)
+        {
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+                parameter.Size = size;
+            }
+        }
+
+        public static DbParameter AddParameterAndReturnWithDirection(DbCommand cmd, string name, ParameterDirection direction, object value, DbType dbType, int size)
+        {
+            // [MEMO] Full version
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Direction = direction;
+            parameter.Value = value;
+            if (value is null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value;
+                parameter.DbType = dbType;
+                parameter.Size = size;
+            }
+            return parameter;
+        }
     }
 }
