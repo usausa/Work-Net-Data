@@ -38,6 +38,20 @@ namespace WorkGenerated
         public int OutParam { get; set; }
     }
 
+    public sealed class MockTypeHandler : ITypeHandler
+    {
+        public void SetValue(IDbDataParameter parameter, object value)
+        {
+            // TODO
+        }
+
+        public object Parse(Type destinationType, object value)
+        {
+            // TODO
+            return value;
+        }
+    }
+
     public static class MapperFactory
     {
         public static Func<IDataRecord, DataEntity> CreateDataEntityMapper()
