@@ -1,16 +1,17 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-
-namespace WorkGenerated
+﻿namespace WorkGenerated
 {
+    using System;
+    using System.Globalization;
+    using System.Runtime.CompilerServices;
+
     public static class ConvertHelper
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Convert<T>(object value)
         {
-            if (value is T value1)
+            if (value is T scalar)
             {
-                return value1;
+                return scalar;
             }
 
             if (value is DBNull)
@@ -18,7 +19,7 @@ namespace WorkGenerated
                 return default;
             }
 
-            return (T)System.Convert.ChangeType(value, typeof(T));
+            return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
         }
     }
 }

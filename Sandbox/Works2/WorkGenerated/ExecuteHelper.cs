@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
-    using System.Globalization;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -76,17 +75,7 @@
         {
             var result = cmd.ExecuteScalar();
 
-            if (result is T scalar)
-            {
-                return scalar;
-            }
-
-            if (result is DBNull)
-            {
-                return default;
-            }
-
-            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
+            return ConvertHelper.Convert<T>(result);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -94,17 +83,7 @@
         {
             var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
 
-            if (result is T scalar)
-            {
-                return scalar;
-            }
-
-            if (result is DBNull)
-            {
-                return default;
-            }
-
-            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
+            return ConvertHelper.Convert<T>(result);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
