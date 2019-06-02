@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -644,6 +644,36 @@ namespace WorkGenerated
         // TODO enumerable
         // TODO enumerable with dynamic parameter
 
+        // ReSharper disable RedundantAssignment
+        // ReSharper disable InconsistentNaming
+        public int ExecuteEnumerable(string[] ids)
+        {
+            using (var _con = provider.CreateConnection())
+            using (var _cmd = _con.CreateCommand())
+            {
+                var _sql = new StringBuilder(128);
+
+                _sql.Append("SELECT * FROM Test ");
+
+                if (ids.Length > 0)
+                {
+                    _sql.Append("WHERE Id IN ");
+
+                    InClauseHelper.AddParameter(_sql, _cmd, "p1", DbType.AnsiString, 3, ids);
+                }
+
+                // Build command
+                _cmd.CommandText = _sql.ToString();
+
+                // Execute
+                _con.Open();
+
+                var _result = _cmd.ExecuteNonQuery();
+
+                return _result;
+            }
+        }
+
         //--------------------------------------------------------------------------------
         // Full
         //--------------------------------------------------------------------------------
@@ -655,11 +685,6 @@ namespace WorkGenerated
             using (var _con = provider.CreateConnection())
             using (var _cmd = _con.CreateCommand())
             {
-                // Build command
-                _cmd.CommandText = "PROC";
-                _cmd.CommandType = CommandType.StoredProcedure;
-                _cmd.CommandTimeout = timeout;
-
                 // [MEMO] Direction.Returnは引数で扱えない
                 var _outParam1 = default(DbParameter);
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
@@ -681,6 +706,11 @@ namespace WorkGenerated
                 // parameter.OutParam
                 _outParam2 = DbCommandHelper.AddParameterWithDirectionAndReturn(
                     _cmd, "p3", ParameterDirection.Output, DbType.Int32, parameter.OutParam);
+
+                // Build command
+                _cmd.CommandText = "PROC";
+                _cmd.CommandType = CommandType.StoredProcedure;
+                _cmd.CommandTimeout = timeout;
 
                 // Execute
                 _con.Open();
@@ -708,10 +738,6 @@ namespace WorkGenerated
             using (var _con = provider.CreateConnection())
             using (var _cmd = _con.CreateCommand())
             {
-                // Build command
-                _cmd.CommandText = "PROC";
-                _cmd.CommandType = CommandType.StoredProcedure;
-
                 // [MEMO] Direction.Returnは引数で扱えない
                 var _outParam1 = default(DbParameter);
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
@@ -727,6 +753,10 @@ namespace WorkGenerated
                 // param3
                 _outParam2 = DbCommandHelper.AddParameterWithDirectionAndReturn(
                     _cmd, "p3", ParameterDirection.ReturnValue, DbType.Int32);
+
+                // Build command
+                _cmd.CommandText = "PROC";
+                _cmd.CommandType = CommandType.StoredProcedure;
 
                 // Execute
                 _con.Open();
@@ -753,32 +783,5 @@ namespace WorkGenerated
         }
         // ReSharper restore InconsistentNaming
         // ReSharper restore RedundantAssignment
-    }
-
-    public static class SqlHelper
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNull(object value)
-        {
-            return value is null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNotNull(object value)
-        {
-            return !(value is null);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsEmpty(string value)
-        {
-            return value is null || value.Length == 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNotEmpty(string value)
-        {
-            return !(value is null) && value.Length > 0;
-        }
     }
 }
