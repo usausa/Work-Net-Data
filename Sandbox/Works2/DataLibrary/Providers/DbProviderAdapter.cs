@@ -2,13 +2,13 @@
 {
     using System.Data.Common;
 
-    public class DelegateDbProviderFactory : IDbProvider
+    public class DbProviderAdapter : IDbProvider
     {
         private readonly DbProviderFactory factory;
 
         private readonly string connectionString;
 
-        public DelegateDbProviderFactory(DbProviderFactory factory, string connectionString)
+        public DbProviderAdapter(DbProviderFactory factory, string connectionString)
         {
             this.factory = factory;
             this.connectionString = connectionString;
@@ -20,7 +20,5 @@
             con.ConnectionString = connectionString;
             return con;
         }
-
-        public DbParameter CreateParameter() => factory.CreateParameter();
     }
 }

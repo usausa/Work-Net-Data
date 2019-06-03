@@ -1,4 +1,4 @@
-﻿namespace WorkGenerated
+﻿namespace DataLibrary.Engine
 {
     public class ExecuteConfig
     {

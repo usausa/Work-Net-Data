@@ -8,4 +8,8 @@
     <PackageReference Include="Usa.Smart.Core" Version="1.7.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DataLibrary\DataLibrary.csproj" />
+  </ItemGroup>
+
 </Project>

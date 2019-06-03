@@ -5,6 +5,9 @@ using System.Data.Common;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DataLibrary.Engine;
+using DataLibrary.Helper;
+using DataLibrary.Providers;
 
 namespace WorkGenerated
 {
@@ -690,14 +693,14 @@ namespace WorkGenerated
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // parameter.InParam
-                if (SqlHelper.IsEmpty(parameter.InParam))
+                if (ScriptHelper.IsEmpty(parameter.InParam))
                 {
                     DbCommandHelper.AddParameterWithDirection(
                         _cmd, "p1", ParameterDirection.Input, DbType.AnsiString, 5, parameter.InParam);
                 }
 
                 // parameter.InOutParam
-                if (SqlHelper.IsNotNull(parameter.InOutParam))
+                if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
                     _outParam1 = DbCommandHelper.AddParameterWithDirectionAndReturn(
                         _cmd, "p2", ParameterDirection.InputOutput, DbType.Int32, parameter.InOutParam);

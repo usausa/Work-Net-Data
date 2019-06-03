@@ -1,26 +1,11 @@
 ﻿using System;
 using System.Data;
+using DataLibrary.Handlers;
+using DataLibrary.Providers;
 
 namespace WorkGenerated
 {
     using System.Data.Common;
-
-    public interface IDbProvider
-    {
-        DbConnection CreateConnection();
-    }
-
-    public class DelegateDbProvider : IDbProvider
-    {
-        private readonly Func<DbConnection> factory;
-
-        public DelegateDbProvider(Func<DbConnection> factory)
-        {
-            this.factory = factory;
-        }
-
-        public DbConnection CreateConnection() => factory();
-    }
 
     public class DataEntity
     {

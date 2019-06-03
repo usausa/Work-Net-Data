@@ -1,10 +1,11 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace WorkGenerated
+﻿namespace DataLibrary.Engine
 {
     using System;
+    using System.Runtime.CompilerServices;
     using System.Data;
     using System.Data.Common;
+
+    using DataLibrary.Handlers;
 
     public static class DbCommandHelper
     {

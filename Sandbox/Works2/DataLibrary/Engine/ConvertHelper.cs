@@ -1,4 +1,4 @@
-﻿namespace WorkGenerated
+﻿namespace DataLibrary.Engine
 {
     using System;
     using System.Globalization;

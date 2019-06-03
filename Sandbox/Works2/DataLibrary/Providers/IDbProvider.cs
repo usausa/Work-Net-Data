@@ -5,7 +5,5 @@
     public interface IDbProvider
     {
         DbConnection CreateConnection();
-
-        DbParameter CreateParameter();
     }
 }

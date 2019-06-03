@@ -4,7 +4,7 @@ namespace DataLibrary.Engine
     using System;
     using System.Data;
 
-    internal sealed class WrappedReader : IDataReader
+    public sealed class WrappedReader : IDataReader
     {
         private readonly IDbCommand command;
 
