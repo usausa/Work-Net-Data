@@ -158,8 +158,10 @@
         // ReaderToDefer
         //--------------------------------------------------------------------------------
 
-        public static IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, Func<IDataRecord, T> mapper)
+        public static IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, ExecuteConfig config)
         {
+            var mapper = config.CreateResultMapper<T>(reader);
+
             using (cmd)
             using (reader)
             {
@@ -175,10 +177,12 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IList<T> QueryBuffer<T>(DbCommand cmd, Func<IDataReader, T> mapper)
+        public static IList<T> QueryBuffer<T>(DbCommand cmd, ExecuteConfig config)
         {
             using (var reader = cmd.ExecuteReader(CommandBehaviorForList))
             {
+                var mapper = config.CreateResultMapper<T>(reader);
+
                 var list = new List<T>();
                 while (reader.Read())
                 {
@@ -190,10 +194,12 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        public static async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForList, cancel).ConfigureAwait(false))
             {
+                var mapper = config.CreateResultMapper<T>(reader);
+
                 var list = new List<T>();
                 while (reader.Read())
                 {
@@ -205,7 +211,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IList<T> QueryBuffer<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper)
+        public static IList<T> QueryBuffer<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -213,7 +219,7 @@
                 {
                     con.Open();
 
-                    return QueryBuffer(cmd, mapper);
+                    return QueryBuffer<T>(cmd, config);
                 }
                 finally
                 {
@@ -222,11 +228,11 @@
             }
 
 
-            return QueryBuffer(cmd, mapper);
+            return QueryBuffer<T>(cmd, config);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<IList<T>> QueryBufferAsync<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        public static async Task<IList<T>> QueryBufferAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -234,7 +240,7 @@
                 {
                     await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    return await QueryBufferAsync(cmd, mapper, cancel).ConfigureAwait(false);
+                    return await QueryBufferAsync<T>(cmd, config, cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -242,7 +248,7 @@
                 }
             }
 
-            return await QueryBufferAsync(cmd, mapper, cancel).ConfigureAwait(false);
+            return await QueryBufferAsync<T>(cmd, config, cancel).ConfigureAwait(false);
         }
 
         //--------------------------------------------------------------------------------
@@ -250,25 +256,27 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T QueryFirstOrDefault<T>(DbCommand cmd, Func<IDataReader, T> mapper)
+        public static T QueryFirstOrDefault<T>(DbCommand cmd, ExecuteConfig config)
         {
             using (var reader = cmd.ExecuteReader(CommandBehaviorForSingle))
             {
+                var mapper = config.CreateResultMapper<T>(reader);
                 return reader.Read() ? mapper(reader) : default;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForSingle, cancel))
             {
+                var mapper = config.CreateResultMapper<T>(reader);
                 return reader.Read() ? mapper(reader) : default;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T QueryFirstOrDefault<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper)
+        public static T QueryFirstOrDefault<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -276,7 +284,7 @@
                 {
                     con.Open();
 
-                    return QueryFirstOrDefault(cmd, mapper);
+                    return QueryFirstOrDefault<T>(cmd, config);
                 }
                 finally
                 {
@@ -284,11 +292,11 @@
                 }
             }
 
-            return QueryFirstOrDefault(cmd, mapper);
+            return QueryFirstOrDefault<T>(cmd, config);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbConnection con, DbCommand cmd, Func<IDataReader, T> mapper, CancellationToken cancel = default)
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -296,7 +304,7 @@
                 {
                     await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    return await QueryFirstOrDefaultAsync(cmd, mapper, cancel).ConfigureAwait(false);
+                    return await QueryFirstOrDefaultAsync<T>(cmd, config, cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -304,7 +312,7 @@
                 }
             }
 
-            return await QueryFirstOrDefaultAsync(cmd, mapper, cancel).ConfigureAwait(false);
+            return await QueryFirstOrDefaultAsync<T>(cmd, config, cancel).ConfigureAwait(false);
         }
     }
 }

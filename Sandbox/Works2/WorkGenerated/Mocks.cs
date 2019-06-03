@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using DataLibrary.Engine;
 using DataLibrary.Handlers;
 using DataLibrary.Providers;
 
@@ -37,27 +38,14 @@ namespace WorkGenerated
         }
     }
 
-    public static class MapperFactory
-    {
-        public static Func<IDataRecord, DataEntity> CreateDataEntityMapper()
-        {
-            return r =>
-            {
-                var entity = new DataEntity();
-                entity.Id = r.GetInt32(r.GetOrdinal("Id"));
-                entity.Name = r.GetString(r.GetOrdinal("Name"));
-                return entity;
-            };
-        }
-    }
-
     public static class DaoFactory
     {
         public static SampleDao CreateSampleDao(Func<DbConnection> factory)
         {
-            return new SampleDao(
-                new DelegateDbProvider(factory),
-                MapperFactory.CreateDataEntityMapper());
+            var config = new ExecuteConfig();
+            config.AddComponent<IDbProvider>(new DelegateDbProvider(factory));
+
+            return new SampleDao(config);
         }
     }
 }

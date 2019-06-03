@@ -26,20 +26,17 @@ namespace WorkGenerated
 
     public class SampleDao
     {
+        private readonly ExecuteConfig config;
+
         private readonly IDbProvider provider;
 
-        // TODO Get
-        private readonly MockTypeHandler mockTypeHandler = new MockTypeHandler();
+        private readonly MockTypeHandler mockTypeHandler;
 
-        // TODO Dynamic
-        private readonly Func<IDataRecord, DataEntity> mapperDataEntity;
-
-        public SampleDao(
-            IDbProvider provider,
-            Func<IDataRecord, DataEntity> mapperDataEntity)
+        public SampleDao(ExecuteConfig config)
         {
-            this.provider = provider;
-            this.mapperDataEntity = mapperDataEntity;
+            this.config = config;
+            provider = config.GetComponent<IDbProvider>();
+            mockTypeHandler = config.GetComponent<MockTypeHandler>();
         }
 
         //--------------------------------------------------------------------------------
@@ -366,7 +363,7 @@ namespace WorkGenerated
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
             }
             catch (Exception)
             {
@@ -396,7 +393,7 @@ namespace WorkGenerated
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
             }
             catch (Exception)
             {
@@ -429,7 +426,7 @@ namespace WorkGenerated
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
             }
             catch (Exception)
             {
@@ -469,7 +466,7 @@ namespace WorkGenerated
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer(cmd, reader, mapperDataEntity);
+                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
             }
             catch (Exception)
             {
@@ -501,7 +498,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var list = ExecuteHelper.QueryBuffer(cmd, mapperDataEntity);
+                var list = ExecuteHelper.QueryBuffer<DataEntity>(cmd, config);
 
                 // Post action
 
@@ -521,7 +518,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var list = await ExecuteHelper.QueryBufferAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false);
+                var list = await ExecuteHelper.QueryBufferAsync<DataEntity>(cmd, config, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -538,7 +535,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var list = ExecuteHelper.QueryBuffer(con, cmd, mapperDataEntity);
+                var list = ExecuteHelper.QueryBuffer<DataEntity>(con, cmd, config);
 
                 // Post action
 
@@ -555,7 +552,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var list = await ExecuteHelper.QueryBufferAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false);
+                var list = await ExecuteHelper.QueryBufferAsync<DataEntity>(con, cmd, config, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -578,7 +575,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = ExecuteHelper.QueryFirstOrDefault(cmd, mapperDataEntity);
+                var result = ExecuteHelper.QueryFirstOrDefault<DataEntity>(cmd, config);
 
                 // Post action
 
@@ -598,7 +595,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await ExecuteHelper.QueryFirstOrDefaultAsync(cmd, mapperDataEntity, cancel).ConfigureAwait(false);
+                var result = await ExecuteHelper.QueryFirstOrDefaultAsync<DataEntity>(cmd, config, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -615,7 +612,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var result = ExecuteHelper.QueryFirstOrDefault(con, cmd, mapperDataEntity);
+                var result = ExecuteHelper.QueryFirstOrDefault<DataEntity>(con, cmd, config);
 
                 // Post action
 
@@ -632,7 +629,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var result = await ExecuteHelper.QueryFirstOrDefaultAsync(con, cmd, mapperDataEntity, cancel).ConfigureAwait(false);
+                var result = await ExecuteHelper.QueryFirstOrDefaultAsync<DataEntity>(con, cmd, config, cancel).ConfigureAwait(false);
 
                 // Post action
 
