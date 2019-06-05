@@ -8,6 +8,6 @@ namespace DataLibrary.Mappers
     {
         bool IsMatch(Type type);
 
-        Func<IDataRecord, T> CreateMapper<T>(Type type, ColumnInfo[] columns);
+        Func<IDataRecord, T> CreateMapper<T>(ExecuteConfig config, Type type, ColumnInfo[] columns);
     }
 }

@@ -5,6 +5,8 @@
 
     using DataLibrary.Engine;
 
+    using Smart.Reflection;
+
     public sealed class ObjectResultMapperFactory : IResultMapperFactory
     {
         public static ObjectResultMapperFactory Instance { get; } = new ObjectResultMapperFactory();
@@ -15,29 +17,28 @@
 
         public bool IsMatch(Type type) => true;
 
-        public Func<IDataRecord, T> CreateMapper<T>(Type type, ColumnInfo[] columns)
+        public Func<IDataRecord, T> CreateMapper<T>(ExecuteConfig config, Type type, ColumnInfo[] columns)
         {
-            throw new NotImplementedException();
+            var delegateFactory = config.GetComponent<IDelegateFactory>();
+            var factory = delegateFactory.CreateFactory<T>();
+
+            // TODO
+            //    var entries = CreateMapEntries(config, type, columns);
+
+            return record =>
+            {
+                var obj = factory();
+
+                // TODO
+                //        for (var i = 0; i < entries.Length; i++)
+                //        {
+                //            var entry = entries[i];
+                //            entry.Setter(obj, record.GetValue(entry.Index));
+                //        }
+
+                return obj;
+            };
         }
-
-        //public Func<IDataRecord, T> CreateMapper<T>(ISqlMapperConfig config, Type type, ColumnInfo[] columns)
-        //{
-        //    var objectFactory = config.CreateFactory<T>();
-        //    var entries = CreateMapEntries(config, type, columns);
-
-        //    return record =>
-        //    {
-        //        var obj = objectFactory();
-
-        //        for (var i = 0; i < entries.Length; i++)
-        //        {
-        //            var entry = entries[i];
-        //            entry.Setter(obj, record.GetValue(entry.Index));
-        //        }
-
-        //        return obj;
-        //    };
-        //}
 
         //private static MapEntry[] CreateMapEntries(ISqlMapperConfig config, Type type, ColumnInfo[] columns)
         //{

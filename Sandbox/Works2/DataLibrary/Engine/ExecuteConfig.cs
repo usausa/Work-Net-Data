@@ -6,11 +6,17 @@
     using DataLibrary.Mappers;
 
     using Smart.Collections.Concurrent;
+    using Smart.Reflection;
 
     // TODO interface ?
     public class ExecuteConfig
     {
         private readonly ThreadsafeTypeHashArrayMap<object> components = new ThreadsafeTypeHashArrayMap<object>();
+
+        public ExecuteConfig()
+        {
+            components.AddIfNotExist(typeof(IDelegateFactory), DelegateFactory.Default);
+        }
 
         public T GetComponent<T>()
         {
@@ -68,7 +74,7 @@
             {
                 if (factory.IsMatch(type))
                 {
-                    return factory.CreateMapper<T>(type, columns);
+                    return factory.CreateMapper<T>(this, type, columns);
                 }
             }
 
