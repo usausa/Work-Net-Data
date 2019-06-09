@@ -1,6 +1,5 @@
 ﻿namespace DataLibrary.Engine
 {
-    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
@@ -8,8 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    [Obsolete]
-    public static class ExecuteHelper
+    public sealed class ExecuteEngine : IExecuteEngine
     {
         private const CommandBehavior CommandBehaviorForEnumerable =
             CommandBehavior.SequentialAccess;
@@ -28,7 +26,7 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Execute(DbConnection con, DbCommand cmd)
+        public int Execute(DbConnection con, DbCommand cmd)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -48,7 +46,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<int> ExecuteAsync(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
+        public async Task<int> ExecuteAsync(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -72,7 +70,7 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ExecuteScalar<T>(DbCommand cmd)
+        public T ExecuteScalar<T>(DbCommand cmd)
         {
             var result = cmd.ExecuteScalar();
 
@@ -80,7 +78,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, CancellationToken cancel = default)
+        public async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, CancellationToken cancel = default)
         {
             var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
 
@@ -88,7 +86,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ExecuteScalar<T>(DbConnection con, DbCommand cmd)
+        public T ExecuteScalar<T>(DbConnection con, DbCommand cmd)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -108,7 +106,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
+        public async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -132,25 +130,25 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DbDataReader ExecuteReader(DbCommand cmd)
+        public DbDataReader ExecuteReader(DbCommand cmd)
         {
             return cmd.ExecuteReader(CommandBehaviorForEnumerableWithClose);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, CancellationToken cancel)
+        public Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, CancellationToken cancel)
         {
             return cmd.ExecuteReaderAsync(CommandBehaviorForEnumerableWithClose, cancel);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DbDataReader ExecuteReader(DbCommand cmd, bool withClose)
+        public DbDataReader ExecuteReader(DbCommand cmd, bool withClose)
         {
             return cmd.ExecuteReader(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, bool withClose, CancellationToken cancel)
+        public Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, bool withClose, CancellationToken cancel)
         {
             return cmd.ExecuteReaderAsync(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable, cancel);
         }
@@ -159,7 +157,7 @@
         // ReaderToDefer
         //--------------------------------------------------------------------------------
 
-        public static IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, ExecuteConfig config)
+        public IEnumerable<T> ReaderToDefer<T>(IDbCommand cmd, IDataReader reader, ExecuteConfig config)
         {
             var mapper = config.CreateResultMapper<T>(reader);
 
@@ -178,7 +176,7 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IList<T> QueryBuffer<T>(DbCommand cmd, ExecuteConfig config)
+        public IList<T> QueryBuffer<T>(DbCommand cmd, ExecuteConfig config)
         {
             using (var reader = cmd.ExecuteReader(CommandBehaviorForList))
             {
@@ -195,7 +193,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
+        public async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForList, cancel).ConfigureAwait(false))
             {
@@ -212,7 +210,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IList<T> QueryBuffer<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
+        public IList<T> QueryBuffer<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -233,7 +231,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<IList<T>> QueryBufferAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
+        public async Task<IList<T>> QueryBufferAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -257,7 +255,7 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T QueryFirstOrDefault<T>(DbCommand cmd, ExecuteConfig config)
+        public T QueryFirstOrDefault<T>(DbCommand cmd, ExecuteConfig config)
         {
             using (var reader = cmd.ExecuteReader(CommandBehaviorForSingle))
             {
@@ -267,7 +265,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
+        public async Task<T> QueryFirstOrDefaultAsync<T>(DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForSingle, cancel))
             {
@@ -277,7 +275,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T QueryFirstOrDefault<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
+        public T QueryFirstOrDefault<T>(DbConnection con, DbCommand cmd, ExecuteConfig config)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -297,7 +295,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
+        public async Task<T> QueryFirstOrDefaultAsync<T>(DbConnection con, DbCommand cmd, ExecuteConfig config, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
