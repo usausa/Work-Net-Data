@@ -6,6 +6,7 @@
     using System.Globalization;
     using System.Text;
 
+    [Obsolete]
     public static class InClauseHelper
     {
 

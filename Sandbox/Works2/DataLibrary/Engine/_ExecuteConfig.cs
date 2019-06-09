@@ -1,4 +1,7 @@
-﻿namespace DataLibrary.Engine
+﻿using DataLibrary.Selectors;
+using Smart.Converter;
+
+namespace DataLibrary.Engine
 {
     using System;
     using System.Data;
@@ -16,6 +19,8 @@
         public ExecuteConfig()
         {
             components.AddIfNotExist(typeof(IDelegateFactory), DelegateFactory.Default);
+            components.AddIfNotExist(typeof(IObjectConverter), ObjectConverter.Default);
+            components.AddIfNotExist(typeof(IPropertySelector), DefaultPropertySelector.Instance);
         }
 
         public T GetComponent<T>()

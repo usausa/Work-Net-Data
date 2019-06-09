@@ -4,6 +4,7 @@
     using System.Globalization;
     using System.Runtime.CompilerServices;
 
+    [Obsolete]
     public static class ConvertHelper
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
