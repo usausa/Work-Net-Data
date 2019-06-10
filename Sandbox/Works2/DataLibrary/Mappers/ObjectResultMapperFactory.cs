@@ -1,4 +1,6 @@
-﻿namespace DataLibrary.Mappers
+﻿using Smart.ComponentModel;
+
+namespace DataLibrary.Mappers
 {
     using System;
     using System.Collections.Generic;
@@ -24,11 +26,11 @@
 
         public bool IsMatch(Type type) => true;
 
-        public Func<IDataRecord, T> CreateMapper<T>(ExecuteConfig config, Type type, ColumnInfo[] columns)
+        public Func<IDataRecord, T> CreateMapper<T>(IComponentContainer container, Type type, ColumnInfo[] columns)
         {
-            var delegateFactory = config.GetComponent<IDelegateFactory>();
-            var objectConverter = config.GetComponent<IObjectConverter>();
-            var propertySelector = config.GetComponent<IPropertySelector>();
+            var delegateFactory = container.Get<IDelegateFactory>();
+            var objectConverter = container.Get<IObjectConverter>();
+            var propertySelector = container.Get<IPropertySelector>();
 
             var factory = delegateFactory.CreateFactory<T>();
             var entries = CreateMapEntries(delegateFactory, objectConverter, propertySelector, type, columns);

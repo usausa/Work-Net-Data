@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using DataLibrary.Engine;
+using Smart.ComponentModel;
 
 namespace DataLibrary.Mappers
 {
@@ -8,6 +9,6 @@ namespace DataLibrary.Mappers
     {
         bool IsMatch(Type type);
 
-        Func<IDataRecord, T> CreateMapper<T>(ExecuteConfig config, Type type, ColumnInfo[] columns);
+        Func<IDataRecord, T> CreateMapper<T>(IComponentContainer container, Type type, ColumnInfo[] columns);
     }
 }

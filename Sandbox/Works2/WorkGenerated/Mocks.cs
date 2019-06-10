@@ -42,10 +42,11 @@ namespace WorkGenerated
     {
         public static SampleDao CreateSampleDao(Func<DbConnection> factory)
         {
-            var config = new ExecuteConfig();
-            config.AddComponent<IDbProvider>(new DelegateDbProvider(factory));
+            var config = new ExecuteEngineConfig();
+            config.Components.Add<IDbProvider>(new DelegateDbProvider(factory));
+            var engine = new ExecuteEngine(config);
 
-            return new SampleDao(config);
+            return new SampleDao(engine);
         }
     }
 }

@@ -26,17 +26,18 @@ namespace WorkGenerated
 
     public class SampleDao
     {
-        private readonly ExecuteConfig config;
+        private readonly ExecuteEngine engine;
 
         private readonly IDbProvider provider;
 
-        private readonly MockTypeHandler mockTypeHandler;
+        private readonly MockTypeHandler mockTypeHandler = new MockTypeHandler();
 
-        public SampleDao(ExecuteConfig config)
+        public SampleDao(ExecuteEngine engine)
         {
-            this.config = config;
-            provider = config.GetComponent<IDbProvider>();
-            mockTypeHandler = config.GetComponent<MockTypeHandler>();
+            this.engine = engine;
+            // TODO
+            provider = engine.GetComponent<IDbProvider>();
+            //mockTypeHandler = config.GetComponent<MockTypeHandler>();
         }
 
         //--------------------------------------------------------------------------------
@@ -91,7 +92,7 @@ namespace WorkGenerated
                 cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
                 // Execute
-                var result = ExecuteHelper.Execute(con, cmd);
+                var result = engine.Execute(con, cmd);
 
                 // Post action
 
@@ -108,7 +109,7 @@ namespace WorkGenerated
                 cmd.CommandText = "INSERT INTO Data (Id, Name) VALUES (1, 'test')";
 
                 // Execute
-                var result = await ExecuteHelper.ExecuteAsync(con, cmd, cancel).ConfigureAwait(false);
+                var result = await engine.ExecuteAsync(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -131,7 +132,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = ExecuteHelper.ExecuteScalar<long>(cmd);
+                var result = engine.ExecuteScalar<long>(cmd);
 
                 // Post action
 
@@ -151,7 +152,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await ExecuteHelper.ExecuteScalarAsync<long>(cmd, cancel).ConfigureAwait(false);
+                var result = await engine.ExecuteScalarAsync<long>(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -168,7 +169,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = ExecuteHelper.ExecuteScalar<long>(con, cmd);
+                var result = engine.ExecuteScalar<long>(con, cmd);
 
                 // Post action
 
@@ -185,7 +186,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = await ExecuteHelper.ExecuteScalarAsync<long>(con, cmd, cancel).ConfigureAwait(false);
+                var result = await engine.ExecuteScalarAsync<long>(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -212,7 +213,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                reader = ExecuteHelper.ExecuteReader(cmd);
+                reader = engine.ExecuteReader(cmd);
 
                 // Post action
 
@@ -243,7 +244,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                reader = await ExecuteHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -277,7 +278,7 @@ namespace WorkGenerated
                     con.Open();
                 }
 
-                reader = ExecuteHelper.ExecuteReader(cmd, wasClosed);
+                reader = engine.ExecuteReader(cmd, wasClosed);
                 wasClosed = false;
 
                 // Post action
@@ -318,7 +319,7 @@ namespace WorkGenerated
                     await con.OpenAsync(cancel).ConfigureAwait(false);
                 }
 
-                reader = await ExecuteHelper.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action
@@ -359,11 +360,11 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                reader = ExecuteHelper.ExecuteReader(cmd);
+                reader = engine.ExecuteReader(cmd);
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
+                return engine.ReaderToDefer<DataEntity>(cmd, reader);
             }
             catch (Exception)
             {
@@ -389,11 +390,11 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                reader = await ExecuteHelper.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
+                return engine.ReaderToDefer<DataEntity>(cmd, reader);
             }
             catch (Exception)
             {
@@ -421,12 +422,12 @@ namespace WorkGenerated
                     con.Open();
                 }
 
-                reader = ExecuteHelper.ExecuteReader(cmd, wasClosed);
+                reader = engine.ExecuteReader(cmd, wasClosed);
                 wasClosed = false;
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
+                return engine.ReaderToDefer<DataEntity>(cmd, reader);
             }
             catch (Exception)
             {
@@ -461,12 +462,12 @@ namespace WorkGenerated
                     await con.OpenAsync(cancel).ConfigureAwait(false);
                 }
 
-                reader = await ExecuteHelper.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action
 
-                return ExecuteHelper.ReaderToDefer<DataEntity>(cmd, reader, config);
+                return engine.ReaderToDefer<DataEntity>(cmd, reader);
             }
             catch (Exception)
             {
@@ -498,7 +499,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var list = ExecuteHelper.QueryBuffer<DataEntity>(cmd, config);
+                var list = engine.QueryBuffer<DataEntity>(cmd);
 
                 // Post action
 
@@ -518,7 +519,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var list = await ExecuteHelper.QueryBufferAsync<DataEntity>(cmd, config, cancel).ConfigureAwait(false);
+                var list = await engine.QueryBufferAsync<DataEntity>(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -535,7 +536,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var list = ExecuteHelper.QueryBuffer<DataEntity>(con, cmd, config);
+                var list = engine.QueryBuffer<DataEntity>(con, cmd);
 
                 // Post action
 
@@ -552,7 +553,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var list = await ExecuteHelper.QueryBufferAsync<DataEntity>(con, cmd, config, cancel).ConfigureAwait(false);
+                var list = await engine.QueryBufferAsync<DataEntity>(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -575,7 +576,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = ExecuteHelper.QueryFirstOrDefault<DataEntity>(cmd, config);
+                var result = engine.QueryFirstOrDefault<DataEntity>(cmd);
 
                 // Post action
 
@@ -595,7 +596,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await ExecuteHelper.QueryFirstOrDefaultAsync<DataEntity>(cmd, config, cancel).ConfigureAwait(false);
+                var result = await engine.QueryFirstOrDefaultAsync<DataEntity>(cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -612,7 +613,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var result = ExecuteHelper.QueryFirstOrDefault<DataEntity>(con, cmd, config);
+                var result = engine.QueryFirstOrDefault<DataEntity>(con, cmd);
 
                 // Post action
 
@@ -629,7 +630,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data WHERE Id = 1";
 
                 // Execute
-                var result = await ExecuteHelper.QueryFirstOrDefaultAsync<DataEntity>(con, cmd, config, cancel).ConfigureAwait(false);
+                var result = await engine.QueryFirstOrDefaultAsync<DataEntity>(con, cmd, cancel).ConfigureAwait(false);
 
                 // Post action
 
@@ -721,12 +722,12 @@ namespace WorkGenerated
                 // [MEMO] Dynamicでなければnullチェックが不要
                 if (_outParam1 != null)
                 {
-                    parameter.InOutParam = ConvertHelper.Convert<int?>(_outParam1.Value);
+                    parameter.InOutParam = engine.Convert<int?>(_outParam1.Value);
                 }
 
                 if (_outParam2 != null)
                 {
-                    parameter.OutParam = ConvertHelper.Convert<int>(_outParam2.Value);
+                    parameter.OutParam = engine.Convert<int>(_outParam2.Value);
                 }
 
                 return _result;
@@ -773,7 +774,7 @@ namespace WorkGenerated
 
                 if (_outParam2 != null)
                 {
-                    param3 = ConvertHelper.Convert<int>(_outParam2.Value);
+                    param3 = engine.Convert<int>(_outParam2.Value);
                 }
                 else
                 {
