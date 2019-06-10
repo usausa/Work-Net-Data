@@ -7,7 +7,10 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public sealed class ExecuteEngine : IExecuteEngine
+    using Smart.Converter;
+    using Smart.ComponentModel;
+
+    public sealed class ExecuteEngine
     {
         private const CommandBehavior CommandBehaviorForEnumerable =
             CommandBehavior.SequentialAccess;
@@ -20,6 +23,20 @@
 
         private const CommandBehavior CommandBehaviorForSingle =
             CommandBehavior.SequentialAccess | CommandBehavior.SingleRow;
+
+        private readonly IComponentContainer container;
+
+        private readonly IObjectConverter converter;
+
+        //--------------------------------------------------------------------------------
+        // Constructor
+        //--------------------------------------------------------------------------------
+
+        public ExecuteEngine(ExecuteEngineConfig config)
+        {
+            container = config.CreateComponentContainer();
+            converter = container.Get<IObjectConverter>();
+        }
 
         //--------------------------------------------------------------------------------
         // Execute
