@@ -30,14 +30,13 @@ namespace WorkGenerated
 
         private readonly IDbProvider provider;
 
-        private readonly MockTypeHandler mockTypeHandler = new MockTypeHandler();
+        private readonly MockTypeHandler mockTypeHandler;
 
         public SampleDao(ExecuteEngine engine)
         {
             this.engine = engine;
-            // TODO
             provider = engine.GetComponent<IDbProvider>();
-            //mockTypeHandler = config.GetComponent<MockTypeHandler>();
+            mockTypeHandler = engine.GetTypeHandler<MockTypeHandler>();
         }
 
         //--------------------------------------------------------------------------------

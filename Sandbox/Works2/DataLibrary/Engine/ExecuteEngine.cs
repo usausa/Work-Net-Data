@@ -1,15 +1,15 @@
-﻿using System;
-using System.Globalization;
-using DataLibrary.Mappers;
-
-namespace DataLibrary.Engine
+﻿namespace DataLibrary.Engine
 {
+    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using DataLibrary.Handlers;
+    using DataLibrary.Mappers;
 
     using Smart.Converter;
     using Smart.ComponentModel;
@@ -63,6 +63,11 @@ namespace DataLibrary.Engine
             return container.Get<T>();
         }
 
+        public T GetTypeHandler<T>() where T : ITypeHandler
+        {
+            // TODO
+            return Activator.CreateInstance<T>();
+        }
 
         //--------------------------------------------------------------------------------
         // Converter
@@ -81,8 +86,11 @@ namespace DataLibrary.Engine
                 return default;
             }
 
+            // TODO TypeHandler
+
             // TODO ObjectConverter ? or fast ?
-            return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+            //return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+            return (T)converter.Convert(value, typeof(T));
         }
 
         //--------------------------------------------------------------------------------
