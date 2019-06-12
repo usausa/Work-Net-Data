@@ -3,11 +3,11 @@
 namespace DataLibrary.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class NameAttribute : Attribute
+    public sealed class ColumnAttribute : Attribute
     {
         public string Name { get; }
 
-        public NameAttribute(string name)
+        public ColumnAttribute(string name)
         {
             Name = name;
         }

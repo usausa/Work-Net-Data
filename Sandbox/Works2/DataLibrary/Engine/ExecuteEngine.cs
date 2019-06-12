@@ -14,7 +14,7 @@
     using Smart.Converter;
     using Smart.ComponentModel;
 
-    public sealed class ExecuteEngine
+    public sealed class ExecuteEngine : IEngineController
     {
         private const CommandBehavior CommandBehaviorForEnumerable =
             CommandBehavior.SequentialAccess;
@@ -32,47 +32,103 @@
 
         private readonly IObjectConverter converter;
 
-        [ThreadStatic]
-        private static ColumnInfo[] columnInfoPool;
+        private readonly Dictionary<Type, DbType> typeMap;
+
+        private readonly Dictionary<Type, ITypeHandler> typeHandlers;
+
+        private readonly IResultMapperFactory[] resultMapperFactories;
 
         private readonly ResultMapperCache resultMapperCache = new ResultMapperCache();
 
-        // TODO config
-        private readonly IResultMapperFactory[] resultMapperFactories =
-        {
-            ObjectResultMapperFactory.Instance
-        };
+        [ThreadStatic]
+        private static ColumnInfo[] columnInfoPool;
 
         //--------------------------------------------------------------------------------
         // Constructor
         //--------------------------------------------------------------------------------
 
-        public ExecuteEngine(ExecuteEngineConfig config)
+        public ExecuteEngine(IExecuteEngineConfig config)
         {
             container = config.CreateComponentContainer();
             converter = container.Get<IObjectConverter>();
+            typeMap = new Dictionary<Type, DbType>(config.GetTypeMap());
+            typeHandlers = new Dictionary<Type, ITypeHandler>(config.GetTypeHandlers());
+            resultMapperFactories = config.GetResultMapperFactories();
         }
+
+        //--------------------------------------------------------------------------------
+        // Controller
+        //--------------------------------------------------------------------------------
+
+        public int CountResultMapperCache => resultMapperCache.Count;
+
+        public void ClearResultMapperCache() => resultMapperCache.Clear();
 
         //--------------------------------------------------------------------------------
         // Component
         //--------------------------------------------------------------------------------
 
-        // TODO
-        public T GetComponent<T>()
-        {
-            return container.Get<T>();
-        }
+        public T GetComponent<T>() => container.Get<T>();
 
+        // TODO ?
         public T GetTypeHandler<T>() where T : ITypeHandler
         {
             // TODO
             return Activator.CreateInstance<T>();
         }
 
+        // TODO TypeMap / CommandBuilder (TypeHandler integration ?)
+
+        //Func<object, object> ISqlMapperConfig.CreateParser(Type sourceType, Type destinationType)
+        //{
+        //    if (!typeHandleEntriesCache.TryGetValue(destinationType, out var entry))
+        //    {
+        //        entry = typeHandleEntriesCache.AddIfNotExist(destinationType, CreateTypeHandleInternal);
+        //    }
+
+        //    if (entry.TypeHandler != null)
+        //    {
+        //        return x => entry.TypeHandler.Parse(destinationType, x);
+        //    }
+
+        //    return Converter.CreateConverter(sourceType, destinationType);
+        //}
+
+        //-----------
+        //TypeHandleEntry ISqlMapperConfig.LookupTypeHandle(Type type)
+        //{
+        //    if (!typeHandleEntriesCache.TryGetValue(type, out var entry))
+        //    {
+        //        entry = typeHandleEntriesCache.AddIfNotExist(type, CreateTypeHandleInternal);
+        //    }
+
+        //    if (!entry.CanUseAsParameter)
+        //    {
+        //        throw new SqlMapperException($"Type cannot use as parameter. type=[{type.FullName}]");
+        //    }
+
+        //    return entry;
+        //}
+
+        //private TypeHandleEntry CreateTypeHandleInternal(Type type)
+        //{
+        //    type = Nullable.GetUnderlyingType(type) ?? type;
+        //    var findDbType = typeMap.TryGetValue(type, out var dbType);
+        //    if (!findDbType && type.IsEnum)
+        //    {
+        //        findDbType = typeMap.TryGetValue(Enum.GetUnderlyingType(type), out dbType);
+        //    }
+
+        //    typeHandlers.TryGetValue(type, out var handler);
+
+        //    return new TypeHandleEntry(findDbType || (handler != null), dbType, handler);
+        //}
+
         //--------------------------------------------------------------------------------
         // Converter
         //--------------------------------------------------------------------------------
 
+        // TODO Tが決まっているのだから、事前にFuncを作れるのでは？
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Convert<T>(object value)
         {
@@ -88,7 +144,6 @@
 
             // TODO TypeHandler
 
-            // TODO ObjectConverter ? or fast ?
             //return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
             return (T)converter.Convert(value, typeof(T));
         }
