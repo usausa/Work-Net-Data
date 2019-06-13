@@ -7,6 +7,7 @@
 
     using DataLibrary.Handlers;
 
+    [Obsolete]
     public static class DbCommandHelper
     {
         //--------------------------------------------------------------------------------
