@@ -26,10 +26,20 @@ namespace WorkGenerated
 
     public class SampleDao
     {
+        // TODO
+        private readonly InParameterBuilderWithSize builder26_1 = new InParameterBuilderWithSize("p1", DbType.AnsiString, 5);
+        private readonly InOutParameterBuilder builder26_2 = new InOutParameterBuilder("p2", DbType.Int32);
+        private readonly OutParameterBuilder builder26_3 = new OutParameterBuilder("p3");
+
+        private readonly InParameterBuilder builder27_1 = new InParameterBuilder("p1", DbType.Int32);
+        private readonly InOutParameterBuilderByHandler<MockTypeHandler> builder27_2 = new InOutParameterBuilderByHandler<MockTypeHandler>("p2", new MockTypeHandler());
+        private readonly ReturnParameterBuilder builder27_3 = new ReturnParameterBuilder("p3");
+
         private readonly ExecuteEngine engine;
 
+        // TODO
         private readonly IDbProvider provider;
-
+        // TODO(out専用)
         private readonly MockTypeHandler mockTypeHandler;
 
         public SampleDao(ExecuteEngine engine)
@@ -692,20 +702,17 @@ namespace WorkGenerated
                 // parameter.InParam
                 if (ScriptHelper.IsEmpty(parameter.InParam))
                 {
-                    DbCommandHelper.AddParameterWithDirection(
-                        _cmd, "p1", ParameterDirection.Input, DbType.AnsiString, 5, parameter.InParam);
+                    builder26_1.Build(_cmd, parameter.InParam);
                 }
 
                 // parameter.InOutParam
                 if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
-                    _outParam1 = DbCommandHelper.AddParameterWithDirectionAndReturn(
-                        _cmd, "p2", ParameterDirection.InputOutput, DbType.Int32, parameter.InOutParam);
+                    _outParam1 = builder26_2.Build(_cmd, parameter.InOutParam);
                 }
 
                 // parameter.OutParam
-                _outParam2 = DbCommandHelper.AddParameterWithDirectionAndReturn(
-                    _cmd, "p3", ParameterDirection.Output, DbType.Int32, parameter.OutParam);
+                _outParam2 = builder26_3.Build(_cmd);
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -743,16 +750,13 @@ namespace WorkGenerated
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
-                DbCommandHelper.AddParameterWithDirection(
-                    _cmd, "p1", ParameterDirection.Input, DbType.Int32,param1);
+                builder27_1.Build(_cmd, param1);
 
                 // param2
-                _outParam1 = DbCommandHelper.AddParameterWithDirectionAndReturn(
-                    _cmd, "p2", ParameterDirection.InputOutput, mockTypeHandler, param2);
+                _outParam1 = builder27_2.Build(_cmd, param2);
 
                 // param3
-                _outParam2 = DbCommandHelper.AddParameterWithDirectionAndReturn(
-                    _cmd, "p3", ParameterDirection.ReturnValue, DbType.Int32);
+                _outParam2 = builder27_3.Build(_cmd);
 
                 // Build command
                 _cmd.CommandText = "PROC";

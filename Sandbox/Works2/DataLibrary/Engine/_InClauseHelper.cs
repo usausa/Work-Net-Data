@@ -22,7 +22,7 @@
                 sql.Append(parameterName);
                 sql.Append(", ");
 
-                DbCommandHelper.AddParameter(cmd, parameterName, dbType, size, values[i]);
+                //DbCommandHelper.AddParameter(cmd, parameterName, dbType, size, values[i]);
             }
 
             sql.Length = sql.Length - 2;
