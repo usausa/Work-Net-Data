@@ -128,7 +128,6 @@
         // Converter
         //--------------------------------------------------------------------------------
 
-        // TODO Tが決まっているのだから、事前にFuncを作れるのでは？
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Convert<T>(object value)
         {
@@ -142,7 +141,7 @@
                 return default;
             }
 
-            // TODO TypeHandler
+            // TODO TypeHandlerも含めてキャッシュにするか！、ルックアップ1回で！
 
             //return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
             return (T)converter.Convert(value, typeof(T));
