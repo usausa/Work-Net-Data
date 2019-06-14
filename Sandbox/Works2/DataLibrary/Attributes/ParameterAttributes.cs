@@ -25,17 +25,6 @@
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-    public sealed class TypeHandlerAttribute : Attribute
-    {
-        public Type Type { get; }
-
-        public TypeHandlerAttribute(Type type)
-        {
-            Type = type;
-        }
-    }
-
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class DirectionAttribute : Attribute
     {
@@ -44,6 +33,17 @@
         public DirectionAttribute(ParameterDirection direction)
         {
             Direction = direction;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
+    public sealed class TypeHandlerAttribute : Attribute
+    {
+        public Type Type { get; }
+
+        public TypeHandlerAttribute(Type type)
+        {
+            Type = type;
         }
     }
 }

@@ -29,7 +29,7 @@
         // TODO フラット化？、特定型以外？、明示的フラット/非フラット属性？
         // Expreはもとにたいしてやる必要があるから、とりあえずフラットはなし？
 
-        public DaoGenerator(DaoGeneratorOption option, IComponentResolver resolver)
+        public DaoGenerator(ExecuteEngine engine)
         {
         }
     }
