@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,21 +27,48 @@ namespace WorkGenerated
 
     public class SampleDao
     {
-        // TODO
-        private readonly InParameterBuilderWithSize builder26_1 = new InParameterBuilderWithSize("p1", DbType.AnsiString, 5);
-        private readonly InOutParameterBuilder builder26_2 = new InOutParameterBuilder("p2", DbType.Int32);
-        private readonly OutParameterBuilder builder26_3 = new OutParameterBuilder("p3");
+        // TODO 原則として、ParameterBuilderはEngineに作らせない、Engineの情報で作る★
+        // TODO TryGetしたりしつつ一端なにかの関数経由で作る必要がある
+        //private readonly InParameterActionWithSize action26_1 = new InParameterActionWithSize("p1", DbType.AnsiString, 5);
+        //private readonly InOutParameterAction action26_2 = new InOutParameterAction("p2", DbType.Int32);
+        //private readonly OutParameterAction action26_3 = new OutParameterAction("p3");
 
-        private readonly InParameterBuilder builder27_1 = new InParameterBuilder("p1", DbType.Int32);
-        private readonly InOutParameterBuilderByHandler<MockTypeHandler> builder27_2 = new InOutParameterBuilderByHandler<MockTypeHandler>("p2", new MockTypeHandler());
-        private readonly ReturnParameterBuilder builder27_3 = new ReturnParameterBuilder("p3");
+        //private readonly InParameterAction action27_1 = new InParameterAction("p1", DbType.Int32);
+        //private readonly InOutParameterActionByHandler<MockTypeHandler> action27_2 = new InOutParameterActionByHandler<MockTypeHandler>("p2", new MockTypeHandler());
+        //private readonly ReturnParameterAction action27_3 = new ReturnParameterAction("p3");
+
+        public readonly Action<DbCommand, object> setup26_1 = (Action<DbCommand, object>)((c, v) => { });
+        public readonly Func<DbCommand, object, DbParameter> setup26_2 = (Func<DbCommand, object, DbParameter>)((c, v) => c.CreateParameter());
+        public readonly Func<DbCommand, DbParameter> setup26_3 = (Func<DbCommand, DbParameter>)(c => c.CreateParameter());
+
+        public readonly Action<DbCommand, object> setup27_1 = (Action<DbCommand, object>)((c, v) => { });
+        public readonly Func<DbCommand, object, DbParameter> setup27_2 = (Func<DbCommand, object, DbParameter>)((c, v) => c.CreateParameter());
+        public readonly Func<DbCommand, DbParameter> setup27_3 = (Func<DbCommand, DbParameter>)(c => c.CreateParameter());
 
         private readonly ExecuteEngine engine;
 
         // TODO
         private readonly IDbProvider provider;
-        // TODO(out専用)
+        // TODO(out専用)、これはなくせる、Convertに含まれるから
         private readonly MockTypeHandler mockTypeHandler;
+
+        // TODO Directionで種類を決める
+        // TODO ダイレクトかエンジン経由かで切り分ける？
+        // TODO (IQueryExtension(E), ITypeHandler(E), DbType(E))[Engine作成？] | IParameterBuilder(直作成？)
+        // TODO 直Convert<ITypeHandler(E)を含んでる>[Engine作成？] | IResultParser(直作成？)
+        // TODO CreateInParameterAction<T> where T : IInParameterActionみたいな感じ？
+        // TODO AttributeもとれるようにICustomAttributeProviderとかを渡してそれ含めて？
+
+        // TODO Action側は3種類！
+        // TODO Func<object, T>を作る！、インライン？
+
+        // TODO TypeHandler(Parse)は直接こちらに定義、この情報はEngineにある！★
+        // TODO Readerは直接こちらに定義
+        // TODO 上記を踏まえるとParameterAction相当(ResultFunction)も型にまかせる？
+        // TODO engine.Convert直の禁止、ターゲット方はTypedになっている点
+
+        // TODO パラメータの対象、SQLにあるものを処理
+        // TODO 戻りの対象、out, ref, 戻り値, 引数のメンバで[Direction]がついているモノ
 
         public SampleDao(ExecuteEngine engine)
         {
@@ -702,17 +730,17 @@ namespace WorkGenerated
                 // parameter.InParam
                 if (ScriptHelper.IsEmpty(parameter.InParam))
                 {
-                    builder26_1.Build(_cmd, parameter.InParam);
+                    setup26_1(_cmd, parameter.InParam);
                 }
 
                 // parameter.InOutParam
                 if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
-                    _outParam1 = builder26_2.Build(_cmd, parameter.InOutParam);
+                    _outParam1 = setup26_2(_cmd, parameter.InOutParam);
                 }
 
                 // parameter.OutParam
-                _outParam2 = builder26_3.Build(_cmd);
+                _outParam2 = setup26_3(_cmd);
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -750,13 +778,13 @@ namespace WorkGenerated
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
-                builder27_1.Build(_cmd, param1);
+                setup27_1(_cmd, param1);
 
                 // param2
-                _outParam1 = builder27_2.Build(_cmd, param2);
+                _outParam1 = setup27_2(_cmd, param2);
 
                 // param3
-                _outParam2 = builder27_3.Build(_cmd);
+                _outParam2 = setup27_3(_cmd);
 
                 // Build command
                 _cmd.CommandText = "PROC";

@@ -12,9 +12,4 @@
             Timeout = timeout;
         }
     }
-
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class TimeoutParameterAttribute : Attribute
-    {
-    }
 }

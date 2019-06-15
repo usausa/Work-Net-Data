@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace DataLibrary.Attributes
+﻿namespace DataLibrary.Attributes
 {
+    using System;
+
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class ColumnAttribute : Attribute
     {
@@ -11,10 +11,5 @@ namespace DataLibrary.Attributes
         {
             Name = name;
         }
-    }
-
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class IgnoreAttribute : Attribute
-    {
     }
 }
