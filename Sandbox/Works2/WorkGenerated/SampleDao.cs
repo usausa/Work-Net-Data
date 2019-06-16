@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Helper;
 using DataLibrary.Providers;
@@ -29,13 +30,19 @@ namespace WorkGenerated
         private readonly IDbProvider provider;
 
         // ReSharper disable InconsistentNaming
-        public readonly Action<DbCommand, object> setup26_1;
-        public readonly Func<DbCommand, object, DbParameter> setup26_2;
-        public readonly Func<DbCommand, DbParameter> setup26_3;
+        private readonly Action<DbCommand, string, StringBuilder, string[]> setup25_1;
+        private readonly string name25_1;
 
-        public readonly Action<DbCommand, object> setup27_1;
-        public readonly Func<DbCommand, object, DbParameter> setup27_2;
-        public readonly Func<DbCommand, DbParameter> setup27_3;
+        private readonly Action<DbCommand, string, object> setup26_1;
+        private readonly Func<DbCommand, string, object, DbParameter> setup26_2;
+        private readonly Func<DbCommand, string, DbParameter> setup26_3;
+        private readonly string name26_1;
+        private readonly string name26_2;
+        private readonly string name26_3;
+
+        private readonly Action<DbCommand, string, object> setup27_1;
+        private readonly Func<DbCommand, string, object, DbParameter> setup27_2;
+        private readonly Func<DbCommand, string, DbParameter> setup27_3;
         // ReSharper restore InconsistentNaming
 
         // TODO(out専用)、なくす代わりに事前評価済みのconverterを取得する、統一？
@@ -55,13 +62,20 @@ namespace WorkGenerated
             this.engine = engine;
             provider = engine.GetComponent<IDbProvider>();
 
-            setup26_1 = engine.CreateInParameterSetup("p1", typeof(string), null);
-            setup26_2 = engine.CreateInOutParameterSetup("p2", typeof(int), null);
-            setup26_3 = engine.CreateOutParameterSetup("p3", ParameterDirection.Output);
+            var method25 = GetType().GetMethod("ExecuteEnumerable");
+            setup25_1 = engine.CreateArrayParameterSetup<string>(typeof(string), method25.GetParameters()[0]);
+            name25_1 = engine.GetParameterName(0);
 
-            setup27_1 = engine.CreateInParameterSetup("p1", typeof(int), null);
-            setup27_2 = engine.CreateInOutParameterSetup("p2", typeof(int), null);
-            setup27_3 = engine.CreateOutParameterSetup("p3", ParameterDirection.Output);
+            setup26_1 = engine.CreateInParameterSetup(typeof(string), null);
+            setup26_2 = engine.CreateInOutParameterSetup(typeof(int), null);
+            setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
+            name26_1 = engine.GetParameterName(0);
+            name26_2 = engine.GetParameterName(1);
+            name26_3 = engine.GetParameterName(2);
+
+            setup27_1 = engine.CreateInParameterSetup(typeof(int), null);
+            setup27_2 = engine.CreateInOutParameterSetup(typeof(int), null);
+            setup27_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
 
             mockTypeHandler = engine.GetTypeHandler<MockTypeHandler>();
         }
@@ -673,7 +687,7 @@ namespace WorkGenerated
 
         // ReSharper disable RedundantAssignment
         // ReSharper disable InconsistentNaming
-        public int ExecuteEnumerable(string[] ids)
+        public int ExecuteEnumerable([AnsiString(3)] string[] ids)
         {
             using (var _con = provider.CreateConnection())
             using (var _cmd = _con.CreateCommand())
@@ -686,7 +700,7 @@ namespace WorkGenerated
                 {
                     _sql.Append("WHERE Id IN ");
 
-                    InClauseHelper.AddParameter(_sql, _cmd, "p1", DbType.AnsiString, 3, ids);
+                    setup25_1(_cmd, name25_1, _sql, ids);
                 }
 
                 // Build command
@@ -719,17 +733,17 @@ namespace WorkGenerated
                 // parameter.InParam
                 if (ScriptHelper.IsEmpty(parameter.InParam))
                 {
-                    setup26_1(_cmd, parameter.InParam);
+                    setup26_1(_cmd, name26_1, parameter.InParam);
                 }
 
                 // parameter.InOutParam
                 if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
-                    _outParam1 = setup26_2(_cmd, parameter.InOutParam);
+                    _outParam1 = setup26_2(_cmd, name26_2, parameter.InOutParam);
                 }
 
                 // parameter.OutParam
-                _outParam2 = setup26_3(_cmd);
+                _outParam2 = setup26_3(_cmd, name26_3);
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -762,18 +776,21 @@ namespace WorkGenerated
             using (var _con = provider.CreateConnection())
             using (var _cmd = _con.CreateCommand())
             {
+                // [MEMO] Dynamicなら名前も動的
+                var _nameIndex = 0;
+
                 // [MEMO] Direction.Returnは引数で扱えない
                 var _outParam1 = default(DbParameter);
                 var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
-                setup27_1(_cmd, param1);
+                setup27_1(_cmd, engine.GetParameterName(_nameIndex++), param1);
 
                 // param2
-                _outParam1 = setup27_2(_cmd, param2);
+                _outParam1 = setup27_2(_cmd, engine.GetParameterName(_nameIndex++), param2);
 
                 // param3
-                _outParam2 = setup27_3(_cmd);
+                _outParam2 = setup27_3(_cmd, engine.GetParameterName(_nameIndex++));
 
                 // Build command
                 _cmd.CommandText = "PROC";

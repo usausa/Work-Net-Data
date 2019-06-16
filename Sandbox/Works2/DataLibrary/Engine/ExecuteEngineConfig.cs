@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Data;
 
+    using DataLibrary.Dialect;
     using DataLibrary.Handlers;
     using DataLibrary.Mappers;
+    using DataLibrary.Namings;
     using DataLibrary.Selectors;
 
     using Smart.ComponentModel;
@@ -66,6 +68,8 @@
             Components.Add<IDelegateFactory>(DelegateFactory.Default);
             Components.Add<IObjectConverter>(ObjectConverter.Default);
             Components.Add<IPropertySelector>(DefaultPropertySelector.Instance);
+            Components.Add<IParameterNaming>(new ParameterNaming("@"));
+            Components.Add<IEmptyDialect, EmptyDialect>();
         }
 
         //--------------------------------------------------------------------------------
