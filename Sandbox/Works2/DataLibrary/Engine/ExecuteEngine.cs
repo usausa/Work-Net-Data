@@ -1,4 +1,8 @@
-﻿namespace DataLibrary.Engine
+﻿using System.Linq;
+using System.Reflection;
+using DataLibrary.Attributes;
+
+namespace DataLibrary.Engine
 {
     using System;
     using System.Collections.Generic;
@@ -123,6 +127,63 @@
 
         //    return new TypeHandleEntry(findDbType || (handler != null), dbType, handler);
         //}
+
+        //--------------------------------------------------------------------------------
+        // Parameter
+        //--------------------------------------------------------------------------------
+
+        public Action<DbCommand, object> CreateInParameterSetup(string name, Type type, ICustomAttributeProvider provider)
+        {
+            // ParameterAttribute
+            var attribute = provider.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return ParameterSetupHelper.CreateInParameterSetupByAction(name, attribute.CreateSetAction());
+            }
+
+            // ITypeHandler
+            if (typeHandlers.TryGetValue(type, out var handler))
+            {
+                return ParameterSetupHelper.CreateInParameterSetupByAction(name, handler.SetValue);
+            }
+
+            // Type
+            if (typeMap.TryGetValue(type, out var dbType))
+            {
+                return ParameterSetupHelper.CreateInParameterSetupByDbType(name, dbType);
+            }
+
+            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+        }
+
+        public Func<DbCommand, object, DbParameter> CreateInOutParameterSetup(string name, Type type, ICustomAttributeProvider provider)
+        {
+            // ParameterAttribute
+            var attribute = provider.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return ParameterSetupHelper.CreateInOutParameterSetupByAction(name, attribute.CreateSetAction());
+            }
+
+            // ITypeHandler
+            if (typeHandlers.TryGetValue(type, out var handler))
+            {
+                return ParameterSetupHelper.CreateInOutParameterSetupByAction(name, handler.SetValue);
+            }
+
+            // Type
+            if (typeMap.TryGetValue(type, out var dbType))
+            {
+                return ParameterSetupHelper.CreateInOutParameterSetupByDbType(name, dbType);
+            }
+
+            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+        }
+
+        public Func<DbCommand, DbParameter> CreateOutParameterSetup(string name, ParameterDirection direction)
+        {
+            return ParameterSetupHelper.CreateOutParameterSetup(name, direction);
+        }
 
         //--------------------------------------------------------------------------------
         // Converter

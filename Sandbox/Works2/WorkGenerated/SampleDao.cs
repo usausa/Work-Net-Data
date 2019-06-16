@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,9 +11,6 @@ using DataLibrary.Providers;
 
 namespace WorkGenerated
 {
-    // MEMO コンストラクタはComponentProviderのみ
-    // MEMO Namedプロバイダーの処理はコンストラクタ
-
     // MEMO コネクションが引数の場合はOpenしていることが条件
     // MEMO DbConnectionならキャストなし
     // MEMO DbTransactionが引数ならコマンドに設定
@@ -27,53 +23,46 @@ namespace WorkGenerated
 
     public class SampleDao
     {
-        // TODO 原則として、ParameterBuilderはEngineに作らせない、Engineの情報で作る★
-        // TODO TryGetしたりしつつ一端なにかの関数経由で作る必要がある
-        //private readonly InParameterActionWithSize action26_1 = new InParameterActionWithSize("p1", DbType.AnsiString, 5);
-        //private readonly InOutParameterAction action26_2 = new InOutParameterAction("p2", DbType.Int32);
-        //private readonly OutParameterAction action26_3 = new OutParameterAction("p3");
-
-        //private readonly InParameterAction action27_1 = new InParameterAction("p1", DbType.Int32);
-        //private readonly InOutParameterActionByHandler<MockTypeHandler> action27_2 = new InOutParameterActionByHandler<MockTypeHandler>("p2", new MockTypeHandler());
-        //private readonly ReturnParameterAction action27_3 = new ReturnParameterAction("p3");
-
-        public readonly Action<DbCommand, object> setup26_1 = (Action<DbCommand, object>)((c, v) => { });
-        public readonly Func<DbCommand, object, DbParameter> setup26_2 = (Func<DbCommand, object, DbParameter>)((c, v) => c.CreateParameter());
-        public readonly Func<DbCommand, DbParameter> setup26_3 = (Func<DbCommand, DbParameter>)(c => c.CreateParameter());
-
-        public readonly Action<DbCommand, object> setup27_1 = (Action<DbCommand, object>)((c, v) => { });
-        public readonly Func<DbCommand, object, DbParameter> setup27_2 = (Func<DbCommand, object, DbParameter>)((c, v) => c.CreateParameter());
-        public readonly Func<DbCommand, DbParameter> setup27_3 = (Func<DbCommand, DbParameter>)(c => c.CreateParameter());
-
         private readonly ExecuteEngine engine;
 
-        // TODO
+        // TODO(cast?)
         private readonly IDbProvider provider;
-        // TODO(out専用)、これはなくせる、Convertに含まれるから
+
+        // ReSharper disable InconsistentNaming
+        public readonly Action<DbCommand, object> setup26_1;
+        public readonly Func<DbCommand, object, DbParameter> setup26_2;
+        public readonly Func<DbCommand, DbParameter> setup26_3;
+
+        public readonly Action<DbCommand, object> setup27_1;
+        public readonly Func<DbCommand, object, DbParameter> setup27_2;
+        public readonly Func<DbCommand, DbParameter> setup27_3;
+        // ReSharper restore InconsistentNaming
+
+        // TODO(out専用)、なくす代わりに事前評価済みのconverterを取得する、統一？
         private readonly MockTypeHandler mockTypeHandler;
 
-        // TODO Directionで種類を決める
         // TODO ダイレクトかエンジン経由かで切り分ける？
         // TODO (IQueryExtension(E), ITypeHandler(E), DbType(E))[Engine作成？] | IParameterBuilder(直作成？)
         // TODO 直Convert<ITypeHandler(E)を含んでる>[Engine作成？] | IResultParser(直作成？)
-        // TODO CreateInParameterAction<T> where T : IInParameterActionみたいな感じ？
-        // TODO AttributeもとれるようにICustomAttributeProviderとかを渡してそれ含めて？
-
-        // TODO Action側は3種類！
-        // TODO Func<object, T>を作る！、インライン？
 
         // TODO TypeHandler(Parse)は直接こちらに定義、この情報はEngineにある！★
         // TODO Readerは直接こちらに定義
         // TODO 上記を踏まえるとParameterAction相当(ResultFunction)も型にまかせる？
         // TODO engine.Convert直の禁止、ターゲット方はTypedになっている点
 
-        // TODO パラメータの対象、SQLにあるものを処理
-        // TODO 戻りの対象、out, ref, 戻り値, 引数のメンバで[Direction]がついているモノ
-
         public SampleDao(ExecuteEngine engine)
         {
             this.engine = engine;
             provider = engine.GetComponent<IDbProvider>();
+
+            setup26_1 = engine.CreateInParameterSetup("p1", typeof(string), null);
+            setup26_2 = engine.CreateInOutParameterSetup("p2", typeof(int), null);
+            setup26_3 = engine.CreateOutParameterSetup("p3", ParameterDirection.Output);
+
+            setup27_1 = engine.CreateInParameterSetup("p1", typeof(int), null);
+            setup27_2 = engine.CreateInOutParameterSetup("p2", typeof(int), null);
+            setup27_3 = engine.CreateOutParameterSetup("p3", ParameterDirection.Output);
+
             mockTypeHandler = engine.GetTypeHandler<MockTypeHandler>();
         }
 

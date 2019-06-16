@@ -80,6 +80,7 @@ namespace DataLibrary.Mappers
                 }
                 else
                 {
+                    // TODO
                     var converter = objectConverter.CreateConverter(column.Type, pi.PropertyType);
                     list.Add(new MapEntry(i, (obj, value) => setter(obj, converter(value is DBNull ? defaultValue : value))));
                 }
