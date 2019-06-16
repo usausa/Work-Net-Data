@@ -1,16 +1,17 @@
-﻿using System.Linq;
-using DataLibrary.Dialect;
-using DataLibrary.Namings;
+﻿using System.Globalization;
 
 namespace DataLibrary.Engine
 {
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Linq;
     using System.Runtime.CompilerServices;
 
+    using DataLibrary.Dialect;
     using DataLibrary.Handlers;
     using DataLibrary.Mappers;
+    using DataLibrary.Namings;
 
     using Smart.Converter;
     using Smart.ComponentModel;
@@ -35,6 +36,8 @@ namespace DataLibrary.Engine
 
         private readonly string[] parameterNames;
 
+        private readonly string[] parameterSubNames;
+
         //--------------------------------------------------------------------------------
         // Constructor
         //--------------------------------------------------------------------------------
@@ -51,6 +54,7 @@ namespace DataLibrary.Engine
             resultMapperFactories = config.GetResultMapperFactories();
 
             parameterNames = Enumerable.Range(0, 256).Select(x => parameterNaming.GetName(x)).ToArray();
+            parameterSubNames = Enumerable.Range(0, 256).Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray();
         }
 
         //--------------------------------------------------------------------------------
@@ -152,6 +156,12 @@ namespace DataLibrary.Engine
         public string GetParameterName(int index)
         {
             return index < parameterNames.Length ? parameterNames[index] : parameterNaming.GetName(index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private string GetParameterSubName(int index)
+        {
+            return index < parameterSubNames.Length ? parameterSubNames[index] : index.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

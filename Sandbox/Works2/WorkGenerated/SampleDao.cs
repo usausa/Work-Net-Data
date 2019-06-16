@@ -33,15 +33,15 @@ namespace WorkGenerated
         private readonly Action<DbCommand, string, StringBuilder, string[]> setup25_1;
         private readonly string name25_1;
 
-        private readonly Action<DbCommand, string, object> setup26_1;
-        private readonly Func<DbCommand, string, object, DbParameter> setup26_2;
+        private readonly Action<DbCommand, string, string> setup26_1;
+        private readonly Func<DbCommand, string, int?, DbParameter> setup26_2;
         private readonly Func<DbCommand, string, DbParameter> setup26_3;
         private readonly string name26_1;
         private readonly string name26_2;
         private readonly string name26_3;
 
-        private readonly Action<DbCommand, string, object> setup27_1;
-        private readonly Func<DbCommand, string, object, DbParameter> setup27_2;
+        private readonly Action<DbCommand, string, int> setup27_1;
+        private readonly Func<DbCommand, string, int, DbParameter> setup27_2;
         private readonly Func<DbCommand, string, DbParameter> setup27_3;
         // ReSharper restore InconsistentNaming
 
@@ -66,15 +66,15 @@ namespace WorkGenerated
             setup25_1 = engine.CreateArrayParameterSetup<string>(typeof(string), method25.GetParameters()[0]);
             name25_1 = engine.GetParameterName(0);
 
-            setup26_1 = engine.CreateInParameterSetup(typeof(string), null);
-            setup26_2 = engine.CreateInOutParameterSetup(typeof(int), null);
+            setup26_1 = engine.CreateInParameterSetup<string>(null);
+            setup26_2 = engine.CreateInOutParameterSetup<int?>(null);
             setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
             name26_1 = engine.GetParameterName(0);
             name26_2 = engine.GetParameterName(1);
             name26_3 = engine.GetParameterName(2);
 
-            setup27_1 = engine.CreateInParameterSetup(typeof(int), null);
-            setup27_2 = engine.CreateInOutParameterSetup(typeof(int), null);
+            setup27_1 = engine.CreateInParameterSetup<int>(null);
+            setup27_2 = engine.CreateInOutParameterSetup<int>(null);
             setup27_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
 
             mockTypeHandler = engine.GetTypeHandler<MockTypeHandler>();
