@@ -703,9 +703,6 @@ namespace WorkGenerated
         // Enumerable
         //--------------------------------------------------------------------------------
 
-        // TODO enumerable
-        // TODO enumerable with dynamic parameter
-
         // ReSharper disable RedundantAssignment
         // ReSharper disable InconsistentNaming
         public int ExecuteEnumerable([AnsiString(3)] string[] ids)
