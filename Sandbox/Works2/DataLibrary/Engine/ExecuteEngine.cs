@@ -1,11 +1,11 @@
-﻿using System.Globalization;
-
-namespace DataLibrary.Engine
+﻿namespace DataLibrary.Engine
 {
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Globalization;
     using System.Linq;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
 
     using DataLibrary.Dialect;
@@ -20,7 +20,7 @@ namespace DataLibrary.Engine
     {
         private readonly IComponentContainer container;
 
-        private readonly IObjectConverter converter;
+        private readonly IObjectConverter objectConverter;
 
         private readonly IEmptyDialect emptyDialect;
 
@@ -45,7 +45,7 @@ namespace DataLibrary.Engine
         public ExecuteEngine(IExecuteEngineConfig config)
         {
             container = config.CreateComponentContainer();
-            converter = container.Get<IObjectConverter>();
+            objectConverter = container.Get<IObjectConverter>();
             emptyDialect = container.Get<IEmptyDialect>();
             parameterNaming = container.Get<IParameterNaming>();
 
@@ -58,6 +58,12 @@ namespace DataLibrary.Engine
         }
 
         //--------------------------------------------------------------------------------
+        // Component
+        //--------------------------------------------------------------------------------
+
+        public T GetComponent<T>() => container.Get<T>();
+
+        //--------------------------------------------------------------------------------
         // Controller
         //--------------------------------------------------------------------------------
 
@@ -66,86 +72,71 @@ namespace DataLibrary.Engine
         public void ClearResultMapperCache() => resultMapperCache.Clear();
 
         //--------------------------------------------------------------------------------
-        // Component
+        // Lookup
         //--------------------------------------------------------------------------------
 
-        public T GetComponent<T>() => container.Get<T>();
-
-        // TODO ?
-        public T GetTypeHandler<T>() where T : ITypeHandler
+        private bool LookupTypeHandler(Type type, out ITypeHandler handler)
         {
-            // TODO
-            return Activator.CreateInstance<T>();
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            if (typeHandlers.TryGetValue(type, out handler))
+            {
+                return true;
+            }
+
+            if (type.IsEnum && typeHandlers.TryGetValue(Enum.GetUnderlyingType(type), out handler))
+            {
+                return true;
+            }
+
+            handler = null;
+            return false;
         }
 
-        // TODO TypeMap / CommandBuilder (TypeHandler integration ?)
+        private bool LookupDbType(Type type, out DbType dbType)
+        {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            if (typeMap.TryGetValue(type, out dbType))
+            {
+                return true;
+            }
 
-        //Func<object, object> ISqlMapperConfig.CreateParser(Type sourceType, Type destinationType)
-        //{
-        //    if (!typeHandleEntriesCache.TryGetValue(destinationType, out var entry))
-        //    {
-        //        entry = typeHandleEntriesCache.AddIfNotExist(destinationType, CreateTypeHandleInternal);
-        //    }
+            if (type.IsEnum && typeMap.TryGetValue(Enum.GetUnderlyingType(type), out dbType))
+            {
+                return true;
+            }
 
-        //    if (entry.TypeHandler != null)
-        //    {
-        //        return x => entry.TypeHandler.Parse(destinationType, x);
-        //    }
+            dbType = DbType.Object;
+            return false;
+        }
 
-        //    return Converter.CreateConverter(sourceType, destinationType);
-        //}
-
-        //-----------
-        //TypeHandleEntry ISqlMapperConfig.LookupTypeHandle(Type type)
-        //{
-        //    if (!typeHandleEntriesCache.TryGetValue(type, out var entry))
-        //    {
-        //        entry = typeHandleEntriesCache.AddIfNotExist(type, CreateTypeHandleInternal);
-        //    }
-
-        //    if (!entry.CanUseAsParameter)
-        //    {
-        //        throw new SqlMapperException($"Type cannot use as parameter. type=[{type.FullName}]");
-        //    }
-
-        //    return entry;
-        //}
-
-        //private TypeHandleEntry CreateTypeHandleInternal(Type type)
-        //{
-        //    type = Nullable.GetUnderlyingType(type) ?? type;
-        //    var findDbType = typeMap.TryGetValue(type, out var dbType);
-        //    if (!findDbType && type.IsEnum)
-        //    {
-        //        findDbType = typeMap.TryGetValue(Enum.GetUnderlyingType(type), out dbType);
-        //    }
-
-        //    typeHandlers.TryGetValue(type, out var handler);
-
-        //    return new TypeHandleEntry(findDbType || (handler != null), dbType, handler);
-        //}
+        // TODO Enumも考慮して、TypeHandler or
 
         //--------------------------------------------------------------------------------
         // Converter
         //--------------------------------------------------------------------------------
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Convert<T>(object value)
+        public Func<object, object> CreateConverter<T>(ICustomAttributeProvider provider)
         {
-            if (value is T scalar)
+            var type = typeof(T);
+
+            // TODO ResultAttribute
+
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
             {
-                return scalar;
+                return x => handler.Parse(type, x);
             }
 
-            if (value is DBNull)
+            return CreateConverterByObjectConverter(Nullable.GetUnderlyingType(type) ?? type);
+        }
+
+        private Func<object, object> CreateConverterByObjectConverter(Type type)
+        {
+            return x =>
             {
-                return default;
-            }
-
-            // TODO TypeHandlerも含めてキャッシュにするか！、ルックアップ1回で！
-
-            //return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
-            return (T)converter.Convert(value, typeof(T));
+                var converter = objectConverter.CreateConverter(x.GetType(), type);
+                return converter(x);
+            };
         }
 
         //--------------------------------------------------------------------------------

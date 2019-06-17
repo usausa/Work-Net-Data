@@ -71,6 +71,18 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Execute(DbCommand cmd)
+        {
+            return cmd.ExecuteNonQuery();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<int> ExecuteAsync(DbCommand cmd, CancellationToken cancel = default)
+        {
+            return await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Execute(DbConnection con, DbCommand cmd)
         {
             if (con.State == ConnectionState.Closed)
@@ -115,23 +127,19 @@
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T ExecuteScalar<T>(DbCommand cmd)
+        public object ExecuteScalar(DbCommand cmd)
         {
-            var result = cmd.ExecuteScalar();
-
-            return Convert<T>(result);
+            return cmd.ExecuteScalar();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T> ExecuteScalarAsync<T>(DbCommand cmd, CancellationToken cancel = default)
+        public async Task<object> ExecuteScalarAsync(DbCommand cmd, CancellationToken cancel = default)
         {
-            var result = await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
-
-            return Convert<T>(result);
+            return await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T ExecuteScalar<T>(DbConnection con, DbCommand cmd)
+        public object ExecuteScalar(DbConnection con, DbCommand cmd)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -139,7 +147,7 @@
                 {
                     con.Open();
 
-                    return ExecuteScalar<T>(cmd);
+                    return cmd.ExecuteScalar();
                 }
                 finally
                 {
@@ -147,11 +155,11 @@
                 }
             }
 
-            return ExecuteScalar<T>(cmd);
+            return cmd.ExecuteScalar();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T> ExecuteScalarAsync<T>(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
+        public async Task<object> ExecuteScalarAsync(DbConnection con, DbCommand cmd, CancellationToken cancel = default)
         {
             if (con.State == ConnectionState.Closed)
             {
@@ -159,7 +167,7 @@
                 {
                     await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                    return await ExecuteScalarAsync<T>(cmd, cancel).ConfigureAwait(false);
+                    return await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -167,7 +175,7 @@
                 }
             }
 
-            return await ExecuteScalarAsync<T>(cmd, cancel).ConfigureAwait(false);
+            return await cmd.ExecuteScalarAsync(cancel).ConfigureAwait(false);
         }
 
         //--------------------------------------------------------------------------------

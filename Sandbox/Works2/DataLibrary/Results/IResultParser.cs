@@ -4,6 +4,6 @@
 
     public interface IResultParser
     {
-        object Parse(Type destinationType, object value);
+        object Parse(Type type, object value);
     }
 }

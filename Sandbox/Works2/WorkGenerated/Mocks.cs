@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Globalization;
 using DataLibrary.Engine;
 using DataLibrary.Handlers;
 using DataLibrary.Providers;
@@ -26,15 +27,15 @@ namespace WorkGenerated
 
     public sealed class MockTypeHandler : ITypeHandler
     {
-        public void SetValue<T>(IDbDataParameter parameter, T value)
+        public void SetValue(IDbDataParameter parameter, object value)
         {
-            // TODO
+            parameter.DbType = DbType.Int32;
+            parameter.Value = value;
         }
 
-        public object Parse(Type destinationType, object value)
+        public object Parse(Type type, object value)
         {
-            // TODO
-            return value;
+            return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
         }
     }
 

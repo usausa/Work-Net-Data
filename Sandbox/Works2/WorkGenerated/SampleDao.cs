@@ -30,54 +30,67 @@ namespace WorkGenerated
         private readonly IDbProvider provider;
 
         // ReSharper disable InconsistentNaming
+        public Func<object, object> converter5;
+        public Func<object, object> converter6;
+        public Func<object, object> converter7;
+        public Func<object, object> converter8;
+
         private readonly Action<DbCommand, string, StringBuilder, string[]> setup25_1;
         private readonly string name25_1;
 
-        private readonly Action<DbCommand, string, string> setup26_1;
-        private readonly Func<DbCommand, string, int?, DbParameter> setup26_2;
-        private readonly Func<DbCommand, string, DbParameter> setup26_3;
         private readonly string name26_1;
         private readonly string name26_2;
         private readonly string name26_3;
+        private readonly Action<DbCommand, string, object> setup26_1;
+        private readonly Func<DbCommand, string, object, DbParameter> setup26_2;
+        private readonly Func<DbCommand, string, DbParameter> setup26_3;
+        public Func<object, object> converter26_2;
+        public Func<object, object> converter26_3;
 
-        private readonly Action<DbCommand, string, int> setup27_1;
-        private readonly Func<DbCommand, string, int, DbParameter> setup27_2;
+        private readonly Action<DbCommand, string, object> setup27_1;
+        private readonly Func<DbCommand, string, object, DbParameter> setup27_2;
         private readonly Func<DbCommand, string, DbParameter> setup27_3;
+        public Func<object, object> converter27_2;
+        public Func<object, object> converter27_3;
         // ReSharper restore InconsistentNaming
-
-        // TODO(out専用)、なくす代わりに事前評価済みのconverterを取得する、統一？
-        private readonly MockTypeHandler mockTypeHandler;
-
-        // TODO ダイレクトかエンジン経由かで切り分ける？
-        // TODO (IQueryExtension(E), ITypeHandler(E), DbType(E))[Engine作成？] | IParameterBuilder(直作成？)
-        // TODO 直Convert<ITypeHandler(E)を含んでる>[Engine作成？] | IResultParser(直作成？)
-
-        // TODO TypeHandler(Parse)は直接こちらに定義、この情報はEngineにある！★
-        // TODO Readerは直接こちらに定義
-        // TODO 上記を踏まえるとParameterAction相当(ResultFunction)も型にまかせる？
-        // TODO engine.Convert直の禁止、ターゲット方はTypedになっている点
 
         public SampleDao(ExecuteEngine engine)
         {
             this.engine = engine;
             provider = engine.GetComponent<IDbProvider>();
 
-            var method25 = GetType().GetMethod("ExecuteEnumerable");
-            setup25_1 = engine.CreateArrayParameterSetup<string>(typeof(string), method25.GetParameters()[0]);
+            var method5 = GetType().GetMethod("ExecuteScalar", Type.EmptyTypes);
+            converter5 = engine.CreateConverter<long>(method5.ReturnParameter);
+
+            var method6 = GetType().GetMethod("ExecuteScalarAsync", new [] { typeof(CancellationToken) });
+            converter6 = engine.CreateConverter<long>(method6.ReturnParameter);
+
+            var method7 = GetType().GetMethod("ExecuteScalar", new[] { typeof(DbConnection) });
+            converter7 = engine.CreateConverter<long>(method7.ReturnParameter);
+
+            var method8 = GetType().GetMethod("ExecuteScalarAsync", new[] { typeof(DbConnection), typeof(CancellationToken) });
+            converter8 = engine.CreateConverter<long>(method8.ReturnParameter);
+
+            var method25 = GetType().GetMethod("ExecuteEnumerable", new[] { typeof(string[]) });
+            setup25_1 = engine.CreateArrayParameterSetup<string>(method25.GetParameters()[0]);
             name25_1 = engine.GetParameterName(0);
 
-            setup26_1 = engine.CreateInParameterSetup<string>(null);
-            setup26_2 = engine.CreateInOutParameterSetup<int?>(null);
-            setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
+            var method26 = GetType().GetMethod("ExecuteEx1", new[] { typeof(ProcParameter), typeof(int) });
             name26_1 = engine.GetParameterName(0);
             name26_2 = engine.GetParameterName(1);
             name26_3 = engine.GetParameterName(2);
+            setup26_1 = engine.CreateInParameterSetup<string>(null);
+            setup26_2 = engine.CreateInOutParameterSetup<int?>(null);
+            setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
+            converter26_2 = engine.CreateConverter<int?>(method26.GetParameters()[0].ParameterType.GetProperty("InParam"));
+            converter26_3 = engine.CreateConverter<int>(method26.GetParameters()[0].ParameterType.GetProperty("InOutParam"));
 
+            var method27 = GetType().GetMethod("ExecuteEx2", new[] { typeof(int), typeof(int).MakeByRefType(), typeof(int).MakeByRefType() });
             setup27_1 = engine.CreateInParameterSetup<int>(null);
             setup27_2 = engine.CreateInOutParameterSetup<int>(null);
             setup27_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
-
-            mockTypeHandler = engine.GetTypeHandler<MockTypeHandler>();
+            converter27_2 = engine.CreateConverter<int>(method27.GetParameters()[1]);
+            converter27_3 = engine.CreateConverter<int>(method27.GetParameters()[2]);
         }
 
         //--------------------------------------------------------------------------------
@@ -172,7 +185,9 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = engine.ExecuteScalar<long>(cmd);
+                var result = ConvertHelper.Convert<long>(
+                    engine.ExecuteScalar(cmd),
+                    converter5);
 
                 // Post action
 
@@ -192,7 +207,9 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = await engine.ExecuteScalarAsync<long>(cmd, cancel).ConfigureAwait(false);
+                var result = ConvertHelper.Convert<long>(
+                    await engine.ExecuteScalarAsync(cmd, cancel).ConfigureAwait(false),
+                    converter6);
 
                 // Post action
 
@@ -209,7 +226,9 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = engine.ExecuteScalar<long>(con, cmd);
+                var result = ConvertHelper.Convert<long>(
+                    engine.ExecuteScalar(con, cmd),
+                    converter7);
 
                 // Post action
 
@@ -226,7 +245,9 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = await engine.ExecuteScalarAsync<long>(con, cmd, cancel).ConfigureAwait(false);
+                var result = ConvertHelper.Convert<long>(
+                    await engine.ExecuteScalarAsync(con, cmd, cancel).ConfigureAwait(false),
+                    converter8);
 
                 // Post action
 
@@ -727,8 +748,8 @@ namespace WorkGenerated
             using (var _cmd = _con.CreateCommand())
             {
                 // [MEMO] Direction.Returnは引数で扱えない
-                var _outParam1 = default(DbParameter);
-                var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
+                var _outParam2 = default(DbParameter);
+                var _outParam3 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // parameter.InParam
                 if (ScriptHelper.IsEmpty(parameter.InParam))
@@ -739,11 +760,11 @@ namespace WorkGenerated
                 // parameter.InOutParam
                 if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
-                    _outParam1 = setup26_2(_cmd, name26_2, parameter.InOutParam);
+                    _outParam2 = setup26_2(_cmd, name26_2, parameter.InOutParam);
                 }
 
                 // parameter.OutParam
-                _outParam2 = setup26_3(_cmd, name26_3);
+                _outParam3 = setup26_3(_cmd, name26_3);
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -757,14 +778,14 @@ namespace WorkGenerated
 
                 // Post action
                 // [MEMO] Dynamicでなければnullチェックが不要
-                if (_outParam1 != null)
-                {
-                    parameter.InOutParam = engine.Convert<int?>(_outParam1.Value);
-                }
-
                 if (_outParam2 != null)
                 {
-                    parameter.OutParam = engine.Convert<int>(_outParam2.Value);
+                    parameter.InOutParam = ConvertHelper.Convert<int?>(_outParam2.Value, converter26_2);
+                }
+
+                if (_outParam3 != null)
+                {
+                    parameter.OutParam = ConvertHelper.Convert<int>(_outParam3.Value, converter26_3);
                 }
 
                 return _result;
@@ -780,17 +801,17 @@ namespace WorkGenerated
                 var _nameIndex = 0;
 
                 // [MEMO] Direction.Returnは引数で扱えない
-                var _outParam1 = default(DbParameter);
-                var _outParam2 = default(DbParameter);   // [MEMO] コード的には冗長だが
+                var _outParam2 = default(DbParameter);
+                var _outParam3 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
                 setup27_1(_cmd, engine.GetParameterName(_nameIndex++), param1);
 
                 // param2
-                _outParam1 = setup27_2(_cmd, engine.GetParameterName(_nameIndex++), param2);
+                _outParam2 = setup27_2(_cmd, engine.GetParameterName(_nameIndex++), param2);
 
                 // param3
-                _outParam2 = setup27_3(_cmd, engine.GetParameterName(_nameIndex++));
+                _outParam3 = setup27_3(_cmd, engine.GetParameterName(_nameIndex++));
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -804,14 +825,14 @@ namespace WorkGenerated
 
                 // Post action
                 // [MEMO] Dynamicでなければnullチェックが不要
-                if (_outParam1 != null)
-                {
-                    param2 = (int)mockTypeHandler.Parse(typeof(int), _outParam1.Value);
-                }
-
                 if (_outParam2 != null)
                 {
-                    param3 = engine.Convert<int>(_outParam2.Value);
+                    param2 = ConvertHelper.Convert<int>(_outParam2.Value, converter26_2);
+                }
+
+                if (_outParam3 != null)
+                {
+                    param3 = ConvertHelper.Convert<int>(_outParam3.Value, converter26_3);
                 }
                 else
                 {

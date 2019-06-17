@@ -20,36 +20,22 @@ namespace DataLibrary.Attributes
             this.size = size;
         }
 
-        public override Action<IDbDataParameter, T> CreateSetAction<T>()
+        public override Action<IDbDataParameter, object> CreateSetAction(Type type)
         {
             if (size.HasValue)
             {
                 return (parameter, value) =>
                 {
-                    if (value == null)
-                    {
-                        parameter.Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        parameter.DbType = DbType.AnsiStringFixedLength;
-                        parameter.Size = size.Value;
-                        parameter.Value = value;
-                    }
+                    parameter.DbType = DbType.AnsiStringFixedLength;
+                    parameter.Size = size.Value;
+                    parameter.Value = value;
                 };
             }
 
             return (parameter, value) =>
             {
-                if (value == null)
-                {
-                    parameter.Value = DBNull.Value;
-                }
-                else
-                {
-                    parameter.DbType = DbType.AnsiString;
-                    parameter.Value = value;
-                }
+                parameter.DbType = DbType.AnsiString;
+                parameter.Value = value;
             };
         }
     }
