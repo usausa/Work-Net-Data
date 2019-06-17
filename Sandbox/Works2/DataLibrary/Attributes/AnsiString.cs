@@ -1,12 +1,10 @@
-﻿using System.Data;
-
-namespace DataLibrary.Attributes
+﻿namespace DataLibrary.Attributes
 {
     using System;
+    using System.Data;
 
     using Smart.Functional;
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class AnsiString : ParameterAttribute
     {
         private readonly int? size;

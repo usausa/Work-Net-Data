@@ -59,7 +59,7 @@
             {
                 if (factory.IsMatch(type))
                 {
-                    return factory.CreateMapper<T>(container, type, columns);
+                    return factory.CreateMapper<T>(this, type, columns);
                 }
             }
 

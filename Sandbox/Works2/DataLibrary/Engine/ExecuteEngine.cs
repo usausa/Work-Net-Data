@@ -8,6 +8,7 @@
     using System.Reflection;
     using System.Runtime.CompilerServices;
 
+    using DataLibrary.Attributes;
     using DataLibrary.Dialect;
     using DataLibrary.Handlers;
     using DataLibrary.Mappers;
@@ -16,10 +17,8 @@
     using Smart.Converter;
     using Smart.ComponentModel;
 
-    public sealed partial class ExecuteEngine : IEngineController
+    public sealed partial class ExecuteEngine : IEngineController, IResultMapperCreateContext
     {
-        private readonly IComponentContainer container;
-
         private readonly IObjectConverter objectConverter;
 
         private readonly IEmptyDialect emptyDialect;
@@ -38,16 +37,18 @@
 
         private readonly string[] parameterSubNames;
 
+        public IComponentContainer Components { get; }
+
         //--------------------------------------------------------------------------------
         // Constructor
         //--------------------------------------------------------------------------------
 
         public ExecuteEngine(IExecuteEngineConfig config)
         {
-            container = config.CreateComponentContainer();
-            objectConverter = container.Get<IObjectConverter>();
-            emptyDialect = container.Get<IEmptyDialect>();
-            parameterNaming = container.Get<IParameterNaming>();
+            Components = config.CreateComponentContainer();
+            objectConverter = Components.Get<IObjectConverter>();
+            emptyDialect = Components.Get<IEmptyDialect>();
+            parameterNaming = Components.Get<IParameterNaming>();
 
             typeMap = new Dictionary<Type, DbType>(config.GetTypeMap());
             typeHandlers = new Dictionary<Type, ITypeHandler>(config.GetTypeHandlers());
@@ -58,18 +59,12 @@
         }
 
         //--------------------------------------------------------------------------------
-        // Component
-        //--------------------------------------------------------------------------------
-
-        public T GetComponent<T>() => container.Get<T>();
-
-        //--------------------------------------------------------------------------------
         // Controller
         //--------------------------------------------------------------------------------
 
-        public int CountResultMapperCache => resultMapperCache.Count;
+        int IEngineController.CountResultMapperCache => resultMapperCache.Count;
 
-        public void ClearResultMapperCache() => resultMapperCache.Clear();
+        void IEngineController.ClearResultMapperCache() => resultMapperCache.Clear();
 
         //--------------------------------------------------------------------------------
         // Lookup
@@ -109,17 +104,32 @@
             return false;
         }
 
-        // TODO Enumも考慮して、TypeHandler or
-
         //--------------------------------------------------------------------------------
         // Converter
         //--------------------------------------------------------------------------------
 
+        Func<object, object> IResultMapperCreateContext.CreateConverter(Type sourceType, Type destinationType, ICustomAttributeProvider provider)
+        {
+            var converter = CreateConverter(destinationType, provider);
+            return converter ?? objectConverter.CreateConverter(sourceType, destinationType);
+        }
+
         public Func<object, object> CreateConverter<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
+            var converter = CreateConverter(type, provider);
+            return converter ?? CreateConverterRuntimeConverter(Nullable.GetUnderlyingType(type) ?? type);
+        }
 
-            // TODO ResultAttribute
+        private Func<object, object> CreateConverter(Type type, ICustomAttributeProvider provider)
+        {
+            // ResultAttribute
+
+            var attribute = provider?.GetCustomAttributes(true).Cast<ResultAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return attribute.CreateConverter(type);
+            }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
@@ -127,10 +137,10 @@
                 return x => handler.Parse(type, x);
             }
 
-            return CreateConverterByObjectConverter(Nullable.GetUnderlyingType(type) ?? type);
+            return null;
         }
 
-        private Func<object, object> CreateConverterByObjectConverter(Type type)
+        private Func<object, object> CreateConverterRuntimeConverter(Type type)
         {
             return x =>
             {

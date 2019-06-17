@@ -1,14 +1,14 @@
-﻿using System;
-using System.Data;
-using DataLibrary.Engine;
-using Smart.ComponentModel;
-
-namespace DataLibrary.Mappers
+﻿namespace DataLibrary.Mappers
 {
+    using System;
+    using System.Data;
+
+    using DataLibrary.Engine;
+
     public interface IResultMapperFactory
     {
         bool IsMatch(Type type);
 
-        Func<IDataRecord, T> CreateMapper<T>(IComponentContainer container, Type type, ColumnInfo[] columns);
+        Func<IDataRecord, T> CreateMapper<T>(IResultMapperCreateContext context, Type type, ColumnInfo[] columns);
     }
 }

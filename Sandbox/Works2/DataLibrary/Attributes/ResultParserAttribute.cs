@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DataLibrary.Attributes
+﻿namespace DataLibrary.Attributes
 {
-    class ResultAttribute
+    using System;
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
+    public abstract class ResultAttribute : Attribute
     {
-        // TODO abstract & CreateResultConverter
+        public abstract Func<object, object> CreateConverter(Type type);
     }
 }

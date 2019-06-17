@@ -1,6 +1,4 @@
-﻿using Smart.ComponentModel;
-
-namespace DataLibrary.Mappers
+﻿namespace DataLibrary.Mappers
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +11,6 @@ namespace DataLibrary.Mappers
     using DataLibrary.Selectors;
 
     using Smart;
-    using Smart.Converter;
     using Smart.Reflection;
 
     public sealed class ObjectResultMapperFactory : IResultMapperFactory
@@ -26,14 +23,12 @@ namespace DataLibrary.Mappers
 
         public bool IsMatch(Type type) => true;
 
-        public Func<IDataRecord, T> CreateMapper<T>(IComponentContainer container, Type type, ColumnInfo[] columns)
+        public Func<IDataRecord, T> CreateMapper<T>(IResultMapperCreateContext context, Type type, ColumnInfo[] columns)
         {
-            var delegateFactory = container.Get<IDelegateFactory>();
-            var objectConverter = container.Get<IObjectConverter>();
-            var propertySelector = container.Get<IPropertySelector>();
-
+            var delegateFactory = context.Components.Get<IDelegateFactory>();
             var factory = delegateFactory.CreateFactory<T>();
-            var entries = CreateMapEntries(delegateFactory, objectConverter, propertySelector, type, columns);
+
+            var entries = CreateMapEntries(context, delegateFactory, type, columns);
 
             return record =>
             {
@@ -50,12 +45,12 @@ namespace DataLibrary.Mappers
         }
 
         private static MapEntry[] CreateMapEntries(
+            IResultMapperCreateContext context,
             IDelegateFactory delegateFactory,
-            IObjectConverter objectConverter,
-            IPropertySelector propertySelector,
             Type type,
             ColumnInfo[] columns)
         {
+            var propertySelector = context.Components.Get<IPropertySelector>();
             var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Where(IsTargetProperty)
                 .ToArray();
@@ -70,9 +65,8 @@ namespace DataLibrary.Mappers
                     continue;
                 }
 
-                var setter = delegateFactory.CreateSetter(pi);
                 var defaultValue = pi.PropertyType.GetDefaultValue();
-
+                var setter = delegateFactory.CreateSetter(pi);
                 if ((pi.PropertyType == column.Type) ||
                     (pi.PropertyType.IsNullableType() && (Nullable.GetUnderlyingType(pi.PropertyType) == column.Type)))
                 {
@@ -80,9 +74,8 @@ namespace DataLibrary.Mappers
                 }
                 else
                 {
-                    // TODO
-                    var converter = objectConverter.CreateConverter(column.Type, pi.PropertyType);
-                    list.Add(new MapEntry(i, (obj, value) => setter(obj, converter(value is DBNull ? defaultValue : value))));
+                    var converter = context.CreateConverter(column.Type, pi.PropertyType, pi);
+                    list.Add(new MapEntry(i, (obj, value) => setter(obj, value is DBNull ? defaultValue : converter(value))));
                 }
             }
 

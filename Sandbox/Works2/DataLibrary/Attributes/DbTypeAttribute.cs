@@ -4,7 +4,6 @@
 
     using System.Data;
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class DbTypeAttribute : ParameterAttribute
     {
         private readonly DbType dbType;

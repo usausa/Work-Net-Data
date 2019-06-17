@@ -57,7 +57,7 @@ namespace WorkGenerated
         public SampleDao(ExecuteEngine engine)
         {
             this.engine = engine;
-            provider = engine.GetComponent<IDbProvider>();
+            provider = engine.Components.Get<IDbProvider>();
 
             var method5 = GetType().GetMethod("ExecuteScalar", Type.EmptyTypes);
             converter5 = engine.CreateConverter<long>(method5.ReturnParameter);
