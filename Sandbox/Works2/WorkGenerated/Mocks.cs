@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Handlers;
 using DataLibrary.Providers;
@@ -27,7 +26,7 @@ namespace WorkGenerated
 
     public sealed class MockTypeHandler : ITypeHandler
     {
-        public void SetValue(IDbDataParameter parameter, object value)
+        public void SetValue<T>(IDbDataParameter parameter, T value)
         {
             // TODO
         }

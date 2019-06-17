@@ -5,6 +5,6 @@
 
     public abstract class ParameterAttribute : Attribute
     {
-        public abstract Action<IDbDataParameter, object> CreateSetAction();
+        public abstract Action<IDbDataParameter, T> CreateSetAction<T>();
     }
 }

@@ -27,7 +27,7 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateInParameterSetupByAction<T>(attribute.CreateSetAction());
+                return CreateInParameterSetupByAction(attribute.CreateSetAction<T>());
             }
 
             // ITypeHandler
@@ -45,7 +45,7 @@
             throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private static Action<DbCommand, string, T> CreateInParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private static Action<DbCommand, string, T> CreateInParameterSetupByAction<T>(Action<IDbDataParameter, T> action)
         {
             return (cmd, name, value) =>
             {
@@ -94,7 +94,7 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateInOutParameterSetupByAction<T>(attribute.CreateSetAction());
+                return CreateInOutParameterSetupByAction(attribute.CreateSetAction<T>());
             }
 
             // ITypeHandler
@@ -112,7 +112,7 @@
             throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private static Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private static Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetupByAction<T>(Action<IDbDataParameter, T> action)
         {
             return (cmd, name, value) =>
             {
@@ -178,7 +178,7 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateArrayParameterSetupByAction<T>(attribute.CreateSetAction());
+                return CreateArrayParameterSetupByAction(attribute.CreateSetAction<T>());
             }
 
             // ITypeHandler
@@ -196,7 +196,7 @@
             throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        public Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        public Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByAction<T>(Action<IDbDataParameter, T> action)
         {
             return (cmd, name, sql, values) =>
             {
@@ -287,7 +287,7 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateListParameterSetupByAction<T>(attribute.CreateSetAction());
+                return CreateListParameterSetupByAction(attribute.CreateSetAction<T>());
             }
 
             // ITypeHandler
@@ -305,7 +305,7 @@
             throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByAction<T>(Action<IDbDataParameter, T> action)
         {
             return (cmd, name, sql, values) =>
             {
@@ -396,7 +396,7 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateEnumerableParameterSetupByAction<T>(attribute.CreateSetAction());
+                return CreateEnumerableParameterSetupByAction(attribute.CreateSetAction<T>());
             }
 
             // ITypeHandler
@@ -414,7 +414,7 @@
             throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByAction<T>(Action<IDbDataParameter, T> action)
         {
             return (cmd, name, sql, values) =>
             {

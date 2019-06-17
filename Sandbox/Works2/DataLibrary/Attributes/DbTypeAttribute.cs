@@ -25,13 +25,13 @@ namespace DataLibrary.Attributes
             this.size = size;
         }
 
-        public override Action<IDbDataParameter, object> CreateSetAction()
+        public override Action<IDbDataParameter, T> CreateSetAction<T>()
         {
             if (size.HasValue)
             {
                 return (parameter, value) =>
                 {
-                    if (value is null)
+                    if (value == null)
                     {
                         parameter.Value = DBNull.Value;
                     }
@@ -46,7 +46,7 @@ namespace DataLibrary.Attributes
 
             return (parameter, value) =>
             {
-                if (value is null)
+                if (value == null)
                 {
                     parameter.Value = DBNull.Value;
                 }

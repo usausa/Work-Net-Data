@@ -5,7 +5,7 @@
 
     public interface ITypeHandler
     {
-        void SetValue(IDbDataParameter parameter, object value);
+        void SetValue<T>(IDbDataParameter parameter, T value);
 
         object Parse(Type destinationType, object value);
     }
