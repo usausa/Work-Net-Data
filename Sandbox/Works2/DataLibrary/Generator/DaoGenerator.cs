@@ -1,18 +1,76 @@
-﻿namespace DataLibrary.Generator
+﻿using System.Reflection;
+using DataLibrary.Attributes;
+
+namespace DataLibrary.Generator
 {
+    using System;
+
+    using DataLibrary.Loader;
     using DataLibrary.Engine;
+
+    using Smart.Collections.Concurrent;
 
     public class DaoGenerator
     {
-        // コンパイルタイムを考えると、生成コード中にConfigを参照するコードがあってはだめ
+        private readonly ISqlLoader loader;
 
-        // TODO (事前版)パラメータは1インスタンスのIEvalにして、複数の時はAggregateEval(Array, List)を指定する形にするか？
-        // TODO パラメータは連番方式か？ @:はそのまま？ Providerで指定でも良いが
-        // TODO フラット化？、特定型以外？、明示的フラット/非フラット属性？
-        // Expressionはもとにたいしてやる必要があるから、とりあえずフラットはなし？
+        private readonly ExecuteEngine engine;
 
-        public DaoGenerator(ExecuteEngine engine)
+        private readonly IGeneratorDebugger debugger;
+
+        private readonly ThreadsafeTypeHashArrayMap<object> cache = new ThreadsafeTypeHashArrayMap<object>();
+
+        public DaoGenerator(ISqlLoader loader, ExecuteEngine engine)
+            : this(loader, engine, null)
         {
+        }
+
+        public DaoGenerator(ISqlLoader loader, ExecuteEngine engine, IGeneratorDebugger debugger)
+        {
+            this.loader = loader;
+            this.engine = engine;
+            this.debugger = debugger;
+        }
+
+        public T Create<T>()
+        {
+            if (!cache.TryGetValue(typeof(T), out var dao))
+            {
+                dao = cache.AddIfNotExist(typeof(T), CreateInternal);
+            }
+
+            return (T)dao;
+        }
+
+        private object CreateInternal(Type type)
+        {
+            if (type.GetCustomAttribute<DaoAttribute>() is null)
+            {
+                throw new AccessorException($"Type is not supported for generation. type=[{type.FullName}]");
+            }
+
+            var classData = new ClassMetadata(type);
+            foreach (var method in type.GetMethods())
+            {
+                var attribute = method.GetCustomAttribute<MethodAttribute>(true);
+                if (attribute == null)
+                {
+                    throw new AccessorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
+                }
+
+                // TODO 属性チェック
+                // 分析＆追加
+
+                classData.Methods.Add(new MethodMetadata());
+            }
+
+            // TODO コード生成(ここがメインか)
+
+            // TODO ビルド
+
+            // TODO インスタンス化
+
+            return default;
         }
     }
 }
