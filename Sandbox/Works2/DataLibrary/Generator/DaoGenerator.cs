@@ -61,7 +61,7 @@ namespace DataLibrary.Generator
                 // TODO 属性チェック
                 // 分析＆追加
 
-                classData.Methods.Add(new MethodMetadata());
+                classData.Methods.Add(new MethodMetadata(method));
             }
 
             // TODO コード生成(ここがメインか)
