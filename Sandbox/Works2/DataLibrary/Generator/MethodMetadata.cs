@@ -1,10 +1,15 @@
 ﻿namespace DataLibrary.Generator
 {
+    using System;
     using System.Reflection;
 
     public sealed class MethodMetadata
     {
         public MethodInfo Method { get; }
+
+        public bool IsAsync { get; set; }
+
+        public Type ReturnType { get; set; }
 
         public bool IsProviderRequired { get; set; }
 

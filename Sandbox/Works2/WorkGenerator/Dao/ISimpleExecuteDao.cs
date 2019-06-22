@@ -1,10 +1,11 @@
-﻿using DataLibrary.Attributes;
-
-namespace WorkGenerator.Dao
+﻿namespace WorkGenerator.Dao
 {
+    using DataLibrary.Attributes;
+
     [Dao]
     public interface ISimpleExecuteDao
     {
+        [Execute]
 
         int Execute();
     }
