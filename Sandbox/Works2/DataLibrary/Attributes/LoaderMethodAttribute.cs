@@ -7,6 +7,7 @@
     using DataLibrary.Blocks;
     using DataLibrary.Loader;
     using DataLibrary.Parser;
+    using DataLibrary.Tokenizer;
 
     public abstract class LoaderMethodAttribute : MethodAttribute
     {
@@ -17,7 +18,10 @@
 
         public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, IBlockParser parser, MethodInfo mi)
         {
-            throw new System.NotImplementedException();
+            var sql = loader.Load(mi);
+            var tokenizer = new SqlTokenizer(sql);
+            var tokens = tokenizer.Tokenize();
+            return parser.Parse(tokens);
         }
     }
 }
