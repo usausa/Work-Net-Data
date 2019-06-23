@@ -16,7 +16,7 @@ namespace DataLibrary.Tokenizer
             this.source = source;
         }
 
-        public IList<Token> Tokenize()
+        public IReadOnlyList<Token> Tokenize()
         {
             int remain;
             while ((remain = source.Length - current) > 0)

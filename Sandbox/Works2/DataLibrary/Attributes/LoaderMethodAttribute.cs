@@ -4,20 +4,18 @@
     using System.Data;
     using System.Reflection;
 
+    using DataLibrary.Blocks;
     using DataLibrary.Loader;
-    using DataLibrary.Tokenizer;
+    using DataLibrary.Parser;
 
     public abstract class LoaderMethodAttribute : MethodAttribute
     {
-        private string value;
-
-        protected LoaderMethodAttribute(MethodType methodType, string value)
+        protected LoaderMethodAttribute(MethodType methodType)
             : base(CommandType.Text, methodType)
         {
-            this.value = value;
         }
 
-        public override ICollection<Token> CreateTokens(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, IBlockParser parser, MethodInfo mi)
         {
             throw new System.NotImplementedException();
         }

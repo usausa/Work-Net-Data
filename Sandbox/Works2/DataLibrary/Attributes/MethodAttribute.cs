@@ -5,8 +5,9 @@
     using System.Collections.Generic;
     using System.Reflection;
 
+    using DataLibrary.Blocks;
     using DataLibrary.Loader;
-    using DataLibrary.Tokenizer;
+    using DataLibrary.Parser;
 
     [AttributeUsage(AttributeTargets.Method)]
     public abstract class MethodAttribute : Attribute
@@ -21,6 +22,6 @@
             MethodType = methodType;
         }
 
-        public abstract ICollection<Token> CreateTokens(ISqlLoader loader, MethodInfo mi);
+        public abstract IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, IBlockParser parser, MethodInfo mi);
     }
 }
