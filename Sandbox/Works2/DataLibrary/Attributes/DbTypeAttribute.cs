@@ -13,7 +13,7 @@
         public DbTypeAttribute(DbType dbType)
         {
             this.dbType = dbType;
-            this.size = null;
+            size = null;
         }
 
         public DbTypeAttribute(DbType dbType, int size)
