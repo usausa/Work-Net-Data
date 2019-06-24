@@ -4,7 +4,7 @@
     {
         private readonly string value;
 
-        public bool IsDynamic => true;
+        public bool IsDynamic => false;
 
         public ParameterBlock(string value)
         {
