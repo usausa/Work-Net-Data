@@ -16,12 +16,13 @@
         {
         }
 
-        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, IBlockParser parser, MethodInfo mi)
+        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, MethodInfo mi)
         {
             var sql = loader.Load(mi);
             var tokenizer = new SqlTokenizer(sql);
             var tokens = tokenizer.Tokenize();
-            return parser.Parse(tokens);
+            var parser = new BlockParser(tokens);
+            return parser.Parse();
         }
     }
 }

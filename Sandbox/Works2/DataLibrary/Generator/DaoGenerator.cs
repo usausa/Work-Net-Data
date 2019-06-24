@@ -14,23 +14,20 @@
     {
         private readonly ISqlLoader loader;
 
-        private readonly IBlockParser parser;
-
         private readonly ExecuteEngine engine;
 
         private readonly IGeneratorDebugger debugger;
 
         private readonly ThreadsafeTypeHashArrayMap<object> cache = new ThreadsafeTypeHashArrayMap<object>();
 
-        public DaoGenerator(ISqlLoader loader, IBlockParser parser, ExecuteEngine engine)
-            : this(loader, parser, engine, null)
+        public DaoGenerator(ISqlLoader loader, ExecuteEngine engine)
+            : this(loader, engine, null)
         {
         }
 
-        public DaoGenerator(ISqlLoader loader, IBlockParser parser, ExecuteEngine engine, IGeneratorDebugger debugger)
+        public DaoGenerator(ISqlLoader loader, ExecuteEngine engine, IGeneratorDebugger debugger)
         {
             this.loader = loader;
-            this.parser = parser;
             this.engine = engine;
             this.debugger = debugger;
         }

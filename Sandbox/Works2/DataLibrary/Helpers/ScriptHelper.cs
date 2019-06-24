@@ -1,4 +1,4 @@
-﻿namespace DataLibrary.Helper
+﻿namespace DataLibrary.Helpers
 {
     using System;
     using System.Collections;

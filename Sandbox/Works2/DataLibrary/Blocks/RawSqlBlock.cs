@@ -1,12 +1,12 @@
 ﻿namespace DataLibrary.Blocks
 {
-    public sealed class RaqSqlBlock : IBlock
+    public sealed class RawSqlBlock : IBlock
     {
         private readonly string value;
 
         public bool IsDynamic => true;
 
-        public RaqSqlBlock(string value)
+        public RawSqlBlock(string value)
         {
             this.value = value;
         }

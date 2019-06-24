@@ -4,23 +4,17 @@
 
     using DataLibrary.Providers;
 
-    public interface IProviderFactoryAttribute
-    {
-        Type ProviderType { get; }
-
-        // TODO generate source ?
-    }
-
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ProviderNameAttribute : Attribute, IProviderFactoryAttribute
+    public abstract class ProviderAttribute : Attribute
     {
-        public string Name { get; }
+        public Type SelectorType { get; }
 
-        public Type ProviderType { get; } = typeof(INamedDbProviderFactory);
+        public object Parameter { get; }
 
-        public ProviderNameAttribute(string name)
+        protected ProviderAttribute(Type selectorType, object parameter)
         {
-            Name = name;
+            SelectorType = selectorType;
+            Parameter = parameter;
         }
     }
 }

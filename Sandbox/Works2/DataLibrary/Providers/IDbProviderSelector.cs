@@ -1,7 +1,7 @@
 ﻿namespace DataLibrary.Providers
 {
-    public interface INamedDbProviderFactory
+    public interface IDbProviderSelector
     {
-        IDbProvider GetProvider(string name);
+        IDbProvider Select(object parameter);
     }
 }
