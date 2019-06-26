@@ -6,7 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Usa.Smart.Mock.Data" Version="1.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DataLibrary\DataLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Data.Sqlite">
+      <HintPath>..\..\..\..\..\..\.nuget\packages\microsoft.data.sqlite.core\2.2.4\lib\netstandard2.0\Microsoft.Data.Sqlite.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

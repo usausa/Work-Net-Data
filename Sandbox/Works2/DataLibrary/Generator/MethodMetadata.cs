@@ -1,6 +1,7 @@
 ﻿namespace DataLibrary.Generator
 {
     using System.Collections.Generic;
+    using System.Data.Common;
     using System.Reflection;
     using System.Threading;
 
@@ -18,9 +19,9 @@
 
         public ParameterMetadata CancelParameter { get; }
 
-        // shortcut Connection
+        public ParameterMetadata ConnectionParameter { get; }
 
-        // shortcut Tx
+        public ParameterMetadata TransactionParameter { get; }
 
         // Method attribute
 
@@ -30,14 +31,7 @@
 
         public TimeoutAttribute Timeout { get; }
 
-        // Return value
-
-        //public bool IsAsync { get; set; }
-        //public Type ReturnType { get; set; }
-
         // Parameters
-
-        // TODO Helpers ?
 
         public MethodMetadata(MethodInfo mi)
         {
@@ -61,7 +55,10 @@
 
                 if (pi.GetCustomAttribute<TimeoutParameterAttribute>() != null)
                 {
-                    // TODO type check
+                    if ((pi.ParameterType != typeof(int)) && (pi.ParameterType != typeof(int?)))
+                    {
+                        throw new AccessorException($"Timeout parameter type must be int. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}], parameter=[{pi.Name}]");
+                    }
 
                     TimeoutParameter = parameter;
                 }
@@ -71,9 +68,15 @@
                     CancelParameter = parameter;
                 }
 
-                // TODO con
+                if (typeof(DbConnection).IsAssignableFrom(pi.ParameterType))
+                {
+                    ConnectionParameter = parameter;
+                }
 
-                // TODO tx
+                if (typeof(DbTransaction).IsAssignableFrom(pi.ParameterType))
+                {
+                    TransactionParameter = parameter;
+                }
             }
         }
     }
