@@ -44,28 +44,18 @@
 
         private object CreateInternal(Type type)
         {
-            if (type.GetCustomAttribute<DaoAttribute>() is null)
-            {
-                throw new AccessorException($"Type is not supported for generation. type=[{type.FullName}]");
-            }
-
             var classData = new ClassMetadata(type);
-            foreach (var method in type.GetMethods())
-            {
-                var attribute = method.GetCustomAttribute<MethodAttribute>(true);
-                if (attribute == null)
-                {
-                    throw new AccessorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
-                }
+            var builder = new CodeBuilder();
 
-                // TODO 属性チェック
-                // 分析＆追加
-
-                classData.Methods.Add(new MethodMetadata(method));
-            }
+            // Generation
+            builder.BeginNamespace(classData.Namespace);
 
             // TODO コード生成(ここがメインか)
 
+            builder.EndNamespace();
+
+            // Build
+            var source = builder.ToSource();
             // TODO ビルド
 
             // TODO インスタンス化
