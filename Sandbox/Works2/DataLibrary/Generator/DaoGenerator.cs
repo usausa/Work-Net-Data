@@ -1,7 +1,6 @@
 ﻿namespace DataLibrary.Generator
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -16,8 +15,6 @@
 
     public class DaoGenerator
     {
-        private const string ImplementSuffix = "_Impl";
-
         private readonly ISqlLoader loader;
 
         private readonly ExecuteEngine engine;
@@ -55,82 +52,15 @@
 
         private object CreateInternal(Type type)
         {
-            var cm = new ClassMetadata(type);
-            var builder = new CodeBuilder();
-
-            var implementName = cm.Name + ImplementSuffix;
-
-            // Namespace
-            builder.BeginNamespace(cm.Namespace);
-
-            // TODO namespaces(block only ?)
-            // TODO default helper
-
-            // Class
-            builder.BeginClass(implementName, cm.Type);
-
-            // Member
-            builder.DefineEngineField();
-
-            // TODO provider if need, and other provider
-
-            // TODO member misc
-
-            // Ctor
-            builder.NewLine();
-            builder.BeginCtor(implementName);
-
-            // TODO memberInit, provider, convert, parameter
-
-            builder.End();  // Ctor
-
-            foreach (var mm in cm.Methods)
-            {
-                // Method
-                builder.NewLine();
-                builder.BeginMethod(mm);
-
-                // TODO open(versions)
-
-                // TODO pre
-
-                // TODO loader and call
-
-                // TODO post
-
-                // dummy
-                foreach (var pm in mm.Parameters)
-                {
-                    if (pm.IsOut)
-                    {
-                        builder.AppendLine($"{pm.Name} = default;");
-                    }
-                }
-
-                // dummy
-                if (mm.Result.Type != typeof(void))
-                {
-                    builder.AppendLine("return default;");
-                }
-
-                // TODO close(versions)
-
-                builder.End();  // Method
-            }
-
-            builder.End();  // Class
-            builder.End();  // Namespace
-
-            return Build(cm, builder);
+            var builder = new DaoSourceBuilder(type);
+            return Build(builder.Build(loader));
         }
 
-        private object Build(ClassMetadata cm, CodeBuilder builder)
+        private object Build(DaoSource source)
         {
-            var source = builder.GetSource();
-            var syntax = CSharpSyntaxTree.ParseText(source);
+            var syntax = CSharpSyntaxTree.ParseText(source.Code);
 
-            var references = builder.GetReferences().OrderBy(x => x.FullName).ToArray();
-            var metadataReferences = references
+            var metadataReferences = source.References
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
                 .ToArray();
 
@@ -150,30 +80,23 @@
             {
                 var result = compilation.Emit(ms);
 
-                // TODO Debug report
-                debugger?.Log(cm, source, references);
+                debugger?.Log(
+                    result.Success,
+                    source,
+                    result.Diagnostics
+                        .Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error)
+                        .Select(x => new BuildError(x.Id, x.Location.SourceSpan.Start, x.Location.SourceSpan.End, x.GetMessage()))
+                        .ToArray());
 
                 if (!result.Success)
                 {
-                    // TODO Error
-                    var failures = result.Diagnostics.Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error);
-                    foreach (var failure in failures)
-                    {
-                        Debug.WriteLine(
-                            "{0} [{1}...{2}] {3}",
-                            failure.Id,
-                            failure.Location.SourceSpan.Start,
-                            failure.Location.SourceSpan.End,
-                            failure.GetMessage());
-                    }
-
                     return null;
                 }
 
                 ms.Seek(0, SeekOrigin.Begin);
                 var assembly = Assembly.Load(ms.ToArray());
 
-                var implementType = assembly.GetType(cm.FullName + ImplementSuffix);
+                var implementType = assembly.GetType(source.ImplementTypeFullName);
                 return Activator.CreateInstance(implementType, engine);
             }
         }

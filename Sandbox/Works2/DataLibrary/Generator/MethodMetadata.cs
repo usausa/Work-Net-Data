@@ -1,27 +1,22 @@
 ﻿namespace DataLibrary.Generator
 {
-    using System.Collections.Generic;
+    using System;
     using System.Data.Common;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Threading;
 
     using DataLibrary.Attributes;
 
-    public sealed class MethodMetadata
+    internal sealed class MethodMetadata
     {
+        public int No { get; }
+
         public MethodInfo MethodInfo { get; }
 
-        public ResultMetadata Result { get; }
+        public bool IsAsync { get; }
 
-        public IList<ParameterMetadata> Parameters { get; } = new List<ParameterMetadata>();
-
-        public ParameterMetadata TimeoutParameter { get; }
-
-        public ParameterMetadata CancelParameter { get; }
-
-        public ParameterMetadata ConnectionParameter { get; }
-
-        public ParameterMetadata TransactionParameter { get; }
+        public Type EngineResultType { get; }
 
         // Method attribute
 
@@ -31,30 +26,34 @@
 
         public TimeoutAttribute Timeout { get; }
 
-        // Helper
+        // Parameter
 
-        public string Name => MethodInfo.Name;
+        public ParameterInfo TimeoutParameter { get; }
 
-        public MethodMetadata(MethodInfo mi)
+        public ParameterInfo CancelParameter { get; }
+
+        public ParameterInfo ConnectionParameter { get; }
+
+        public ParameterInfo TransactionParameter { get; }
+
+        public MethodMetadata(int no, MethodInfo mi, MethodAttribute methodAttribute)
         {
-            var methodAttribute = mi.GetCustomAttribute<MethodAttribute>();
-            if (methodAttribute == null)
-            {
-                throw new AccessorException($"Method is not supported for generation. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
-            }
-
+            No = no;
             MethodInfo = mi;
             Method = methodAttribute;
+
+            IsAsync = mi.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
+            EngineResultType = IsAsync
+                ? (mi.ReturnType.IsGenericType
+                    ? mi.ReturnType.GetGenericArguments()[0]
+                    : typeof(void))
+                : mi.ReturnType;
 
             Provider = mi.GetCustomAttribute<ProviderAttribute>();
             Timeout = mi.GetCustomAttribute<TimeoutAttribute>();
 
-            Result = new ResultMetadata(mi.ReturnParameter);
             foreach (var pi in mi.GetParameters())
             {
-                var parameter = new ParameterMetadata(pi);
-                Parameters.Add(parameter);
-
                 if (pi.GetCustomAttribute<TimeoutParameterAttribute>() != null)
                 {
                     if ((pi.ParameterType != typeof(int)) && (pi.ParameterType != typeof(int?)))
@@ -62,22 +61,22 @@
                         throw new AccessorException($"Timeout parameter type must be int. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}], parameter=[{pi.Name}]");
                     }
 
-                    TimeoutParameter = parameter;
+                    TimeoutParameter = pi;
                 }
 
                 if (pi.ParameterType == typeof(CancellationToken))
                 {
-                    CancelParameter = parameter;
+                    CancelParameter = pi;
                 }
 
                 if (typeof(DbConnection).IsAssignableFrom(pi.ParameterType))
                 {
-                    ConnectionParameter = parameter;
+                    ConnectionParameter = pi;
                 }
 
                 if (typeof(DbTransaction).IsAssignableFrom(pi.ParameterType))
                 {
-                    TransactionParameter = parameter;
+                    TransactionParameter = pi;
                 }
             }
         }

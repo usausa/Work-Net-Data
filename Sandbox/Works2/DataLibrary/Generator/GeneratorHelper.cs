@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public static class GeneratorHelper
+    internal static class GeneratorHelper
     {
         public static bool IsListType(Type type)
         {
