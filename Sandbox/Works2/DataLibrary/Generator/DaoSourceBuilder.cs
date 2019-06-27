@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,14 +17,20 @@ namespace DataLibrary.Generator
     {
         private const string ImplementSuffix = "_Impl";
 
-        private const string ConstructorArgument = "engine";
+        private const string CtorArgName = "engine";
         private const string EngineField = "_engine";
         private const string EngineFieldRef = "this." + EngineField;
         private const string ProviderField = "_provider";
         private const string ProviderFieldRef = "this." + ProviderField;
 
-        private static readonly string EngineTypeName = $"global::{typeof(ExecuteEngine).Namespace}.{typeof(ExecuteEngine).Name}";
-        private static readonly string ProviderTypeName = $"global::{typeof(IDbProvider).Namespace}.{typeof(IDbProvider).Name}";
+        private const string ConvertField = "_convert";
+
+        private static readonly string EngineTypeName = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
+        private static readonly string ProviderTypeName = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
+        private static readonly string ConverterTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
+        private static readonly string InSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
+        private static readonly string InOutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
+        private static readonly string OutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
 
         // TODO Base class all ref ?
         private static readonly Assembly[] DefaultAssemblies =
@@ -34,6 +41,7 @@ namespace DataLibrary.Generator
             typeof(ExecuteEngine).Assembly,
             typeof(IComponentContainer).Assembly,
             typeof(IServiceProvider).Assembly,
+            typeof(DbConnection).Assembly
         };
 
         private readonly Type targetType;
@@ -91,6 +99,7 @@ namespace DataLibrary.Generator
             source.Clear();
             references.Clear();
             references.AddRange(DefaultAssemblies);
+            // TODO targetType assembly?
             newLine = true;
             indent = 0;
 
@@ -98,29 +107,25 @@ namespace DataLibrary.Generator
             BeginNamespace();
 
             // Using
-            // TODO namespaces(block only ?)
             // TODO default helper
+            // TODO namespaces(static helper only ?)
 
             // Class
             BeginClass(implementName);
 
             // Member
-            DefineEngineField();
-            DefineProviderField();
-            // TODO provider if need, and other provider
+            DefineFields();
 
             // Constructor
-            NewLine();
             BeginConstructor();
-            InitializeEngineField();
-            InitializeProviderField();
-            // TODO memberInit:, convert, parameter
+            InitializeFields();
             End();  // Constructor
 
             foreach (var mm in methods)
             {
+                CR();
+
                 // Method
-                NewLine();
                 BeginMethod(mm);
 
                 // TODO open(versions)
@@ -136,14 +141,14 @@ namespace DataLibrary.Generator
                 {
                     if (pi.IsOut)
                     {
-                        AppendLine($"{pi.Name} = default;");
+                        A($"{pi.Name} = default;").CR();
                     }
                 }
 
                 // dummy
                 if (mm.MethodInfo.ReturnType != typeof(void))
                 {
-                    AppendLine("return default;");
+                    A("return default;").CR();
                 }
 
                 // TODO close(versions)
@@ -165,13 +170,23 @@ namespace DataLibrary.Generator
         // Naming
         //--------------------------------------------------------------------------------
 
+        public string GetConvertFieldName(int no) => ConvertField + no;
+
+        public string GetConvertFieldNameRef(int no) => "this." + GetConvertFieldName(no);
+
         // TODO
 
         //--------------------------------------------------------------------------------
         // Helper
         //--------------------------------------------------------------------------------
 
-        private void AppendIndent()
+        private void CR()
+        {
+            source.AppendLine();
+            newLine = true;
+        }
+
+        private DaoSourceBuilder A(string code)
         {
             if (newLine)
             {
@@ -181,37 +196,20 @@ namespace DataLibrary.Generator
                 }
                 newLine = false;
             }
-        }
-
-        private DaoSourceBuilder Append(string code)
-        {
-            AppendIndent();
             source.Append(code);
             return this;
         }
 
-        public DaoSourceBuilder AppendLine(string code)
-        {
-            AppendIndent();
-            source.AppendLine(code);
-            newLine = true;
-            return this;
-        }
-
-        private void NewLine()
-        {
-            source.AppendLine();
-            newLine = true;
-        }
 
         private void End()
         {
             indent--;
-            AppendLine("}");
+            A("}").CR();
         }
 
         private DaoSourceBuilder AppendType(Type type)
         {
+            // TODO Helper version or remove and add reference by call by?
             if (type == typeof(void))
             {
                 source.Append("void");
@@ -248,8 +246,8 @@ namespace DataLibrary.Generator
 
         private void BeginNamespace()
         {
-            Append("namespace ").AppendLine(targetType.Namespace);
-            AppendLine("{");
+            A("namespace ").A(targetType.Namespace).CR();
+            A("{").CR();
             indent++;
         }
 
@@ -257,8 +255,8 @@ namespace DataLibrary.Generator
 
         private void BeginClass(string className)
         {
-            Append("internal sealed class ").Append(className).Append(" : ").AppendType(targetType).NewLine();
-            AppendLine("{");
+            A("internal sealed class ").A(className).A(" : ").AppendType(targetType).CR();
+            A("{").CR();
             indent++;
         }
 
@@ -266,22 +264,53 @@ namespace DataLibrary.Generator
         // Field
         //--------------------------------------------------------------------------------
 
-        public void DefineEngineField() =>
-            Append("private readonly ").Append(EngineTypeName).Append(" ").Append(EngineField).AppendLine(";");
-
-        public void DefineProviderField()
+        private void DefineFields()
         {
+            // Engine
+            A("private readonly ").A(EngineTypeName).A(" ").A(EngineField).A(";").CR();
+            CR();
+
+            // Provider
             if (useDefaultProvider)
             {
-                Append("private readonly ").Append(ProviderTypeName).Append(" ").Append(ProviderField).AppendLine(";");
+                A("private readonly ").A(ProviderTypeName).A(" ").A(ProviderField).A(";").CR();
             }
-        }
 
-        // TODO
-        //        public void DefineField(Type type, string memberName)
-        //        {
-        //            Append("private readonly ").AppendType(type).Append(" ").Append(memberName).AppendLine(";");
-        //        }
+            // TODO other provider if need
+            //foreach (var mm in methods.Where(x => x.Provider != null))
+            //{
+
+            //}
+
+            CR();
+
+            // Scalar converters
+            //var scalarMethods = methods.Where(x => x.Method.MethodType == MethodType.ExecuteScalar).ToList();
+            //if (scalarMethods.Count > 0)
+            //{
+            //    foreach (var mm in scalarMethods)
+            //    {
+            //        A("private readonly ").A(ConverterTypeName).A(" ").A(GetConvertFieldName(mm.No)).A(";").CR();
+            //    }
+
+            //    CR();
+            //}
+
+            // Out converters
+
+            // TODO
+
+            // Setup
+
+            // TODO
+
+            //        public void DefineField(Type type, string memberName)
+            //        {
+            //            A("private readonly ").AppendType(type).A(" ").A(memberName).A(";").CR();
+            //        }
+
+            CR();
+        }
 
         //--------------------------------------------------------------------------------
         // Constructor
@@ -289,23 +318,49 @@ namespace DataLibrary.Generator
 
         private void BeginConstructor()
         {
-            Append("public ").Append(implementName).Append("(").Append(EngineTypeName).Append(" ").Append(ConstructorArgument).AppendLine(")");
-            AppendLine("{");
+            A("public ").A(implementName).A("(").A(EngineTypeName).A(" ").A(CtorArgName).A(")").CR();
+            A("{").CR();
             indent++;
         }
 
-        private void InitializeEngineField() =>
-            Append(EngineFieldRef).Append(" = ").Append(ConstructorArgument).AppendLine(";");
-
-        private void InitializeProviderField()
+        private void InitializeFields()
         {
+            A(EngineFieldRef).A(" = ").A(CtorArgName).A(";").CR();
+            CR();
+
             if (useDefaultProvider)
             {
-                Append(ProviderFieldRef).Append(" = ").Append(ConstructorArgument).Append(".Components.Get<").Append(ProviderTypeName).AppendLine(">();");
+                A(ProviderFieldRef).A(" = ").A(CtorArgName).A(".Components.Get<").A(ProviderTypeName).A(">();").CR();
             }
-        }
 
-        // TODO
+            // TODO other provider if need
+            //foreach (var mm in methods.Where(x => x.Provider != null))
+            //{
+
+            //}
+
+            //var scalarMethods = methods.Where(x => x.Method.MethodType == MethodType.ExecuteScalar).ToList();
+            //if (scalarMethods.Count > 0)
+            //{
+            //    foreach (var mm in scalarMethods)
+            //    {
+            //        //        // TODO method reference code
+            //        A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArgName).A(".CreateConverter<");
+            //        AppendType(mm.EngineResultType);
+            //        A(">(method5.ReturnParameter);").CR();
+            //    }
+
+            //    CR();
+            //}
+
+            // Out converters
+
+            // TODO
+
+            // Setup
+
+            // TODO
+        }
 
         //--------------------------------------------------------------------------------
         // Method
@@ -313,20 +368,20 @@ namespace DataLibrary.Generator
 
         private void BeginMethod(MethodMetadata mm)
         {
-            Append("public ");
+            A("public ");
             if (mm.IsAsync)
             {
-                Append("async ");
+                A("async ");
             }
 
-            AppendType(mm.MethodInfo.ReturnType).Append(" ").Append(mm.MethodInfo.Name).Append("(");
+            AppendType(mm.MethodInfo.ReturnType).A(" ").A(mm.MethodInfo.Name).A("(");
 
             var first = true;
             foreach (var pi in mm.MethodInfo.GetParameters())
             {
                 if (!first)
                 {
-                    Append(", ");
+                    A(", ");
                 }
                 else
                 {
@@ -335,20 +390,20 @@ namespace DataLibrary.Generator
 
                 if (pi.IsOut)
                 {
-                    Append("out ");
+                    A("out ");
                 }
                 else if (pi.ParameterType.IsByRef)
                 {
-                    Append("ref ");
+                    A("ref ");
                 }
 
                 var parameterType = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
-                AppendType(parameterType).Append(" ").Append(pi.Name);
+                AppendType(parameterType).A(" ").A(pi.Name);
             }
 
-            AppendLine(")");
+            A(")").CR();
 
-            AppendLine("{");
+            A("{").CR();
             indent++;
         }
 

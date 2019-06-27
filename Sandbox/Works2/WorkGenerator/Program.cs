@@ -17,6 +17,8 @@ namespace WorkGenerator
     {
         public static void Main()
         {
+            //ListReference(new HashSet<Assembly>(), typeof(ExecuteEngine).Assembly);
+
             // TODO config by mock
             var config = new ExecuteEngineConfig();
             config.Components.Add<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(Connections.Memory)));
@@ -31,6 +33,22 @@ namespace WorkGenerator
 
             // TODO use
         }
+
+        //private static void ListReference(HashSet<Assembly> cached, Assembly assembly)
+        //{
+        //    if (cached.Contains(assembly))
+        //    {
+        //        return;
+        //    }
+
+        //    cached.Add(assembly);
+        //    Debug.WriteLine("::: " + assembly.FullName);
+
+        //    foreach (var referencedAssembly in assembly.GetReferencedAssemblies())
+        //    {
+        //        ListReference(cached, Assembly.Load(referencedAssembly));
+        //    }
+        //}
     }
 
     public class Debugger : IGeneratorDebugger
