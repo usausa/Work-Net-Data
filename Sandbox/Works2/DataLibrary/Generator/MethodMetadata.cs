@@ -31,7 +31,9 @@
 
         public TimeoutAttribute Timeout { get; }
 
-        // Parameters
+        // Helper
+
+        public string Name => MethodInfo.Name;
 
         public MethodMetadata(MethodInfo mi)
         {

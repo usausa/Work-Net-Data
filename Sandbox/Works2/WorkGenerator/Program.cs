@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace WorkGenerator
 {
@@ -20,16 +23,23 @@ namespace WorkGenerator
             var generator = new DaoGenerator(null, engine, new Debugger());
 
             var dao = generator.Create<ISimpleExecuteDao>();
+            //var dao2 = generator.Create<IFullSpecDao>();
+
             // TODO use
         }
     }
 
     public class Debugger : IGeneratorDebugger
     {
-        public void Log(Type type, string source)
+        public void Log(ClassMetadata metadata, string source, Assembly[] references)
         {
             Debug.WriteLine("================================================================================");
-            Debug.WriteLine(source);
+            foreach (var reference in references)
+            {
+                Debug.WriteLine(reference.FullName);
+            }
+            Debug.WriteLine("================================================================================");
+            Debug.Write(source);
             Debug.WriteLine("================================================================================");
         }
     }

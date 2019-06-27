@@ -16,6 +16,10 @@
 
         public string Namespace => Type.Namespace;
 
+        public string FullName => Type.FullName;
+
+        public string Name => Type.Name;
+
         public ClassMetadata(Type type)
         {
             if (type.GetCustomAttribute<DaoAttribute>() is null)
@@ -36,5 +40,7 @@
                 Methods.Add(new MethodMetadata(method));
             }
         }
+
+        public AssemblyName[] GetReferencedAssemblies() => Type.Assembly.GetReferencedAssemblies();
     }
 }

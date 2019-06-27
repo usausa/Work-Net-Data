@@ -8,9 +8,11 @@
     {
         public ParameterInfo Result { get; }
 
+        public Type Type => Result.ParameterType;
+
         public bool IsAsync => Result.ParameterType.GetMethod(nameof(Task.GetAwaiter)) != null;
 
-        public Type ResultType
+        public Type EngineResultType
         {
             get
             {

@@ -1,9 +1,9 @@
 ﻿namespace DataLibrary.Generator
 {
-    using System;
+    using System.Reflection;
 
     public interface IGeneratorDebugger
     {
-        void Log(Type type, string source);
+        void Log(ClassMetadata metadata, string source, Assembly[] references);
     }
 }

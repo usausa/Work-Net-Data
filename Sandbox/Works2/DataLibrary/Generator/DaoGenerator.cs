@@ -16,6 +16,8 @@
 
     public class DaoGenerator
     {
+        private const string ImplementSuffix = "_Impl";
+
         private readonly ISqlLoader loader;
 
         private readonly ExecuteEngine engine;
@@ -38,9 +40,14 @@
 
         public T Create<T>()
         {
-            if (!cache.TryGetValue(typeof(T), out var dao))
+            var type = typeof(T);
+            if (!cache.TryGetValue(type, out var dao))
             {
-                dao = cache.AddIfNotExist(typeof(T), CreateInternal);
+                dao = cache.AddIfNotExist(type, CreateInternal);
+                if (dao == null)
+                {
+                    throw new AccessorException($"Dao generate failed. type=[{type.FullName}]");
+                }
             }
 
             return (T)dao;
@@ -48,36 +55,83 @@
 
         private object CreateInternal(Type type)
         {
-            var classData = new ClassMetadata(type);
+            var cm = new ClassMetadata(type);
             var builder = new CodeBuilder();
 
-            // Generation
-            builder.BeginNamespace(classData.Namespace);
+            var implementName = cm.Name + ImplementSuffix;
+
+            // Namespace
+            builder.BeginNamespace(cm.Namespace);
 
             // TODO namespaces(block only ?)
             // TODO default helper
 
-            builder.BeginClass($"{type.Name}_Impl", type.FullName);
+            // Class
+            builder.BeginClass(implementName, cm.Type);
 
-            // TODO member engine
+            // Member
+            builder.DefineEngineField();
+
+            // TODO provider if need, and other provider
+
             // TODO member misc
-            // TODO ctor
-            // TODO methods
-            // TODO loader
 
-            builder.End();  // class
-            builder.End();  // namespace
+            // Ctor
+            builder.NewLine();
+            builder.BeginCtor(implementName);
 
-            // Build
-            return Build(type, builder.ToSource());
+            // TODO memberInit, provider, convert, parameter
+
+            builder.End();  // Ctor
+
+            foreach (var mm in cm.Methods)
+            {
+                // Method
+                builder.NewLine();
+                builder.BeginMethod(mm);
+
+                // TODO open(versions)
+
+                // TODO pre
+
+                // TODO loader and call
+
+                // TODO post
+
+                // dummy
+                foreach (var pm in mm.Parameters)
+                {
+                    if (pm.IsOut)
+                    {
+                        builder.AppendLine($"{pm.Name} = default;");
+                    }
+                }
+
+                // dummy
+                if (mm.Result.Type != typeof(void))
+                {
+                    builder.AppendLine("return default;");
+                }
+
+                // TODO close(versions)
+
+                builder.End();  // Method
+            }
+
+            builder.End();  // Class
+            builder.End();  // Namespace
+
+            return Build(cm, builder);
         }
 
-        private object Build(Type type, string source)
+        private object Build(ClassMetadata cm, CodeBuilder builder)
         {
+            var source = builder.GetSource();
             var syntax = CSharpSyntaxTree.ParseText(source);
 
-            var metadataReferences = type.Assembly.GetReferencedAssemblies()
-                .Select(x => MetadataReference.CreateFromFile(Assembly.Load(x).Location))
+            var references = builder.GetReferences().OrderBy(x => x.FullName).ToArray();
+            var metadataReferences = references
+                .Select(x => MetadataReference.CreateFromFile(x.Location))
                 .ToArray();
 
             var assemblyName = Path.GetRandomFileName();
@@ -97,7 +151,7 @@
                 var result = compilation.Emit(ms);
 
                 // TODO Debug report
-                debugger?.Log(type, source);
+                debugger?.Log(cm, source, references);
 
                 if (!result.Success)
                 {
@@ -113,13 +167,13 @@
                             failure.GetMessage());
                     }
 
-                    throw new AccessorException($"Dao generate failed. type=[{type.FullName}]");
+                    return null;
                 }
 
                 ms.Seek(0, SeekOrigin.Begin);
                 var assembly = Assembly.Load(ms.ToArray());
 
-                var implementType = assembly.GetType($"{type.FullName}_Impl");
+                var implementType = assembly.GetType(cm.FullName + ImplementSuffix);
                 return Activator.CreateInstance(implementType, engine);
             }
         }
