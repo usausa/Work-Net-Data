@@ -1,6 +1,7 @@
 ﻿namespace DataLibrary.Generator
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -24,6 +25,17 @@
 
         private readonly ThreadsafeTypeHashArrayMap<object> cache = new ThreadsafeTypeHashArrayMap<object>();
 
+        private static readonly HashSet<Assembly> DefaultReference = new HashSet<Assembly>();
+
+        static DaoGenerator()
+        {
+            AddReference(DefaultReference, typeof(ExecuteEngine).Assembly);
+            //foreach (var assembly in DefaultReference.OrderBy(x => x.FullName))
+            //{
+            //    System.Diagnostics.Debug.WriteLine(assembly);
+            //}
+        }
+
         public DaoGenerator(ISqlLoader loader, ExecuteEngine engine)
             : this(loader, engine, null)
         {
@@ -34,6 +46,21 @@
             this.loader = loader;
             this.engine = engine;
             this.debugger = debugger;
+        }
+
+        private static void AddReference(HashSet<Assembly> assemblies, Assembly assembly)
+        {
+            if (assemblies.Contains(assembly))
+            {
+                return;
+            }
+
+            assemblies.Add(assembly);
+
+            foreach (var assemblyName in assembly.GetReferencedAssemblies())
+            {
+                AddReference(assemblies, Assembly.Load(assemblyName));
+            }
         }
 
         public T Create<T>()
@@ -70,10 +97,25 @@
                 }
 
                 var blocks = attribute.GetBlocks(loader, method);
+                var methodMetadata = new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, blocks);
 
-                // TODO check : exe:int,void,int-assign, query:IE?(not string)
+                switch (methodMetadata.MethodType)
+                {
+                    case MethodType.Execute:
+                        if (!IsValidExecuteResultType(methodMetadata.EngineResultType))
+                        {
+                            throw new AccessorException($"ReturnType is not match for MethodType.Execute. type=[{type.FullName}], method=[{method.Name}], returnType=[{method.ReturnType}]");
+                        }
+                        break;
+                    case MethodType.Query:
+                        if (!IsValidQueryResultType(methodMetadata.EngineResultType))
+                        {
+                            throw new AccessorException($"ReturnType is not match for MethodType.Query. type=[{type.FullName}], method=[{method.Name}], returnType=[{method.ReturnType}]");
+                        }
+                        break;
+                }
 
-                builder.AddMethod(new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, blocks));
+                builder.AddMethod(methodMetadata);
 
                 no++;
             }
@@ -81,11 +123,28 @@
             return Build(builder.Build());
         }
 
+        private static bool IsValidExecuteResultType(Type type)
+        {
+            return type == typeof(int) || type == typeof(void);
+        }
+
+        private static bool IsValidQueryResultType(Type type)
+        {
+            return type != typeof(string) &&
+                   type.GetInterfaces().Prepend(type).Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        }
+
         private object Build(DaoSource source)
         {
             var syntax = CSharpSyntaxTree.ParseText(source.Code);
 
-            var metadataReferences = source.References
+            var references = new HashSet<Assembly>(DefaultReference);
+            foreach (var assembly in source.References)
+            {
+                AddReference(references, assembly);
+            }
+
+            var metadataReferences = references
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
                 .ToArray();
 
@@ -93,8 +152,7 @@
 
             var options = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
-                optimizationLevel: OptimizationLevel.Release,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
+                optimizationLevel: OptimizationLevel.Release);
 
             var compilation = CSharpCompilation.Create(
                 assemblyName,

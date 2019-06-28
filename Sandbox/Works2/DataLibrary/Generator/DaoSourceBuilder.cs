@@ -7,8 +7,6 @@ using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Providers;
-using Smart.Collections.Generic;
-using Smart.ComponentModel;
 
 namespace DataLibrary.Generator
 {
@@ -36,20 +34,6 @@ namespace DataLibrary.Generator
         private static readonly string InSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
         private static readonly string InOutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
-
-        private static readonly Assembly[] DefaultAssemblies =
-        {
-            Assembly.Load("netstandard"),
-            Assembly.Load("System"),
-            Assembly.Load("System.Core"),
-            Assembly.Load("System.Runtime"),
-            Assembly.Load("System.ComponentModel.Primitives"),
-            typeof(object).Assembly,
-            typeof(ExecuteEngine).Assembly,
-            typeof(IComponentContainer).Assembly,
-            typeof(IServiceProvider).Assembly,
-            typeof(DbConnection).Assembly
-        };
 
         private readonly Type targetType;
 
@@ -95,7 +79,6 @@ namespace DataLibrary.Generator
         {
             source.Clear();
             references.Clear();
-            references.AddRange(DefaultAssemblies);
             references.Add(targetType.Assembly);
             newLine = true;
             indent = 0;
