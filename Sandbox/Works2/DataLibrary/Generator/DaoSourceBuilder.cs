@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
-using DataLibrary.Loader;
 using DataLibrary.Providers;
 using Smart.Collections.Generic;
 using Smart.ComponentModel;
@@ -17,13 +16,16 @@ namespace DataLibrary.Generator
     {
         private const string ImplementSuffix = "_Impl";
 
-        private const string CtorArgName = "engine";
+        private const string CtorArg = "engine";
         private const string EngineField = "_engine";
         private const string EngineFieldRef = "this." + EngineField;
         private const string ProviderField = "_provider";
         private const string ProviderFieldRef = "this." + ProviderField;
 
         private const string ConvertField = "_convert";
+
+        private const string ConnectionVar = "_con";
+        private const string CommandVar = "_cmd";
 
         private static readonly string EngineTypeName = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperTypeName = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
@@ -34,7 +36,6 @@ namespace DataLibrary.Generator
         private static readonly string InOutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
         private static readonly string OutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
 
-        // TODO Base class all ref ?
         private static readonly Assembly[] DefaultAssemblies =
         {
             Assembly.Load("System.Runtime"),
@@ -60,6 +61,8 @@ namespace DataLibrary.Generator
 
         private readonly bool useDefaultProvider;
 
+        private readonly ProviderAttribute provider;
+
         private bool newLine;
 
         private int indent;
@@ -75,7 +78,7 @@ namespace DataLibrary.Generator
             interfaceFullName = GeneratorHelper.MakeGlobalName(targetType);
             implementName = targetType.Name + ImplementSuffix;
             useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
-            // TODO Provider
+            provider = targetType.GetCustomAttribute<ProviderAttribute>();
         }
 
         public void AddMethod(MethodMetadata mm)
@@ -87,12 +90,12 @@ namespace DataLibrary.Generator
         // Build
         //--------------------------------------------------------------------------------
 
-        public DaoSource Build(ISqlLoader loader)
+        public DaoSource Build()
         {
             source.Clear();
             references.Clear();
             references.AddRange(DefaultAssemblies);
-            // TODO targetType assembly?
+            references.Add(targetType.Assembly);
             newLine = true;
             indent = 0;
 
@@ -120,32 +123,15 @@ namespace DataLibrary.Generator
 
                 // Method
                 BeginMethod(mm);
+                BeginConnection(mm);
 
-                // TODO open(versions)
+                DefinePreProcess(mm);
 
-                // TODO pre
+                // TODO loader and call Define
 
-                // TODO loader and call
+                DefinePostProcess(mm);
 
-                // TODO post
-
-                // dummy
-                foreach (var pi in mm.MethodInfo.GetParameters())
-                {
-                    if (pi.IsOut)
-                    {
-                        A($"{pi.Name} = default;").CR();
-                    }
-                }
-
-                // dummy
-                if (mm.MethodInfo.ReturnType != typeof(void))
-                {
-                    A("return default;").CR();
-                }
-
-                // TODO close(versions)
-
+                EndConnection(mm);
                 End();  // Method
             }
 
@@ -281,19 +267,19 @@ namespace DataLibrary.Generator
 
         private void BeginConstructor()
         {
-            A("public ").A(implementName).A("(").A(EngineTypeName).A(" ").A(CtorArgName).A(")").CR();
+            A("public ").A(implementName).A("(").A(EngineTypeName).A(" ").A(CtorArg).A(")").CR();
             A("{").CR();
             indent++;
         }
 
         private void InitializeFields()
         {
-            A(EngineFieldRef).A(" = ").A(CtorArgName).A(";").CR();
+            A(EngineFieldRef).A(" = ").A(CtorArg).A(";").CR();
             CR();
 
             if (useDefaultProvider)
             {
-                A(ProviderFieldRef).A(" = ").A(CtorArgName).A(".Components.Get<").A(ProviderTypeName).A(">();").CR();
+                A(ProviderFieldRef).A(" = ").A(CtorArg).A(".Components.Get<").A(ProviderTypeName).A(">();").CR();
             }
 
             // TODO other provider if need
@@ -313,7 +299,7 @@ namespace DataLibrary.Generator
                 {
                     // TODO if exist, to outer if ?
                     A($"var method{mm.No} = ").A(RuntimeHelperTypeName).A(".GetInterfaceMethodByNo(GetType(), typeof(").A(interfaceFullName).A($"), {mm.No});").CR();
-                    A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArgName).A(".CreateConverter<").A(GeneratorHelper.MakeGlobalName(mm.EngineResultType)).A($">(method{mm.No});").CR();
+                    A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArg).A(".CreateConverter<").A(GeneratorHelper.MakeGlobalName(mm.EngineResultType)).A($">(method{mm.No});").CR();
 
                     references.Add(mm.EngineResultType.Assembly);
                 }
@@ -386,44 +372,73 @@ namespace DataLibrary.Generator
         // Connection
         //--------------------------------------------------------------------------------
 
-        // TODO
-        //        public void BeginConnection(MethodMetadata mm)
-        //        {
-        //            switch (mm.Method.MethodType)
-        //            {
-        //                case MethodType.Execute:
-        //                case MethodType.ExecuteScalar:
-        //                case MethodType.QueryFirstOrDefault:
-        //                    if (mm.ConnectionParameter == null)
-        //                    {
+        private void BeginConnection(MethodMetadata mm)
+        {
+            switch (mm.MethodType)
+            {
+                case MethodType.Execute:
+                case MethodType.ExecuteScalar:
+                case MethodType.QueryFirstOrDefault:
+                    if (mm.ConnectionParameter == null)
+                    {
+                        // TODO simple
+                    }
+                    else
+                    {
+                        // TODO simple by parameter
+                    }
+                    break;
+                case MethodType.ExecuteReader:
+                    if (mm.ConnectionParameter == null)
+                    {
+                        // TODO
+                    }
+                    else
+                    {
+                        // TODO
+                    }
+                    break;
+                case MethodType.Query:
+                    // TODO buffer / non buffer
+                    break;
+            }
+        }
 
-        //                    }
-        //                    else
-        //                    {
+        private void EndConnection(MethodMetadata mm)
+        {
+            // TODO
+            // dummy
+            if (mm.MethodInfo.ReturnType != typeof(void))
+            {
+                A("return default;").CR();
+            }
 
-        //                    }
-        //                    break;
-        //                case MethodType.ExecuteReader:
-        //                    if (mm.ConnectionParameter == null)
-        //                    {
+        }
 
-        //                    }
-        //                    else
-        //                    {
-
-        //                    }
-        //                    break;
-        //                case MethodType.Query:
-        //                    // TODO buffer / non buffer
-        //                    break;
-        //            }
-        //        }
+        // TODO open, close ConnectionVar,CommandVar
 
         //--------------------------------------------------------------------------------
-        // PreProcess
+        // PreProcess/PostProcess
         //--------------------------------------------------------------------------------
 
-        // TODO
+        private void DefinePreProcess(MethodMetadata mm)
+        {
+            // TODO
+            // dummy
+            foreach (var pi in mm.MethodInfo.GetParameters())
+            {
+                if (pi.IsOut)
+                {
+                    A($"{pi.Name} = default;").CR();
+                }
+            }
+
+        }
+
+        private void DefinePostProcess(MethodMetadata mm)
+        {
+            // TODO
+        }
 
         //--------------------------------------------------------------------------------
         // Block
@@ -433,12 +448,6 @@ namespace DataLibrary.Generator
 
         //--------------------------------------------------------------------------------
         // Call
-        //--------------------------------------------------------------------------------
-
-        // TODO
-
-        //--------------------------------------------------------------------------------
-        // PostProcess
         //--------------------------------------------------------------------------------
 
         // TODO

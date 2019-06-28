@@ -75,7 +75,7 @@
                 no++;
             }
 
-            return Build(builder.Build(loader));
+            return Build(builder.Build());
         }
 
         private object Build(DaoSource source)
