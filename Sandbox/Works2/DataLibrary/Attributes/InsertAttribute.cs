@@ -17,7 +17,7 @@
             this.table = table;
         }
 
-        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi)
         {
             // TODO object(single and not simple) or parameters!
             var blocks = new List<IBlock>();

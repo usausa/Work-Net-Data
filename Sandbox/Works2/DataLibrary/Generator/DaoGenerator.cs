@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
 
+    using DataLibrary.Attributes;
     using DataLibrary.Engine;
     using DataLibrary.Loader;
 
@@ -52,7 +53,28 @@
 
         private object CreateInternal(Type type)
         {
+            if (type.GetCustomAttribute<DaoAttribute>() is null)
+            {
+                throw new AccessorException($"Type is not supported for generation. type=[{type.FullName}]");
+            }
+
             var builder = new DaoSourceBuilder(type);
+
+            var no = 1;
+            foreach (var method in type.GetMethods())
+            {
+                var attribute = method.GetCustomAttribute<MethodAttribute>(true);
+                if (attribute == null)
+                {
+                    throw new AccessorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
+                }
+
+                var blocks = attribute.GetBlocks(loader, method);
+                builder.AddMethod(new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, blocks));
+
+                no++;
+            }
+
             return Build(builder.Build(loader));
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using DataLibrary.Loader;
 using DataLibrary.Providers;
 using Microsoft.Data.Sqlite;
 
@@ -26,7 +27,7 @@ namespace WorkGenerator
             var engine = config.ToEngine();
 
             // TODO Loader
-            var generator = new DaoGenerator(null, engine, new Debugger());
+            var generator = new DaoGenerator(new DummyLoader(), engine, new Debugger());
 
             //var dao = generator.Create<ISimpleExecuteDao>();
             var dao2 = generator.Create<IFullSpecDao>();
@@ -49,6 +50,11 @@ namespace WorkGenerator
         //        ListReference(cached, Assembly.Load(referencedAssembly));
         //    }
         //}
+    }
+
+    public class DummyLoader : ISqlLoader
+    {
+        public string Load(MethodInfo mi) => "";
     }
 
     public class Debugger : IGeneratorDebugger

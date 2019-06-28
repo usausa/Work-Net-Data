@@ -22,6 +22,6 @@
             MethodType = methodType;
         }
 
-        public abstract IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, MethodInfo mi);
+        public abstract IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi);
     }
 }

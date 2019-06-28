@@ -19,7 +19,7 @@
             this.sql = sql;
         }
 
-        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi)
         {
             var tokenizer = new SqlTokenizer(sql);
             var tokens = tokenizer.Tokenize();

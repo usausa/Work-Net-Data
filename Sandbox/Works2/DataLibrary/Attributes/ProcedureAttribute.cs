@@ -18,7 +18,7 @@
             this.procedure = procedure;
         }
 
-        public override IReadOnlyList<IBlock> CreateTokens(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi)
         {
             return new[]
             {

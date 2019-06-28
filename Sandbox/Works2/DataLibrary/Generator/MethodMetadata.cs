@@ -1,12 +1,15 @@
 ﻿namespace DataLibrary.Generator
 {
     using System;
+    using System.Collections.Generic;
+    using System.Data;
     using System.Data.Common;
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Threading;
 
     using DataLibrary.Attributes;
+    using DataLibrary.Blocks;
 
     internal sealed class MethodMetadata
     {
@@ -14,13 +17,17 @@
 
         public MethodInfo MethodInfo { get; }
 
+        public CommandType CommandType { get; }
+
+        public MethodType MethodType { get; }
+
+        public IReadOnlyList<IBlock> Blocks { get; }
+
         public bool IsAsync { get; }
 
         public Type EngineResultType { get; }
 
         // Method attribute
-
-        public MethodAttribute Method { get; }
 
         public ProviderAttribute Provider { get; }
 
@@ -36,11 +43,13 @@
 
         public ParameterInfo TransactionParameter { get; }
 
-        public MethodMetadata(int no, MethodInfo mi, MethodAttribute methodAttribute)
+        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<IBlock> blocks)
         {
             No = no;
             MethodInfo = mi;
-            Method = methodAttribute;
+            CommandType = commandType;
+            MethodType = memberType;
+            Blocks = blocks;
 
             IsAsync = mi.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
             EngineResultType = IsAsync

@@ -13,7 +13,7 @@ using Smart.ComponentModel;
 
 namespace DataLibrary.Generator
 {
-    public sealed class DaoSourceBuilder
+    internal sealed class DaoSourceBuilder
     {
         private const string ImplementSuffix = "_Impl";
 
@@ -70,29 +70,17 @@ namespace DataLibrary.Generator
 
         public DaoSourceBuilder(Type targetType)
         {
-            if (targetType.GetCustomAttribute<DaoAttribute>() is null)
-            {
-                throw new AccessorException($"Type is not supported for generation. type=[{targetType.FullName}]");
-            }
-
             this.targetType = targetType;
-
-            var no = 1;
-            foreach (var method in targetType.GetMethods())
-            {
-                var attribute = method.GetCustomAttribute<MethodAttribute>(true);
-                if (attribute == null)
-                {
-                    throw new AccessorException($"Method is not supported for generation. type=[{targetType.FullName}], method=[{method.Name}]");
-                }
-
-                methods.Add(new MethodMetadata(no, method, attribute));
-                no++;
-            }
 
             interfaceFullName = GeneratorHelper.MakeGlobalName(targetType);
             implementName = targetType.Name + ImplementSuffix;
             useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
+            // TODO Provider
+        }
+
+        public void AddMethod(MethodMetadata mm)
+        {
+            methods.Add(mm);
         }
 
         //--------------------------------------------------------------------------------
@@ -262,7 +250,7 @@ namespace DataLibrary.Generator
             {
                 var pos = source.Length;
 
-                if (mm.Method.MethodType == MethodType.ExecuteScalar)
+                if (mm.MethodType == MethodType.ExecuteScalar)
                 {
                     A("private readonly ").A(ConverterTypeName).A(" ").A(GetConvertFieldName(mm.No)).A(";").CR();
                 }
@@ -321,7 +309,7 @@ namespace DataLibrary.Generator
             {
                 var pos = source.Length;
 
-                if (mm.Method.MethodType == MethodType.ExecuteScalar)
+                if (mm.MethodType == MethodType.ExecuteScalar)
                 {
                     // TODO if exist, to outer if ?
                     A($"var method{mm.No} = ").A(RuntimeHelperTypeName).A(".GetInterfaceMethodByNo(GetType(), typeof(").A(interfaceFullName).A($"), {mm.No});").CR();
