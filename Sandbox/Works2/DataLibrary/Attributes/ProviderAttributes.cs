@@ -4,7 +4,7 @@
 
     using DataLibrary.Providers;
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method)]
     public abstract class ProviderAttribute : Attribute
     {
         public Type SelectorType { get; }

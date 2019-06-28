@@ -125,7 +125,7 @@
         {
             // ResultAttribute
 
-            var attribute = provider?.GetCustomAttributes(true).Cast<ResultAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ResultParserAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return attribute.CreateConverter(type);

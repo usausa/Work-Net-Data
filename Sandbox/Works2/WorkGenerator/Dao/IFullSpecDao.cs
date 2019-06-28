@@ -1,4 +1,6 @@
-﻿namespace WorkGenerator.Dao
+﻿using System;
+
+namespace WorkGenerator.Dao
 {
     using System.Collections.Generic;
     using System.Data;
@@ -10,6 +12,14 @@
 
     using WorkGenerator.Models;
 
+    public class MyAttribute : ResultParserAttribute
+    {
+        public override Func<object, object> CreateConverter(Type type)
+        {
+            return x => x;
+        }
+    }
+
     [Dao]
     public interface IFullSpecDao
     {
@@ -17,7 +27,7 @@
         [Execute] Task<int> ExecuteAsync(CancellationToken cancel);
         [Execute] int Execute(DbConnection con);
         [Execute] Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel);
-        [ExecuteScalar] long ExecuteScalar();
+        [ExecuteScalar][My] long ExecuteScalar();
         [ExecuteScalar] Task<long> ExecuteScalarAsync(CancellationToken cancel);
         [ExecuteScalar] long ExecuteScalar(DbConnection con);
         [ExecuteScalar] Task<long> ExecuteScalarAsync(DbConnection con, CancellationToken cancel);

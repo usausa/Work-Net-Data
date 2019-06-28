@@ -2,8 +2,8 @@
 {
     using System;
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
-    public abstract class ResultAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method)]
+    public abstract class ResultParserAttribute : Attribute
     {
         public abstract Func<object, object> CreateConverter(Type type);
     }

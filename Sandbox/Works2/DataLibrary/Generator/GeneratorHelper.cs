@@ -29,8 +29,18 @@ namespace DataLibrary.Generator
                 sb.Append("global::").Append(type.Namespace).Append(".").Append(type.Name.Substring(0, index));
                 sb.Append("<");
 
+                var first = true;
                 foreach (var argumentType in type.GetGenericArguments())
                 {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        sb.Append(", ");
+                    }
+
                     MakeGlobalName(sb, argumentType);
                 }
 

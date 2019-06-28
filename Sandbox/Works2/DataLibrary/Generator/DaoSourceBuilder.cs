@@ -26,6 +26,8 @@ namespace DataLibrary.Generator
         private const string ConvertField = "_convert";
 
         private static readonly string EngineTypeName = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
+        private static readonly string RuntimeHelperTypeName = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
+        private static readonly string MethodNoAttributeTypeName = GeneratorHelper.MakeGlobalName(typeof(MethodNoAttribute));
         private static readonly string ProviderTypeName = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
         private static readonly string ConverterTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string InSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
@@ -51,6 +53,8 @@ namespace DataLibrary.Generator
         private readonly StringBuilder source = new StringBuilder();
 
         private readonly HashSet<Assembly> references = new HashSet<Assembly>();
+
+        private readonly string interfaceFullName;
 
         private readonly string implementName;
 
@@ -86,6 +90,7 @@ namespace DataLibrary.Generator
                 no++;
             }
 
+            interfaceFullName = GeneratorHelper.MakeGlobalName(targetType);
             implementName = targetType.Name + ImplementSuffix;
             useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
         }
@@ -207,39 +212,6 @@ namespace DataLibrary.Generator
             A("}").CR();
         }
 
-        private DaoSourceBuilder AppendType(Type type)
-        {
-            // TODO Helper version or remove and add reference by call by?
-            if (type == typeof(void))
-            {
-                source.Append("void");
-                return this;
-            }
-
-            references.Add(type.Assembly);
-
-            if (type.IsGenericType)
-            {
-                var index = type.Name.IndexOf('`');
-                source.Append("global::").Append(type.Namespace).Append(".").Append(type.Name.Substring(0, index));
-                source.Append("<");
-
-                foreach (var argumentType in type.GetGenericArguments())
-                {
-                    references.Add(argumentType.Assembly);
-                    AppendType(argumentType);
-                }
-
-                source.Append(">");
-            }
-            else
-            {
-                source.Append("global::").Append(type.Namespace).Append(".").Append(type.Name);
-            }
-
-            return this;
-        }
-
         //--------------------------------------------------------------------------------
         // Class
         //--------------------------------------------------------------------------------
@@ -255,7 +227,7 @@ namespace DataLibrary.Generator
 
         private void BeginClass(string className)
         {
-            A("internal sealed class ").A(className).A(" : ").AppendType(targetType).CR();
+            A("internal sealed class ").A(className).A(" : ").A(interfaceFullName).CR();
             A("{").CR();
             indent++;
         }
@@ -270,6 +242,7 @@ namespace DataLibrary.Generator
             A("private readonly ").A(EngineTypeName).A(" ").A(EngineField).A(";").CR();
             CR();
 
+            // TODO Default
             // Provider
             if (useDefaultProvider)
             {
@@ -284,32 +257,34 @@ namespace DataLibrary.Generator
 
             CR();
 
-            // Scalar converters
-            //var scalarMethods = methods.Where(x => x.Method.MethodType == MethodType.ExecuteScalar).ToList();
-            //if (scalarMethods.Count > 0)
-            //{
-            //    foreach (var mm in scalarMethods)
-            //    {
-            //        A("private readonly ").A(ConverterTypeName).A(" ").A(GetConvertFieldName(mm.No)).A(";").CR();
-            //    }
+            // Per method
+            foreach (var mm in methods)
+            {
+                var pos = source.Length;
 
-            //    CR();
-            //}
+                if (mm.Method.MethodType == MethodType.ExecuteScalar)
+                {
+                    A("private readonly ").A(ConverterTypeName).A(" ").A(GetConvertFieldName(mm.No)).A(";").CR();
+                }
 
-            // Out converters
+                if (source.Length != pos)
+                {
+                    CR();
+                }
 
-            // TODO
+                // Out converters
 
-            // Setup
+                // TODO
 
-            // TODO
+                // Setup
 
-            //        public void DefineField(Type type, string memberName)
-            //        {
-            //            A("private readonly ").AppendType(type).A(" ").A(memberName).A(";").CR();
-            //        }
+                // TODO
 
-            CR();
+                //        public void DefineField(Type type, string memberName)
+                //        {
+                //            A("private readonly ").AppendType(type).A(" ").A(memberName).A(";").CR();
+                //        }
+            }
         }
 
         //--------------------------------------------------------------------------------
@@ -339,27 +314,35 @@ namespace DataLibrary.Generator
 
             //}
 
-            //var scalarMethods = methods.Where(x => x.Method.MethodType == MethodType.ExecuteScalar).ToList();
-            //if (scalarMethods.Count > 0)
-            //{
-            //    foreach (var mm in scalarMethods)
-            //    {
-            //        //        // TODO method reference code
-            //        A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArgName).A(".CreateConverter<");
-            //        AppendType(mm.EngineResultType);
-            //        A(">(method5.ReturnParameter);").CR();
-            //    }
+            CR();
 
-            //    CR();
-            //}
+            // Per method
+            foreach (var mm in methods)
+            {
+                var pos = source.Length;
 
-            // Out converters
+                if (mm.Method.MethodType == MethodType.ExecuteScalar)
+                {
+                    // TODO if exist, to outer if ?
+                    A($"var method{mm.No} = ").A(RuntimeHelperTypeName).A(".GetInterfaceMethodByNo(GetType(), typeof(").A(interfaceFullName).A($"), {mm.No});").CR();
+                    A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArgName).A(".CreateConverter<").A(GeneratorHelper.MakeGlobalName(mm.EngineResultType)).A($">(method{mm.No});").CR();
 
-            // TODO
+                    references.Add(mm.EngineResultType.Assembly);
+                }
 
-            // Setup
+                if (source.Length != pos)
+                {
+                    CR();
+                }
 
-            // TODO
+                // Out converters
+
+                // TODO
+
+                // Setup
+
+                // TODO
+            }
         }
 
         //--------------------------------------------------------------------------------
@@ -368,13 +351,16 @@ namespace DataLibrary.Generator
 
         private void BeginMethod(MethodMetadata mm)
         {
+            A("[").A(MethodNoAttributeTypeName).A($"({mm.No})]").CR();
+
             A("public ");
             if (mm.IsAsync)
             {
                 A("async ");
             }
 
-            AppendType(mm.MethodInfo.ReturnType).A(" ").A(mm.MethodInfo.Name).A("(");
+            A(GeneratorHelper.MakeGlobalName(mm.MethodInfo.ReturnType)).A(" ").A(mm.MethodInfo.Name).A("(");
+            references.Add(mm.MethodInfo.ReturnType.Assembly);
 
             var first = true;
             foreach (var pi in mm.MethodInfo.GetParameters())
@@ -398,7 +384,8 @@ namespace DataLibrary.Generator
                 }
 
                 var parameterType = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
-                AppendType(parameterType).A(" ").A(pi.Name);
+                A(GeneratorHelper.MakeGlobalName(parameterType)).A(" ").A(pi.Name);
+                references.Add(parameterType.Assembly);
             }
 
             A(")").CR();
