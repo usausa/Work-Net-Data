@@ -70,6 +70,9 @@
                 }
 
                 var blocks = attribute.GetBlocks(loader, method);
+
+                // TODO check : exe:int,void,int-assign, query:IE?(not string)
+
                 builder.AddMethod(new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, blocks));
 
                 no++;
@@ -90,7 +93,8 @@
 
             var options = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
-                optimizationLevel: OptimizationLevel.Release);
+                optimizationLevel: OptimizationLevel.Release,
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
 
             var compilation = CSharpCompilation.Create(
                 assemblyName,

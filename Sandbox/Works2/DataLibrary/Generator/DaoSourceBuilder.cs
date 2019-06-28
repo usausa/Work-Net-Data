@@ -26,20 +26,24 @@ namespace DataLibrary.Generator
 
         private const string ConnectionVar = "_con";
         private const string CommandVar = "_cmd";
+        private const string ResultVar = "_result";
 
-        private static readonly string EngineTypeName = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
-        private static readonly string RuntimeHelperTypeName = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
-        private static readonly string MethodNoAttributeTypeName = GeneratorHelper.MakeGlobalName(typeof(MethodNoAttribute));
-        private static readonly string ProviderTypeName = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
-        private static readonly string ConverterTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
-        private static readonly string InSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
-        private static readonly string InOutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
-        private static readonly string OutSetupTypeName = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
+        private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
+        private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
+        private static readonly string MethodNoAttributeType = GeneratorHelper.MakeGlobalName(typeof(MethodNoAttribute));
+        private static readonly string ProviderType = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
+        private static readonly string ConverterType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
+        private static readonly string InSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
+        private static readonly string InOutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
+        private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
 
         private static readonly Assembly[] DefaultAssemblies =
         {
-            Assembly.Load("System.Runtime"),
             Assembly.Load("netstandard"),
+            Assembly.Load("System"),
+            Assembly.Load("System.Core"),
+            Assembly.Load("System.Runtime"),
+            Assembly.Load("System.ComponentModel.Primitives"),
             typeof(object).Assembly,
             typeof(ExecuteEngine).Assembly,
             typeof(IComponentContainer).Assembly,
@@ -59,8 +63,6 @@ namespace DataLibrary.Generator
 
         private readonly string implementName;
 
-        private readonly bool useDefaultProvider;
-
         private readonly ProviderAttribute provider;
 
         private bool newLine;
@@ -77,7 +79,6 @@ namespace DataLibrary.Generator
 
             interfaceFullName = GeneratorHelper.MakeGlobalName(targetType);
             implementName = targetType.Name + ImplementSuffix;
-            useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
             provider = targetType.GetCustomAttribute<ProviderAttribute>();
         }
 
@@ -99,6 +100,8 @@ namespace DataLibrary.Generator
             newLine = true;
             indent = 0;
 
+            var a = typeof(DbCommand).Assembly.GetReferencedAssemblies();
+
             // Namespace
             BeginNamespace();
 
@@ -119,7 +122,7 @@ namespace DataLibrary.Generator
 
             foreach (var mm in methods)
             {
-                CR();
+                NewLine();
 
                 // Method
                 BeginMethod(mm);
@@ -127,7 +130,8 @@ namespace DataLibrary.Generator
 
                 DefinePreProcess(mm);
 
-                // TODO loader and call Define
+                // TODO block
+                DefineCall(mm);
 
                 DefinePostProcess(mm);
 
@@ -159,13 +163,7 @@ namespace DataLibrary.Generator
         // Helper
         //--------------------------------------------------------------------------------
 
-        private void CR()
-        {
-            source.AppendLine();
-            newLine = true;
-        }
-
-        private DaoSourceBuilder A(string code)
+        private void Indent()
         {
             if (newLine)
             {
@@ -175,15 +173,31 @@ namespace DataLibrary.Generator
                 }
                 newLine = false;
             }
-            source.Append(code);
-            return this;
         }
 
+        private void AppendLine(string code)
+        {
+            Indent();
+            source.AppendLine(code);
+            newLine = true;
+        }
+
+        private void Append(string code)
+        {
+            Indent();
+            source.Append(code);
+        }
+
+        private void NewLine()
+        {
+            source.AppendLine();
+            newLine = true;
+        }
 
         private void End()
         {
             indent--;
-            A("}").CR();
+            AppendLine("}");
         }
 
         //--------------------------------------------------------------------------------
@@ -192,8 +206,8 @@ namespace DataLibrary.Generator
 
         private void BeginNamespace()
         {
-            A("namespace ").A(targetType.Namespace).CR();
-            A("{").CR();
+            AppendLine($"namespace {targetType.Namespace}");
+            AppendLine("{");
             indent++;
         }
 
@@ -201,8 +215,8 @@ namespace DataLibrary.Generator
 
         private void BeginClass(string className)
         {
-            A("internal sealed class ").A(className).A(" : ").A(interfaceFullName).CR();
-            A("{").CR();
+            AppendLine($"internal sealed class {className} : {interfaceFullName}");
+            AppendLine("{");
             indent++;
         }
 
@@ -213,14 +227,16 @@ namespace DataLibrary.Generator
         private void DefineFields()
         {
             // Engine
-            A("private readonly ").A(EngineTypeName).A(" ").A(EngineField).A(";").CR();
-            CR();
+            AppendLine($"private readonly {EngineType} {EngineField};");
+            NewLine();
 
             // TODO Default
             // Provider
+            // TODO
+            var useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
             if (useDefaultProvider)
             {
-                A("private readonly ").A(ProviderTypeName).A(" ").A(ProviderField).A(";").CR();
+                AppendLine($"private readonly {ProviderType} {ProviderField};");
             }
 
             // TODO other provider if need
@@ -229,7 +245,7 @@ namespace DataLibrary.Generator
 
             //}
 
-            CR();
+            NewLine();
 
             // Per method
             foreach (var mm in methods)
@@ -238,12 +254,12 @@ namespace DataLibrary.Generator
 
                 if (mm.MethodType == MethodType.ExecuteScalar)
                 {
-                    A("private readonly ").A(ConverterTypeName).A(" ").A(GetConvertFieldName(mm.No)).A(";").CR();
+                    AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
                 }
 
                 if (source.Length != pos)
                 {
-                    CR();
+                    NewLine();
                 }
 
                 // Out converters
@@ -256,7 +272,7 @@ namespace DataLibrary.Generator
 
                 //        public void DefineField(Type type, string memberName)
                 //        {
-                //            A("private readonly ").AppendType(type).A(" ").A(memberName).A(";").CR();
+                //            Append("private readonly ").AppendType(type).Append(" ").Append(memberName).Append(";");NewLine();
                 //        }
             }
         }
@@ -267,19 +283,21 @@ namespace DataLibrary.Generator
 
         private void BeginConstructor()
         {
-            A("public ").A(implementName).A("(").A(EngineTypeName).A(" ").A(CtorArg).A(")").CR();
-            A("{").CR();
+            AppendLine($"public {implementName}({EngineType} {CtorArg})");
+            AppendLine("{");
             indent++;
         }
 
         private void InitializeFields()
         {
-            A(EngineFieldRef).A(" = ").A(CtorArg).A(";").CR();
-            CR();
+            AppendLine($"{EngineFieldRef} = {CtorArg};");
+            NewLine();
 
+            // TODO
+            var useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
             if (useDefaultProvider)
             {
-                A(ProviderFieldRef).A(" = ").A(CtorArg).A(".Components.Get<").A(ProviderTypeName).A(">();").CR();
+                AppendLine($"{ProviderFieldRef} = {CtorArg}.Components.Get<{ProviderType}>();");
             }
 
             // TODO other provider if need
@@ -288,7 +306,7 @@ namespace DataLibrary.Generator
 
             //}
 
-            CR();
+            NewLine();
 
             // Per method
             foreach (var mm in methods)
@@ -298,15 +316,15 @@ namespace DataLibrary.Generator
                 if (mm.MethodType == MethodType.ExecuteScalar)
                 {
                     // TODO if exist, to outer if ?
-                    A($"var method{mm.No} = ").A(RuntimeHelperTypeName).A(".GetInterfaceMethodByNo(GetType(), typeof(").A(interfaceFullName).A($"), {mm.No});").CR();
-                    A(GetConvertFieldNameRef(mm.No)).A(" = ").A(CtorArg).A(".CreateConverter<").A(GeneratorHelper.MakeGlobalName(mm.EngineResultType)).A($">(method{mm.No});").CR();
+                    AppendLine($"var method{mm.No} = {RuntimeHelperType}.GetInterfaceMethodByNo(GetType(), typeof({interfaceFullName}), {mm.No});");
+                    AppendLine($"{GetConvertFieldNameRef(mm.No)} = {CtorArg}.CreateConverter<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(method{mm.No});");
 
                     references.Add(mm.EngineResultType.Assembly);
                 }
 
                 if (source.Length != pos)
                 {
-                    CR();
+                    NewLine();
                 }
 
                 // Out converters
@@ -325,15 +343,15 @@ namespace DataLibrary.Generator
 
         private void BeginMethod(MethodMetadata mm)
         {
-            A("[").A(MethodNoAttributeTypeName).A($"({mm.No})]").CR();
+            AppendLine($"[{MethodNoAttributeType}({mm.No})]");
 
-            A("public ");
+            Append("public ");
             if (mm.IsAsync)
             {
-                A("async ");
+                Append("async ");
             }
 
-            A(GeneratorHelper.MakeGlobalName(mm.MethodInfo.ReturnType)).A(" ").A(mm.MethodInfo.Name).A("(");
+            Append($"{GeneratorHelper.MakeGlobalName(mm.MethodInfo.ReturnType)} {mm.MethodInfo.Name}(");
             references.Add(mm.MethodInfo.ReturnType.Assembly);
 
             var first = true;
@@ -341,7 +359,7 @@ namespace DataLibrary.Generator
             {
                 if (!first)
                 {
-                    A(", ");
+                    Append(", ");
                 }
                 else
                 {
@@ -350,21 +368,21 @@ namespace DataLibrary.Generator
 
                 if (pi.IsOut)
                 {
-                    A("out ");
+                    Append("out ");
                 }
                 else if (pi.ParameterType.IsByRef)
                 {
-                    A("ref ");
+                    Append("ref ");
                 }
 
                 var parameterType = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
-                A(GeneratorHelper.MakeGlobalName(parameterType)).A(" ").A(pi.Name);
+                Append($"{GeneratorHelper.MakeGlobalName(parameterType)} {pi.Name}");
                 references.Add(parameterType.Assembly);
             }
 
-            A(")").CR();
+            AppendLine(")");
 
-            A("{").CR();
+            AppendLine("{");
             indent++;
         }
 
@@ -381,40 +399,74 @@ namespace DataLibrary.Generator
                 case MethodType.QueryFirstOrDefault:
                     if (mm.ConnectionParameter == null)
                     {
-                        // TODO simple
+                        BeginConnectionSimple(mm);
                     }
                     else
                     {
                         // TODO simple by parameter
+                        BeginConnectionSimple(mm);
                     }
                     break;
                 case MethodType.ExecuteReader:
                     if (mm.ConnectionParameter == null)
                     {
                         // TODO
+                        BeginConnectionSimple(mm);
                     }
                     else
                     {
                         // TODO
+                        BeginConnectionSimple(mm);
                     }
                     break;
                 case MethodType.Query:
                     // TODO buffer / non buffer
+                    BeginConnectionSimple(mm);
                     break;
             }
         }
 
         private void EndConnection(MethodMetadata mm)
         {
-            // TODO
-            // dummy
-            if (mm.MethodInfo.ReturnType != typeof(void))
+            switch (mm.MethodType)
             {
-                A("return default;").CR();
-            }
+                case MethodType.Execute:
+                    // TODO
+                    EndConnectionSimple(mm);
+                    break;
+                default:
+                    // TODO
+                    // dummy
+                    if (mm.MethodInfo.ReturnType != typeof(void))
+                    {
+                        AppendLine("return default;");
+                    }
 
+                    indent--;
+                    AppendLine("}");
+                    break;
+            }
         }
 
+        private void BeginConnectionSimple(MethodMetadata mm)
+        {
+            // TODO provider
+            AppendLine($"using (var {ConnectionVar} = {ProviderFieldRef}.CreateConnection())");
+            AppendLine($"using (var {CommandVar} = {ConnectionVar}.CreateCommand())");
+            AppendLine("{");
+            indent++;
+        }
+
+        private void EndConnectionSimple(MethodMetadata mm)
+        {
+            if (mm.EngineResultType != typeof(void))
+            {
+                NewLine();
+                AppendLine($"return {ResultVar};");
+            }
+            indent--;
+            AppendLine("}");
+        }
         // TODO open, close ConnectionVar,CommandVar
 
         //--------------------------------------------------------------------------------
@@ -429,7 +481,7 @@ namespace DataLibrary.Generator
             {
                 if (pi.IsOut)
                 {
-                    A($"{pi.Name} = default;").CR();
+                    AppendLine($"{pi.Name} = default;");
                 }
             }
 
@@ -450,6 +502,52 @@ namespace DataLibrary.Generator
         // Call
         //--------------------------------------------------------------------------------
 
+        private void DefineCall(MethodMetadata mm)
+        {
+            // TODO
+            switch (mm.MethodType)
+            {
+                case MethodType.Execute:
+                    DefineCallExecute(mm);
+                    break;
+                case MethodType.ExecuteScalar:
+                    break;
+                case MethodType.QueryFirstOrDefault:
+                    break;
+                case MethodType.ExecuteReader:
+                    break;
+                case MethodType.Query:
+                    break;
+            }
+        }
+
+        private void DefineCallExecute(MethodMetadata mm)
+        {
+            // TODO async, con/tx
+            if (mm.ConnectionParameter != null)
+            {
+                // TODO
+                if (mm.EngineResultType == typeof(void))
+                {
+                    AppendLine($"{CommandVar}.ExecuteNonQuery();");
+                }
+                else
+                {
+                    AppendLine($"var {ResultVar} = {CommandVar}.ExecuteNonQuery();");
+                }
+            }
+            else
+            {
+                if (mm.EngineResultType == typeof(void))
+                {
+                    AppendLine($"{CommandVar}.ExecuteNonQuery();");
+                }
+                else
+                {
+                    AppendLine($"var {ResultVar} = {CommandVar}.ExecuteNonQuery();");
+                }
+            }
+        }
         // TODO
     }
 }
