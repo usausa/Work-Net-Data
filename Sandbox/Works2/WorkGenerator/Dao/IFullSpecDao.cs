@@ -21,14 +21,14 @@ namespace WorkGenerator.Dao
         }
     }
 
-    [NamedProvider("")]
+    //[NamedProvider("")]
     [Dao]
     public interface IFullSpecDao
     {
-        [Execute] int Execute();
-        [Execute] Task<int> ExecuteAsync(CancellationToken cancel);
-        [Execute] int Execute(DbConnection con);
-        [Execute] Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel);
+        //[Execute] int Execute();
+        //[Execute] Task<int> ExecuteAsync(CancellationToken cancel);
+        //[Execute] int Execute(DbConnection con);
+        //[Execute] Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel);
         [ExecuteScalar][My] long ExecuteScalar();
         [ExecuteScalar] Task<long> ExecuteScalarAsync(CancellationToken cancel);
         [ExecuteScalar] long ExecuteScalar(DbConnection con);

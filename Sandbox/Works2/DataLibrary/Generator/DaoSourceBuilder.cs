@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -163,7 +164,6 @@ namespace DataLibrary.Generator
 
         private void Append(string code)
         {
-            Indent();
             source.Append(code);
         }
 
@@ -187,7 +187,7 @@ namespace DataLibrary.Generator
         {
             if (mm.TimeoutParameter != null)
             {
-                if ((mm.TimeoutParameter.ParameterType != typeof(int)) && (mm.TimeoutParameter.ParameterType != typeof(int?)))
+                if (mm.TimeoutParameter.ParameterType != typeof(int))
                 {
                     throw new AccessorException($"Timeout parameter type must be int. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{mm.TimeoutParameter.Name}]");
                 }
@@ -201,6 +201,12 @@ namespace DataLibrary.Generator
                         throw new AccessorException($"ReturnType is not match for MethodType.Execute. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
+                case MethodType.ExecuteScalar:
+                    if (!IsValidExecuteScalarResultType(mm.EngineResultType))
+                    {
+                        throw new AccessorException($"ReturnType is not match for MethodType.ExecuteScalar. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                    }
+                    break;
                 case MethodType.Query:
                     if (!IsValidQueryResultType(mm.EngineResultType))
                     {
@@ -208,12 +214,16 @@ namespace DataLibrary.Generator
                     }
                     break;
             }
-
         }
 
         private static bool IsValidExecuteResultType(Type type)
         {
             return type == typeof(int) || type == typeof(void);
+        }
+
+        private static bool IsValidExecuteScalarResultType(Type type)
+        {
+            return type != typeof(void);
         }
 
         private static bool IsValidQueryResultType(Type type)
@@ -395,6 +405,7 @@ namespace DataLibrary.Generator
         {
             AppendLine($"[{MethodNoAttributeType}({mm.No})]");
 
+            Indent();
             Append("public ");
             if (mm.IsAsync)
             {
@@ -463,6 +474,20 @@ namespace DataLibrary.Generator
                     // TODO buffer / non buffer
                     BeginConnectionSimple(mm);
                     break;
+            }
+
+            if (mm.CommandType != CommandType.Text)
+            {
+                AppendLine($"{CommandVar}.CommandType = {mm.CommandType}");
+            }
+
+            if (mm.Timeout != null)
+            {
+                AppendLine($"{CommandVar}.CommandTimeout = {mm.Timeout.Timeout};");
+            }
+            else if (mm.TimeoutParameter != null)
+            {
+                AppendLine($"{CommandVar}.CommandTimeout = {mm.TimeoutParameter.Name};");
             }
         }
 
@@ -553,7 +578,21 @@ namespace DataLibrary.Generator
 
         private void DefineCall(MethodMetadata mm)
         {
-            // TODO
+            if (!mm.HasConnectionParameter)
+            {
+                if (mm.IsAsync)
+                {
+                    var cancelVar = mm.CancelParameter?.Name ?? string.Empty;
+                    AppendLine($"await {ConnectionVar}.OpenAsync({cancelVar}).ConfigureAwait(false);");
+                }
+                else
+                {
+                    AppendLine($"{ConnectionVar}.Open();");
+                }
+
+                NewLine();
+            }
+
             switch (mm.MethodType)
             {
                 case MethodType.Execute:
@@ -563,8 +602,10 @@ namespace DataLibrary.Generator
                     DefineCallExecuteScalar(mm);
                     break;
                 case MethodType.ExecuteReader:
+                    // TODO
                     break;
                 case MethodType.Query:
+                    // TODO
                     break;
                 case MethodType.QueryFirstOrDefault:
                     DefineCallQueryFirstOrDefault(mm);
@@ -574,15 +615,42 @@ namespace DataLibrary.Generator
 
         private void DefineCallExecute(MethodMetadata mm)
         {
-            // TODO async, con/tx
-            if (mm.EngineResultType == typeof(void))
+            Indent();
+
+            if (mm.EngineResultType != typeof(void))
             {
-                AppendLine($"{CommandVar}.ExecuteNonQuery();");
+                Append($"var {ResultVar} = ");
+            }
+
+            if (mm.IsAsync)
+            {
+                // Async
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+
+                Append("await ");
+                if (mm.HasConnectionParameter)
+                {
+                    Append($"{EngineFieldRef}.ExecuteAsync({GetConnectionName(mm)}, {CommandVar}{cancelOption}).ConfigureAwait(false);");
+                }
+                else
+                {
+                    Append($"{EngineFieldRef}.ExecuteAsync({CommandVar}{cancelOption}).ConfigureAwait(false);");
+                }
             }
             else
             {
-                AppendLine($"var {ResultVar} = {CommandVar}.ExecuteNonQuery();");
+                // Sync
+                if (mm.HasConnectionParameter)
+                {
+                    Append($"{EngineFieldRef}.Execute({GetConnectionName(mm)}, {CommandVar});");
+                }
+                else
+                {
+                    Append($"{EngineFieldRef}.Execute({CommandVar});");
+                }
             }
+
+            NewLine();
         }
 
         private void DefineCallExecuteScalar(MethodMetadata mm)
