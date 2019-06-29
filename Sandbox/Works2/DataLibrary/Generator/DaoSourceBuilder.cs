@@ -326,7 +326,7 @@ namespace DataLibrary.Generator
                 var pos = source.Length;
 
                 // TODO ignore object
-                if (mm.MethodType == MethodType.ExecuteScalar)
+                if ((mm.MethodType == MethodType.ExecuteScalar) && (mm.EngineResultType != typeof(object)))
                 {
                     AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
                 }
@@ -398,7 +398,7 @@ namespace DataLibrary.Generator
             {
                 var pos = source.Length;
 
-                if (mm.MethodType == MethodType.ExecuteScalar)
+                if ((mm.MethodType == MethodType.ExecuteScalar) && (mm.EngineResultType != typeof(object)))
                 {
                     // TODO if exist, to outer if ?
                     AppendLine($"var method{mm.No} = {RuntimeHelperType}.GetInterfaceMethodByNo(GetType(), typeof({interfaceFullName}), {mm.No});");
