@@ -29,9 +29,9 @@ namespace DataLibrary.Generator
 
         private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
+        private static readonly string ConvertHelperType = GeneratorHelper.MakeGlobalName(typeof(ConvertHelper));
         private static readonly string MethodNoAttributeType = GeneratorHelper.MakeGlobalName(typeof(MethodNoAttribute));
         private static readonly string ProviderType = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
-        private static readonly string ProviderAttributeType = GeneratorHelper.MakeGlobalName(typeof(ProviderAttribute));
         private static readonly string ConverterType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string InSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
         private static readonly string InOutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
@@ -622,32 +622,15 @@ namespace DataLibrary.Generator
                 Append($"var {ResultVar} = ");
             }
 
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
             if (mm.IsAsync)
             {
-                // Async
                 var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
-
-                Append("await ");
-                if (mm.HasConnectionParameter)
-                {
-                    Append($"{EngineFieldRef}.ExecuteAsync({GetConnectionName(mm)}, {CommandVar}{cancelOption}).ConfigureAwait(false);");
-                }
-                else
-                {
-                    Append($"{EngineFieldRef}.ExecuteAsync({CommandVar}{cancelOption}).ConfigureAwait(false);");
-                }
+                Append($"await {EngineFieldRef}.ExecuteAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false);");
             }
             else
             {
-                // Sync
-                if (mm.HasConnectionParameter)
-                {
-                    Append($"{EngineFieldRef}.Execute({GetConnectionName(mm)}, {CommandVar});");
-                }
-                else
-                {
-                    Append($"{EngineFieldRef}.Execute({CommandVar});");
-                }
+                Append($"{EngineFieldRef}.Execute({commandOption}{CommandVar});");
             }
 
             NewLine();
@@ -655,15 +638,42 @@ namespace DataLibrary.Generator
 
         private void DefineCallExecuteScalar(MethodMetadata mm)
         {
-            // TODO async, con/tx
-            if (mm.EngineResultType == typeof(object))
+            Indent();
+            Append($"var {ResultVar} = ");
+
+            if (mm.EngineResultType != typeof(object))
             {
-                AppendLine($"var {ResultVar} = {EngineFieldRef}.ExecuteScalar({CommandVar});");
+                Append($"{ConvertHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
+                NewLine();
+                indent++;
+                Indent();
+            }
+
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
+            if (mm.IsAsync)
+            {
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+                Append($"await {EngineFieldRef}.ExecuteScalarAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false)");
             }
             else
             {
-                AppendLine($"var {ResultVar} = {CommandVar}.ExecuteNonQuery();");
+                Append($"{EngineFieldRef}.ExecuteScalar({commandOption}{CommandVar})");
             }
+
+            if (mm.EngineResultType != typeof(object))
+            {
+                Append(",");
+                NewLine();
+                Indent();
+                Append($"{GetConvertFieldNameRef(mm.No)});");
+                indent--;
+            }
+            else
+            {
+                Append(";");
+            }
+
+            NewLine();
         }
 
         private void DefineCallQueryFirstOrDefault(MethodMetadata mm)
