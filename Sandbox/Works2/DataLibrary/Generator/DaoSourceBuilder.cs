@@ -105,19 +105,31 @@ namespace DataLibrary.Generator
 
                 NewLine();
 
-                // Method
-                BeginMethod(mm);
-                BeginConnection(mm);
-
-                DefinePreProcess(mm);
-
-                // TODO block
-                DefineCall(mm);
-
-                DefinePostProcess(mm);
-
-                EndConnection(mm);
-                End();  // Method
+                switch (mm.MethodType)
+                {
+                    case MethodType.Execute:
+                        DefineMethodExecute(mm);
+                        break;
+                    case MethodType.ExecuteScalar:
+                        DefineMethodExecuteScalar(mm);
+                        break;
+                    case MethodType.ExecuteReader:
+                        DefineMethodExecuteReader(mm);
+                        break;
+                    case MethodType.Query:
+                        if (!GeneratorHelper.IsListType(mm.EngineResultType))
+                        {
+                            DefineMethodQueryNonBuffer(mm);
+                        }
+                        else
+                        {
+                            DefineMethodQueryBuffer(mm);
+                        }
+                        break;
+                    case MethodType.QueryFirstOrDefault:
+                        DefineMethodQueryFirstOrDefault(mm);
+                        break;
+                }
             }
 
             End();  // Class
@@ -213,6 +225,12 @@ namespace DataLibrary.Generator
                         throw new AccessorException($"ReturnType is not match for MethodType.Query. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
+                case MethodType.QueryFirstOrDefault:
+                    if (!IsValidQueryFirstOrDefaultResultType(mm.EngineResultType))
+                    {
+                        throw new AccessorException($"ReturnType is not match for MethodType.QueryFirstOrDefault. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                    }
+                    break;
             }
         }
 
@@ -226,10 +244,16 @@ namespace DataLibrary.Generator
             return type != typeof(void);
         }
 
+        // TODO reader
+
         private static bool IsValidQueryResultType(Type type)
         {
-            return type != typeof(string) &&
-                   type.GetInterfaces().Prepend(type).Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            return GeneratorHelper.IsEnumerableType(type) || GeneratorHelper.IsListType(type);
+        }
+
+        private static bool IsValidQueryFirstOrDefaultResultType(Type type)
+        {
+            return type != typeof(void);
         }
 
         //--------------------------------------------------------------------------------
@@ -398,7 +422,254 @@ namespace DataLibrary.Generator
         }
 
         //--------------------------------------------------------------------------------
-        // Method
+        // Execute
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodExecute(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            BeginConnectionSimple(mm);
+
+            // PreProcess
+            DefinePreProcess(mm);
+
+            DefineConnectionOpen(mm);
+
+            // Body
+            Indent();
+
+            if (mm.EngineResultType != typeof(void))
+            {
+                Append($"var {ResultVar} = ");
+            }
+
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
+            if (mm.IsAsync)
+            {
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+                Append($"await {EngineFieldRef}.ExecuteAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false);");
+            }
+            else
+            {
+                Append($"{EngineFieldRef}.Execute({commandOption}{CommandVar});");
+            }
+
+            NewLine();
+
+            // PostProcess
+            DefinePostProcess(mm);
+
+            EndConnectionSimple(mm);
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // ExecuteScalar
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodExecuteScalar(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            BeginConnectionSimple(mm);
+
+            // PreProcess
+            DefinePreProcess(mm);
+
+            DefineConnectionOpen(mm);
+
+            // Body
+            Indent();
+            Append($"var {ResultVar} = ");
+
+            if (mm.EngineResultType != typeof(object))
+            {
+                Append($"{ConvertHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
+                NewLine();
+                indent++;
+                Indent();
+            }
+
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
+            if (mm.IsAsync)
+            {
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+                Append($"await {EngineFieldRef}.ExecuteScalarAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false)");
+            }
+            else
+            {
+                Append($"{EngineFieldRef}.ExecuteScalar({commandOption}{CommandVar})");
+            }
+
+            if (mm.EngineResultType != typeof(object))
+            {
+                Append(",");
+                NewLine();
+                Indent();
+                Append($"{GetConvertFieldNameRef(mm.No)});");
+                indent--;
+            }
+            else
+            {
+                Append(";");
+            }
+
+            NewLine();
+
+            // PostProcess
+            DefinePostProcess(mm);
+
+            EndConnectionSimple(mm);
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // ExecuteReader
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodExecuteReader(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            // TODO
+            BeginConnectionSimple(mm);
+            DefinePreProcess(mm);
+            DefineConnectionOpen(mm);
+
+            // TODO
+
+            DefinePostProcess(mm);
+
+            // TODO
+            // dummy
+            if (mm.MethodInfo.ReturnType != typeof(void))
+            {
+                AppendLine("return default;");
+            }
+
+            indent--;
+            AppendLine("}");
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // QueryNonBuffer
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodQueryNonBuffer(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            // TODO
+            BeginConnectionSimple(mm);
+            DefinePreProcess(mm);
+            DefineConnectionOpen(mm);
+
+            // TODO
+
+            DefinePostProcess(mm);
+
+            // TODO
+            // dummy
+            if (mm.MethodInfo.ReturnType != typeof(void))
+            {
+                AppendLine("return default;");
+            }
+
+            indent--;
+            AppendLine("}");
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // QueryBuffer
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodQueryBuffer(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            BeginConnectionSimple(mm);
+
+            // PreProcess
+            DefinePreProcess(mm);
+
+            DefineConnectionOpen(mm);
+
+            // Body
+            Indent();
+            Append($"var {ResultVar} = ");
+
+            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetElementType(mm.EngineResultType));
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
+            if (mm.IsAsync)
+            {
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+                Append($"await {EngineFieldRef}.QueryBufferAsync<{resultType}>({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false);");
+            }
+            else
+            {
+                Append($"{EngineFieldRef}.QueryBuffer<{resultType}>({commandOption}{CommandVar});");
+            }
+
+            NewLine();
+
+            // PostProcess
+            DefinePostProcess(mm);
+
+            EndConnectionSimple(mm);
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // Query
+        //--------------------------------------------------------------------------------
+
+        private void DefineMethodQueryFirstOrDefault(MethodMetadata mm)
+        {
+            BeginMethod(mm);
+
+            BeginConnectionSimple(mm);
+
+            // PreProcess
+            DefinePreProcess(mm);
+
+            DefineConnectionOpen(mm);
+
+            // Body
+            Indent();
+            Append($"var {ResultVar} = ");
+
+            var resultType = GeneratorHelper.MakeGlobalName(mm.EngineResultType);
+            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
+            if (mm.IsAsync)
+            {
+                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
+                Append($"await {EngineFieldRef}.QueryFirstOrDefaultAsync<{resultType}>({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false);");
+            }
+            else
+            {
+                Append($"{EngineFieldRef}.QueryFirstOrDefault<{resultType}>({commandOption}{CommandVar});");
+            }
+
+            NewLine();
+
+            // PostProcess
+            DefinePostProcess(mm);
+
+            EndConnectionSimple(mm);
+
+            End();
+        }
+
+        //--------------------------------------------------------------------------------
+        // Helper
         //--------------------------------------------------------------------------------
 
         private void BeginMethod(MethodMetadata mm)
@@ -445,37 +716,40 @@ namespace DataLibrary.Generator
             indent++;
         }
 
-        //--------------------------------------------------------------------------------
-        // Connection
-        //--------------------------------------------------------------------------------
-
-        private void BeginConnection(MethodMetadata mm)
+        private void BeginConnectionSimple(MethodMetadata mm)
         {
-            switch (mm.MethodType)
+            if (!mm.HasConnectionParameter)
             {
-                case MethodType.Execute:
-                case MethodType.ExecuteScalar:
-                case MethodType.QueryFirstOrDefault:
-                    BeginConnectionSimple(mm);
-                    break;
-                case MethodType.ExecuteReader:
-                    if (mm.ConnectionParameter == null)
-                    {
-                        // TODO
-                        BeginConnectionSimple(mm);
-                    }
-                    else
-                    {
-                        // TODO
-                        BeginConnectionSimple(mm);
-                    }
-                    break;
-                case MethodType.Query:
-                    // TODO buffer / non buffer
-                    BeginConnectionSimple(mm);
-                    break;
+                AppendLine($"using (var {ConnectionVar} = {ProviderFieldRef}.CreateConnection())");
             }
 
+            AppendLine($"using (var {CommandVar} = {GetConnectionName(mm)}.CreateCommand())");
+            AppendLine("{");
+            indent++;
+
+            DefineCommandOption(mm);
+        }
+
+        private void EndConnectionSimple(MethodMetadata mm)
+        {
+            if (mm.EngineResultType != typeof(void))
+            {
+                NewLine();
+                AppendLine($"return {ResultVar};");
+            }
+
+            indent--;
+            AppendLine("}");
+        }
+
+        // TODO *
+
+        // TODO *
+
+        // TODO *
+
+        private void DefineCommandOption(MethodMetadata mm)
+        {
             if (mm.CommandType != CommandType.Text)
             {
                 AppendLine($"{CommandVar}.CommandType = {mm.CommandType}");
@@ -491,92 +765,7 @@ namespace DataLibrary.Generator
             }
         }
 
-        private void EndConnection(MethodMetadata mm)
-        {
-            switch (mm.MethodType)
-            {
-                case MethodType.Execute:
-                case MethodType.ExecuteScalar:
-                case MethodType.QueryFirstOrDefault:
-                    // TODO
-                    EndConnectionSimple(mm);
-                    break;
-                default:
-                    // TODO
-                    // dummy
-                    if (mm.MethodInfo.ReturnType != typeof(void))
-                    {
-                        AppendLine("return default;");
-                    }
-
-                    indent--;
-                    AppendLine("}");
-                    break;
-            }
-        }
-
-        // Simple
-
-        private void BeginConnectionSimple(MethodMetadata mm)
-        {
-            if (!mm.HasConnectionParameter)
-            {
-                AppendLine($"using (var {ConnectionVar} = {ProviderFieldRef}.CreateConnection())");
-            }
-
-            AppendLine($"using (var {CommandVar} = {GetConnectionName(mm)}.CreateCommand())");
-            AppendLine("{");
-            indent++;
-        }
-
-        private void EndConnectionSimple(MethodMetadata mm)
-        {
-            if (mm.EngineResultType != typeof(void))
-            {
-                NewLine();
-                AppendLine($"return {ResultVar};");
-            }
-
-            indent--;
-            AppendLine("}");
-        }
-
-        // TODO open, close ConnectionVar,CommandVar
-
-        //--------------------------------------------------------------------------------
-        // PreProcess/PostProcess
-        //--------------------------------------------------------------------------------
-
-        private void DefinePreProcess(MethodMetadata mm)
-        {
-            // TODO
-            // dummy
-            foreach (var pi in mm.MethodInfo.GetParameters())
-            {
-                if (pi.IsOut)
-                {
-                    AppendLine($"{pi.Name} = default;");
-                }
-            }
-
-        }
-
-        private void DefinePostProcess(MethodMetadata mm)
-        {
-            // TODO
-        }
-
-        //--------------------------------------------------------------------------------
-        // Block
-        //--------------------------------------------------------------------------------
-
-        // TODO
-
-        //--------------------------------------------------------------------------------
-        // Call
-        //--------------------------------------------------------------------------------
-
-        private void DefineCall(MethodMetadata mm)
+        private void DefineConnectionOpen(MethodMetadata mm)
         {
             if (!mm.HasConnectionParameter)
             {
@@ -592,95 +781,24 @@ namespace DataLibrary.Generator
 
                 NewLine();
             }
+        }
 
-            switch (mm.MethodType)
+        private void DefinePreProcess(MethodMetadata mm)
+        {
+            // TODO
+            // dummy
+            foreach (var pi in mm.MethodInfo.GetParameters())
             {
-                case MethodType.Execute:
-                    DefineCallExecute(mm);
-                    break;
-                case MethodType.ExecuteScalar:
-                    DefineCallExecuteScalar(mm);
-                    break;
-                case MethodType.ExecuteReader:
-                    // TODO
-                    break;
-                case MethodType.Query:
-                    // TODO
-                    break;
-                case MethodType.QueryFirstOrDefault:
-                    DefineCallQueryFirstOrDefault(mm);
-                    break;
+                if (pi.IsOut)
+                {
+                    AppendLine($"{pi.Name} = default;");
+                }
             }
         }
 
-        private void DefineCallExecute(MethodMetadata mm)
+        private void DefinePostProcess(MethodMetadata mm)
         {
-            Indent();
-
-            if (mm.EngineResultType != typeof(void))
-            {
-                Append($"var {ResultVar} = ");
-            }
-
-            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
-            if (mm.IsAsync)
-            {
-                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
-                Append($"await {EngineFieldRef}.ExecuteAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false);");
-            }
-            else
-            {
-                Append($"{EngineFieldRef}.Execute({commandOption}{CommandVar});");
-            }
-
-            NewLine();
-        }
-
-        private void DefineCallExecuteScalar(MethodMetadata mm)
-        {
-            Indent();
-            Append($"var {ResultVar} = ");
-
-            if (mm.EngineResultType != typeof(object))
-            {
-                Append($"{ConvertHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
-                NewLine();
-                indent++;
-                Indent();
-            }
-
-            var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
-            if (mm.IsAsync)
-            {
-                var cancelOption = mm.CancelParameter != null ? $", {mm.CancelParameter.Name}" : string.Empty;
-                Append($"await {EngineFieldRef}.ExecuteScalarAsync({commandOption}{CommandVar}{cancelOption}).ConfigureAwait(false)");
-            }
-            else
-            {
-                Append($"{EngineFieldRef}.ExecuteScalar({commandOption}{CommandVar})");
-            }
-
-            if (mm.EngineResultType != typeof(object))
-            {
-                Append(",");
-                NewLine();
-                Indent();
-                Append($"{GetConvertFieldNameRef(mm.No)});");
-                indent--;
-            }
-            else
-            {
-                Append(";");
-            }
-
-            NewLine();
-        }
-
-        private void DefineCallQueryFirstOrDefault(MethodMetadata mm)
-        {
-            // TODO async, con/tx
-            var resultType = GeneratorHelper.MakeGlobalName(mm.EngineResultType);
-            AppendLine($"var {ResultVar} = {EngineFieldRef}.QueryFirstOrDefault<{resultType}>({CommandVar});");
+            // TODO
         }
     }
 }
