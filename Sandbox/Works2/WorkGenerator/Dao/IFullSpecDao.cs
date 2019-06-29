@@ -1,4 +1,5 @@
 ﻿using System;
+using DataLibrary.Providers;
 
 namespace WorkGenerator.Dao
 {
@@ -20,6 +21,7 @@ namespace WorkGenerator.Dao
         }
     }
 
+    [NamedProvider("")]
     [Dao]
     public interface IFullSpecDao
     {

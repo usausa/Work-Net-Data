@@ -43,6 +43,10 @@
 
         public ParameterInfo TransactionParameter { get; }
 
+        // Helper
+
+        public bool HasConnectionParameter => ConnectionParameter != null || TransactionParameter != null;
+
         public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<IBlock> blocks)
         {
             No = no;
@@ -65,11 +69,6 @@
             {
                 if (pi.GetCustomAttribute<TimeoutParameterAttribute>() != null)
                 {
-                    if ((pi.ParameterType != typeof(int)) && (pi.ParameterType != typeof(int?)))
-                    {
-                        throw new AccessorException($"Timeout parameter type must be int. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}], parameter=[{pi.Name}]");
-                    }
-
                     TimeoutParameter = pi;
                 }
 

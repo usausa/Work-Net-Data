@@ -20,6 +20,9 @@ namespace WorkGenerator
             // TODO config by mock
             var config = new ExecuteEngineConfig();
             config.Components.Add<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(Connections.Memory)));
+            var selector = new NamedDbProviderSelector();
+            selector.AddProvider(string.Empty, new DelegateDbProvider(() => new SqliteConnection(Connections.Memory)));
+            config.Components.Add(selector);
 
             var engine = config.ToEngine();
 
@@ -60,11 +63,6 @@ namespace WorkGenerator
         {
             Debug.WriteLine("================================================================================");
             Debug.WriteLine($"TargetType=[{source.TargetType}] : Result=[{success}]");
-            Debug.WriteLine("================================================================================");
-            foreach (var reference in source.References)
-            {
-                Debug.WriteLine(reference.FullName);
-            }
             Debug.WriteLine("================================================================================");
             Debug.Write(source.Code);
             Debug.WriteLine("================================================================================");

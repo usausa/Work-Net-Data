@@ -11,14 +11,11 @@
 
         public string Code { get; }
 
-        public Assembly[] References { get; }
-
-        public DaoSource(Type targetType, string implementFullName, string code, Assembly[] references)
+        public DaoSource(Type targetType, string implementFullName, string code)
         {
             TargetType = targetType;
             ImplementTypeFullName = implementFullName;
             Code = code;
-            References = references;
         }
     }
 }

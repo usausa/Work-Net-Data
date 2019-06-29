@@ -98,23 +98,6 @@
 
                 var blocks = attribute.GetBlocks(loader, method);
                 var methodMetadata = new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, blocks);
-
-                switch (methodMetadata.MethodType)
-                {
-                    case MethodType.Execute:
-                        if (!IsValidExecuteResultType(methodMetadata.EngineResultType))
-                        {
-                            throw new AccessorException($"ReturnType is not match for MethodType.Execute. type=[{type.FullName}], method=[{method.Name}], returnType=[{method.ReturnType}]");
-                        }
-                        break;
-                    case MethodType.Query:
-                        if (!IsValidQueryResultType(methodMetadata.EngineResultType))
-                        {
-                            throw new AccessorException($"ReturnType is not match for MethodType.Query. type=[{type.FullName}], method=[{method.Name}], returnType=[{method.ReturnType}]");
-                        }
-                        break;
-                }
-
                 builder.AddMethod(methodMetadata);
 
                 no++;
@@ -123,26 +106,12 @@
             return Build(builder.Build());
         }
 
-        private static bool IsValidExecuteResultType(Type type)
-        {
-            return type == typeof(int) || type == typeof(void);
-        }
-
-        private static bool IsValidQueryResultType(Type type)
-        {
-            return type != typeof(string) &&
-                   type.GetInterfaces().Prepend(type).Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-        }
-
         private object Build(DaoSource source)
         {
             var syntax = CSharpSyntaxTree.ParseText(source.Code);
 
             var references = new HashSet<Assembly>(DefaultReference);
-            foreach (var assembly in source.References)
-            {
-                AddReference(references, assembly);
-            }
+            AddReference(references, source.TargetType.Assembly);
 
             var metadataReferences = references
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
