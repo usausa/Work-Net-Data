@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkGenerated", "WorkGenera
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkGenerator", "WorkGenerator\WorkGenerator.csproj", "{E8B45231-AFD2-4B88-8E32-4DA5D9C14D86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkGenerator.Tests", "WorkGenerator.Tests\WorkGenerator.Tests.csproj", "{FBC47949-8072-4DE4-A173-1768940A02FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkGenerator.Tests", "WorkGenerator.Tests\WorkGenerator.Tests.csproj", "{FBC47949-8072-4DE4-A173-1768940A02FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

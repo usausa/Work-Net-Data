@@ -19,7 +19,6 @@ namespace WorkGenerator
         {
             //ListReference(new HashSet<Assembly>(), typeof(ExecuteEngine).Assembly);
 
-            // TODO config by mock
             var config = new ExecuteEngineConfig();
             config.Components.Add<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(Connections.Memory)));
             var selector = new NamedDbProviderSelector();
@@ -28,7 +27,6 @@ namespace WorkGenerator
 
             var engine = config.ToEngine();
 
-            // TODO Loader
             var generator = new DaoGenerator(new DummyLoader(), engine, new Debugger());
 
             //var dao = generator.Create<ISimpleExecuteDao>();

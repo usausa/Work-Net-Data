@@ -12,21 +12,10 @@ using DataLibrary.Providers;
 
 namespace WorkGenerated
 {
-    // MEMO コネクションが引数の場合はOpenしていることが条件
-    // MEMO DbConnectionならキャストなし
-    // MEMO DbTransactionが引数ならコマンドに設定
-    // MEMO DbTransactionのみの場合はそこからコマンドを作成
-    // MEMO Asyncメソッドを作れるのはDbConnectionが引数の時だけ？
-
-    // MEMO post処理、outがある場合のみ、なければ呼び出しも省略形！
-
-    // MEMO cmdの設定、tx(opt)、type(opt)、text、timeout(opt)、and parameters
-
     public class SampleDao
     {
         private readonly ExecuteEngine engine;
 
-        // TODO(cast?)
         private readonly IDbProvider provider;
 
         // ReSharper disable InconsistentNaming
@@ -788,10 +777,8 @@ namespace WorkGenerated
 
                 // param1
                 setup27_1(_cmd, engine.GetParameterName(_nameIndex++), param1);
-
                 // param2
                 _outParam2 = setup27_2(_cmd, engine.GetParameterName(_nameIndex++), param2);
-
                 // param3
                 _outParam3 = setup27_3(_cmd, engine.GetParameterName(_nameIndex++));
 
