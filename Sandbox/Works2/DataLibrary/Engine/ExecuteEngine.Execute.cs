@@ -195,15 +195,25 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DbDataReader ExecuteReader(DbCommand cmd, bool withClose)
+        public DbDataReader ExecuteReader(DbConnection con, bool wasClosed, DbCommand cmd)
         {
-            return cmd.ExecuteReader(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable);
+            if (wasClosed)
+            {
+                con.Open();
+            }
+
+            return cmd.ExecuteReader(wasClosed ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd, bool withClose, CancellationToken cancel)
+        public async Task<DbDataReader> ExecuteReaderAsync(DbConnection con, bool wasClosed, DbCommand cmd, CancellationToken cancel)
         {
-            return cmd.ExecuteReaderAsync(withClose ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable, cancel);
+            if (wasClosed)
+            {
+                await con.OpenAsync(cancel).ConfigureAwait(false);
+            }
+
+            return await cmd.ExecuteReaderAsync(wasClosed ? CommandBehaviorForEnumerableWithClose : CommandBehaviorForEnumerable, cancel);
         }
 
         //--------------------------------------------------------------------------------

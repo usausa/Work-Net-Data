@@ -334,12 +334,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data";
 
                 // Execute
-                if (wasClosed)
-                {
-                    con.Open();
-                }
-
-                reader = engine.ExecuteReader(cmd, wasClosed);
+                reader = engine.ExecuteReader(con, wasClosed, cmd);
                 wasClosed = false;
 
                 // Post action
@@ -375,12 +370,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data";
 
                 // Execute
-                if (wasClosed)
-                {
-                    await con.OpenAsync(cancel).ConfigureAwait(false);
-                }
-
-                reader = await engine.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(con, wasClosed, cmd, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action
@@ -478,12 +468,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT * FROM Data";
 
                 // Execute
-                if (wasClosed)
-                {
-                    con.Open();
-                }
-
-                reader = engine.ExecuteReader(cmd, wasClosed);
+                reader = engine.ExecuteReader(con, wasClosed, cmd);
                 wasClosed = false;
 
                 // Post action
@@ -523,7 +508,7 @@ namespace WorkGenerated
                     await con.OpenAsync(cancel).ConfigureAwait(false);
                 }
 
-                reader = await engine.ExecuteReaderAsync(cmd, wasClosed, cancel).ConfigureAwait(false);
+                reader = await engine.ExecuteReaderAsync(con, wasClosed, cmd, cancel).ConfigureAwait(false);
                 wasClosed = false;
 
                 // Post action

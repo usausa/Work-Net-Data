@@ -10,6 +10,13 @@
 
     public static class RuntimeHelper
     {
+        public static MethodInfo GetInterfaceMethodByNo(Type type, Type interfaceType, int no)
+        {
+            var implementMethod = type.GetMethods().First(x => x.GetCustomAttribute<MethodNoAttribute>().No == no);
+            var parameterTypes = implementMethod.GetParameters().Select(x => x.ParameterType).ToArray();
+            return interfaceType.GetMethod(implementMethod.Name, parameterTypes);
+        }
+
         public static IDbProvider GetDbProvider(ExecuteEngine engine, Type interfaceType)
         {
             var attribute = interfaceType.GetCustomAttribute<ProviderAttribute>();
@@ -17,11 +24,11 @@
             return selector.Select(attribute.Parameter);
         }
 
-        public static MethodInfo GetInterfaceMethodByNo(Type type, Type interfaceType, int no)
+        public static IDbProvider GetDbProvider(ExecuteEngine engine, MethodInfo method)
         {
-            var implementMethod = type.GetMethods().First(x => x.GetCustomAttribute<MethodNoAttribute>().No == no);
-            var parameterTypes = implementMethod.GetParameters().Select(x => x.ParameterType).ToArray();
-            return interfaceType.GetMethod(implementMethod.Name, parameterTypes);
+            var attribute = method.GetCustomAttribute<ProviderAttribute>();
+            var selector = (IDbProviderSelector)engine.Components.Get(attribute.SelectorType);
+            return selector.Select(attribute.Parameter);
         }
     }
 }
