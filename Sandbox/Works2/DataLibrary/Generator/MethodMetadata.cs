@@ -9,7 +9,7 @@
     using System.Threading;
 
     using DataLibrary.Attributes;
-    using DataLibrary.Blocks;
+    using DataLibrary.Fragments;
 
     internal sealed class MethodMetadata
     {
@@ -21,7 +21,7 @@
 
         public MethodType MethodType { get; }
 
-        public IReadOnlyList<IBlock> Blocks { get; }
+        public IReadOnlyList<IFragment> Fragments { get; }
 
         public bool IsAsync { get; }
 
@@ -47,13 +47,13 @@
 
         public bool HasConnectionParameter => ConnectionParameter != null || TransactionParameter != null;
 
-        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<IBlock> blocks)
+        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<IFragment> fragments)
         {
             No = no;
             MethodInfo = mi;
             CommandType = commandType;
             MethodType = memberType;
-            Blocks = blocks;
+            Fragments = fragments;
 
             IsAsync = mi.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
             EngineResultType = IsAsync

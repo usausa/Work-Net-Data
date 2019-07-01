@@ -4,7 +4,7 @@
     using System.Data;
     using System.Reflection;
 
-    using DataLibrary.Blocks;
+    using DataLibrary.Fragments;
     using DataLibrary.Loader;
     using DataLibrary.Parser;
     using DataLibrary.Tokenizer;
@@ -16,7 +16,7 @@
         {
         }
 
-        public override IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<IFragment> GetFragments(ISqlLoader loader, MethodInfo mi)
         {
             var sql = loader.Load(mi);
             var tokenizer = new SqlTokenizer(sql);

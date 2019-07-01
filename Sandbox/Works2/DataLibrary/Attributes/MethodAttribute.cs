@@ -5,9 +5,8 @@
     using System.Collections.Generic;
     using System.Reflection;
 
-    using DataLibrary.Blocks;
+    using DataLibrary.Fragments;
     using DataLibrary.Loader;
-    using DataLibrary.Parser;
 
     [AttributeUsage(AttributeTargets.Method)]
     public abstract class MethodAttribute : Attribute
@@ -22,6 +21,6 @@
             MethodType = methodType;
         }
 
-        public abstract IReadOnlyList<IBlock> GetBlocks(ISqlLoader loader, MethodInfo mi);
+        public abstract IReadOnlyList<IFragment> GetFragments(ISqlLoader loader, MethodInfo mi);
     }
 }

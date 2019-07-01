@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DataLibrary.Blocks;
+using DataLibrary.Fragments;
 using DataLibrary.Parser;
 using DataLibrary.Tokenizer;
 
@@ -47,7 +47,7 @@ namespace WorkParser
     }
 
     // TODO inner class & share context ?
-    public class BlockContext : IBlockContext
+    public class BlockContext : IFragmentContext
     {
         public bool IsDynamicParameter(string name)
         {
@@ -55,7 +55,7 @@ namespace WorkParser
         }
     }
 
-    public class StaticCodeBuilder : ICodeBuilder
+    public class StaticCodeBuilder : IFragmentCodeBuilder
     {
         private readonly StringBuilder sql = new StringBuilder();
 
@@ -80,7 +80,7 @@ namespace WorkParser
         // TODO Flush
     }
 
-    public class DynamicCodeBuilder : ICodeBuilder
+    public class DynamicCodeBuilder : IFragmentCodeBuilder
     {
         private readonly List<string> helpers = new List<string>();
 

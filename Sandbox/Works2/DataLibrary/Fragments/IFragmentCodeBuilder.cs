@@ -1,6 +1,6 @@
-﻿namespace DataLibrary.Blocks
+﻿namespace DataLibrary.Fragments
 {
-    public interface ICodeBuilder
+    public interface IFragmentCodeBuilder
     {
         void AddHelper(string value);
 
