@@ -71,7 +71,7 @@
                 dao = cache.AddIfNotExist(type, CreateInternal);
                 if (dao == null)
                 {
-                    throw new AccessorException($"Dao generate failed. type=[{type.FullName}]");
+                    throw new AccessorGeneratorException($"Dao generate failed. type=[{type.FullName}]");
                 }
             }
 
@@ -82,7 +82,7 @@
         {
             if (type.GetCustomAttribute<DaoAttribute>() is null)
             {
-                throw new AccessorException($"Type is not supported for generation. type=[{type.FullName}]");
+                throw new AccessorGeneratorException($"Type is not supported for generation. type=[{type.FullName}]");
             }
 
             var builder = new DaoSourceBuilder(type);
@@ -93,7 +93,7 @@
                 var attribute = method.GetCustomAttribute<MethodAttribute>(true);
                 if (attribute == null)
                 {
-                    throw new AccessorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
+                    throw new AccessorGeneratorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
                 }
 
                 var blocks = attribute.GetBlocks(loader, method);

@@ -3,7 +3,7 @@
     using System;
 
     [Serializable]
-    public sealed class SqlTokenizerException : AccessorException
+    public class SqlTokenizerException : Exception
     {
         public SqlTokenizerException()
         {

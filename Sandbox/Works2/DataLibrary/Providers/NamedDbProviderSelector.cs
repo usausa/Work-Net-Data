@@ -19,7 +19,7 @@
                 return provider;
             }
 
-            throw new AccessorException($"Provider is not found. name=[{key}]");
+            throw new AccessorRuntimeException($"Provider is not found. name=[{key}]");
         }
     }
 }

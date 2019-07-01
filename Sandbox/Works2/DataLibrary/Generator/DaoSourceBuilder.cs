@@ -211,7 +211,7 @@ namespace DataLibrary.Generator
             {
                 if (mm.TimeoutParameter.ParameterType != typeof(int))
                 {
-                    throw new AccessorException($"Timeout parameter type must be int. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{mm.TimeoutParameter.Name}]");
+                    throw new AccessorGeneratorException($"Timeout parameter type must be int. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{mm.TimeoutParameter.Name}]");
                 }
             }
 
@@ -220,31 +220,31 @@ namespace DataLibrary.Generator
                 case MethodType.Execute:
                     if (!IsValidExecuteResultType(mm.EngineResultType))
                     {
-                        throw new AccessorException($"ReturnType is not match for MethodType.Execute. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                        throw new AccessorGeneratorException($"ReturnType is not match for MethodType.Execute. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
                 case MethodType.ExecuteScalar:
                     if (!IsValidExecuteScalarResultType(mm.EngineResultType))
                     {
-                        throw new AccessorException($"ReturnType is not match for MethodType.ExecuteScalar. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                        throw new AccessorGeneratorException($"ReturnType is not match for MethodType.ExecuteScalar. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
                 case MethodType.ExecuteReader:
                     if (!IsValidExecuteReaderResultType(mm.EngineResultType))
                     {
-                        throw new AccessorException($"ReturnType is not match for MethodType.ExecuteReader. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                        throw new AccessorGeneratorException($"ReturnType is not match for MethodType.ExecuteReader. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
                 case MethodType.Query:
                     if (!IsValidQueryResultType(mm.EngineResultType))
                     {
-                        throw new AccessorException($"ReturnType is not match for MethodType.Query. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                        throw new AccessorGeneratorException($"ReturnType is not match for MethodType.Query. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
                 case MethodType.QueryFirstOrDefault:
                     if (!IsValidQueryFirstOrDefaultResultType(mm.EngineResultType))
                     {
-                        throw new AccessorException($"ReturnType is not match for MethodType.QueryFirstOrDefault. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
+                        throw new AccessorGeneratorException($"ReturnType is not match for MethodType.QueryFirstOrDefault. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
                     break;
             }
@@ -389,7 +389,7 @@ namespace DataLibrary.Generator
                 {
                     if (!typeof(IDbProviderSelector).IsAssignableFrom(provider.SelectorType))
                     {
-                        throw new AccessorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}]");
+                        throw new AccessorGeneratorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}]");
                     }
 
                     AppendLine($"{ProviderFieldRef} = {RuntimeHelperType}.GetDbProvider({CtorArg}, typeof({interfaceFullName}));");
@@ -417,7 +417,7 @@ namespace DataLibrary.Generator
                     {
                         if (!typeof(IDbProviderSelector).IsAssignableFrom(mm.Provider.SelectorType))
                         {
-                            throw new AccessorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}]");
+                            throw new AccessorGeneratorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}]");
                         }
 
                         AppendLine($"{GetProviderFieldNameRef(mm.No)} = {RuntimeHelperType}.GetDbProvider({CtorArg}, method{mm.No});");

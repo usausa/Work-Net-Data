@@ -63,7 +63,7 @@
                 }
             }
 
-            throw new AccessorException($"Result type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Result type is not supported. type=[{type.FullName}]");
         }
 
         //--------------------------------------------------------------------------------

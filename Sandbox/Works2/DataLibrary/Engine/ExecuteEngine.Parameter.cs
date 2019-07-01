@@ -39,7 +39,7 @@
                 return CreateInParameterSetupByDbType(type, dbType);
             }
 
-            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         private static Action<DbCommand, string, object> CreateInParameterSetupByAction(Type type, Action<IDbDataParameter, object> action)
@@ -129,7 +129,7 @@
                 return CreateInOutParameterSetupByDbType(type, dbType);
             }
 
-            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         private static Func<DbCommand, string, object, DbParameter> CreateInOutParameterSetupByAction(Type type, Action<IDbDataParameter, object> action)
@@ -242,7 +242,7 @@
                 return CreateArrayParameterSetupByDbType<T>(dbType);
             }
 
-            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         public Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
@@ -420,7 +420,7 @@
                 return CreateListParameterSetupByDbType<T>(dbType);
             }
 
-            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
@@ -598,7 +598,7 @@
                 return CreateEnumerableParameterSetupByDbType<T>(dbType);
             }
 
-            throw new AccessorException($"Parameter type is not supported. type=[{type.FullName}]");
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
