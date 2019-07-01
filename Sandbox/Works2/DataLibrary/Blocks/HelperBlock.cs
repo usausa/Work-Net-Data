@@ -1,16 +1,16 @@
 ﻿namespace DataLibrary.Blocks
 {
-    public sealed class SqlBlock : IBlock
+    public sealed class HelperBlock : IBlock
     {
         private readonly string value;
 
-        public SqlBlock(string value)
+        public HelperBlock(string value)
         {
             this.value = value;
         }
 
         public bool IsDynamic(IBlockContext context) => false;
 
-        public void Build(ICodeBuilder builder) => builder.AddSql(value);
+        public void Build(ICodeBuilder builder) => builder.AddHelper(value);
     }
 }

@@ -44,12 +44,7 @@
         {
             if (value.StartsWith("!"))
             {
-                blocks.Add(new ImportBlock(value.Substring(1).Trim(), false));
-            }
-
-            if (value.StartsWith("$"))
-            {
-                blocks.Add(new ImportBlock(value.Substring(1).Trim(), true));
+                blocks.Add(new HelperBlock(value.Substring(1).Trim()));
             }
 
             if (value.StartsWith("%"))

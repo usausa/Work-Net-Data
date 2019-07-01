@@ -4,13 +4,13 @@
     {
         private readonly string value;
 
-        public bool IsDynamic => true;
-
         public RawSqlBlock(string value)
         {
             this.value = value;
         }
 
-        public void Process(IBlockContext context) => context.AddRawSql(value);
+        public bool IsDynamic(IBlockContext context) => true;
+
+        public void Build(ICodeBuilder builder) => builder.AddRawSql(value);
     }
 }

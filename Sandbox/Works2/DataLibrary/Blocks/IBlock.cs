@@ -1,9 +1,11 @@
 ﻿namespace DataLibrary.Blocks
 {
+    using System.Reflection;
+
     public interface IBlock
     {
-        bool IsDynamic { get; }
+        bool IsDynamic(IBlockContext context);
 
-        void Process(IBlockContext context);
+        void Build(ICodeBuilder builder);
     }
 }

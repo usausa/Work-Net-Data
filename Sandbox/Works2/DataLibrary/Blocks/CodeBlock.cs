@@ -4,13 +4,13 @@
     {
         private readonly string value;
 
-        public bool IsDynamic => true;
-
         public CodeBlock(string value)
         {
             this.value = value;
         }
 
-        public void Process(IBlockContext context) => context.AddCode(value);
+        public bool IsDynamic(IBlockContext context) => true;
+
+        public void Build(ICodeBuilder builder) => builder.AddCode(value);
     }
 }
