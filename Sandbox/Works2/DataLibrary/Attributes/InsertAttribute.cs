@@ -4,8 +4,8 @@
     using System.Data;
     using System.Reflection;
 
-    using DataLibrary.Fragments;
     using DataLibrary.Loader;
+    using DataLibrary.Nodes;
 
     public sealed class InsertAttribute : MethodAttribute
     {
@@ -17,18 +17,18 @@
             this.table = table;
         }
 
-        public override IReadOnlyList<IFragment> GetFragments(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
             // TODO object(single and not simple) or parameters!
-            var fragments = new List<IFragment>();
+            var nodes = new List<INode>();
 
-            fragments.Add(new SqlFragment($"INSERT INTO {table} ("));
+            nodes.Add(new SqlNode($"INSERT INTO {table} ("));
             // TODO
-            fragments.Add(new SqlFragment(") VALUES ("));
+            nodes.Add(new SqlNode(") VALUES ("));
             // TODO
-            fragments.Add(new SqlFragment(")"));
+            nodes.Add(new SqlNode(")"));
 
-            return fragments;
+            return nodes;
         }
     }
 }

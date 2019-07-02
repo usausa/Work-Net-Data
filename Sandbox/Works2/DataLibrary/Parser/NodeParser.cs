@@ -2,34 +2,34 @@
 {
     using System.Collections.Generic;
 
-    using DataLibrary.Fragments;
     using DataLibrary.Tokenizer;
+    using DataLibrary.Nodes;
 
-    public sealed class BlockParser
+    public sealed class NodeParser
     {
         private readonly IReadOnlyList<Token> tokens;
 
-        private readonly List<IFragment> fragments = new List<IFragment>();
+        private readonly List<INode> nodes = new List<INode>();
 
-        public BlockParser(IReadOnlyList<Token> tokens)
+        public NodeParser(IReadOnlyList<Token> tokens)
         {
             this.tokens = tokens;
         }
 
-        public IReadOnlyList<IFragment> Parse()
+        public IReadOnlyList<INode> Parse()
         {
             foreach (var token in tokens)
             {
                 switch (token.TokenType)
                 {
                     case TokenType.Block:
-                        fragments.Add(new SqlFragment(token.Value.Trim() + " "));
+                        nodes.Add(new SqlNode(token.Value.Trim() + " "));
                         break;
                     case TokenType.OpenParenthesis:
-                        fragments.Add(new SqlFragment(token.Value.Trim()));
+                        nodes.Add(new SqlNode(token.Value.Trim()));
                         break;
                     case TokenType.CloseParenthesis:
-                        fragments.Add(new SqlFragment(token.Value.Trim() + " "));
+                        nodes.Add(new SqlNode(token.Value.Trim() + " "));
                         break;
                     case TokenType.Comment:
                         ParseComment(token.Value.Trim());
@@ -37,29 +37,29 @@
                 }
             }
 
-            return fragments;
+            return nodes;
         }
 
         private void ParseComment(string value)
         {
             if (value.StartsWith("!"))
             {
-                fragments.Add(new HelperBlock(value.Substring(1).Trim()));
+                nodes.Add(new HelperNode(value.Substring(1).Trim()));
             }
 
             if (value.StartsWith("%"))
             {
-                fragments.Add(new CodeBlock(value.Substring(1).Trim()));
+                nodes.Add(new CodeNode(value.Substring(1).Trim()));
             }
 
             if (value.StartsWith("#"))
             {
-                fragments.Add(new RawSqlFragment(value.Substring(1).Trim()));
+                nodes.Add(new RawSqlNode(value.Substring(1).Trim()));
             }
 
             if (value.StartsWith("@"))
             {
-                fragments.Add(new ParameterBlock(value.Substring(1).Trim()));
+                nodes.Add(new ParameterNode(value.Substring(1).Trim()));
             }
         }
     }

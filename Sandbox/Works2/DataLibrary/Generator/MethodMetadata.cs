@@ -9,7 +9,7 @@
     using System.Threading;
 
     using DataLibrary.Attributes;
-    using DataLibrary.Fragments;
+    using DataLibrary.Nodes;
 
     internal sealed class MethodMetadata
     {
@@ -21,7 +21,7 @@
 
         public MethodType MethodType { get; }
 
-        public IReadOnlyList<IFragment> Fragments { get; }
+        public IReadOnlyList<INode> Nodes { get; }
 
         public bool IsAsync { get; }
 
@@ -47,13 +47,13 @@
 
         public bool HasConnectionParameter => ConnectionParameter != null || TransactionParameter != null;
 
-        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<IFragment> fragments)
+        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<INode> nodes)
         {
             No = no;
             MethodInfo = mi;
             CommandType = commandType;
             MethodType = memberType;
-            Fragments = fragments;
+            Nodes = nodes;
 
             IsAsync = mi.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
             EngineResultType = IsAsync
@@ -87,6 +87,8 @@
                     TransactionParameter = pi;
                 }
             }
+
+            // TODO parameter
         }
     }
 }

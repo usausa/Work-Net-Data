@@ -1,12 +1,10 @@
-﻿using DataLibrary.Fragments;
-
-namespace DataLibrary.Attributes
+﻿namespace DataLibrary.Attributes
 {
     using System.Collections.Generic;
     using System.Data;
     using System.Reflection;
 
-    using DataLibrary.Fragments;
+    using DataLibrary.Nodes;
     using DataLibrary.Loader;
 
     public sealed class ProcedureAttribute : MethodAttribute
@@ -19,12 +17,12 @@ namespace DataLibrary.Attributes
             this.procedure = procedure;
         }
 
-        public override IReadOnlyList<IFragment> GetFragments(ISqlLoader loader, MethodInfo mi)
+        public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
             // TODO parameter ?
             return new[]
             {
-                new CodeBlock(procedure),
+                new CodeNode(procedure),
             };
         }
     }
