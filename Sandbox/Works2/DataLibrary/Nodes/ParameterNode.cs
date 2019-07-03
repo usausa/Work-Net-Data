@@ -2,11 +2,19 @@
 {
     public sealed class ParameterNode : INode
     {
-        public string Value { get; }
+        public string Source { get; }
 
-        public ParameterNode(string value)
+        public string ParameterName { get; }
+
+        public ParameterNode(string source)
+            : this(source, null)
         {
-            Value = value;
+        }
+
+        public ParameterNode(string source, string parameterName)
+        {
+            Source = source;
+            ParameterName = parameterName;
         }
 
         public void Visit(INodeVisitor visitor) => visitor.Visit(this);

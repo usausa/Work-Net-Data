@@ -2,11 +2,11 @@
 {
     public sealed class HelperNode : INode
     {
-        public string Value { get; }
+        public string FullName { get; }
 
-        public HelperNode(string value)
+        public HelperNode(string fullName)
         {
-            Value = value;
+            FullName = fullName;
         }
 
         public void Visit(INodeVisitor visitor) => visitor.Visit(this);

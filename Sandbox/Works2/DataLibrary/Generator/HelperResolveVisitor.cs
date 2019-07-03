@@ -14,6 +14,6 @@
             get { return helpers.OrderBy(x => x); }
         }
 
-        public override void Visit(HelperNode node) => helpers.Add(node.Value);
+        public override void Visit(HelperNode node) => helpers.Add(node.FullName);
     }
 }

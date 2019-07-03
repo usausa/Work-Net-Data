@@ -2,11 +2,11 @@
 {
     public sealed class SqlNode : INode
     {
-        public string Value { get; }
+        public string Sql { get; }
 
-        public SqlNode(string value)
+        public SqlNode(string sql)
         {
-            Value = value;
+            Sql = sql;
         }
 
         public void Visit(INodeVisitor visitor) => visitor.Visit(this);

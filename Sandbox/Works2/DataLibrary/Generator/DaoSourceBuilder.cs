@@ -311,7 +311,7 @@ namespace DataLibrary.Generator
         {
             AppendLine($"using static {typeof(ScriptHelper).Namespace}.{typeof(ScriptHelper).Name};");
 
-            var visitor = new HelperVisitor();
+            var visitor = new HelperResolveVisitor();
             foreach (var mm in methods)
             {
                 visitor.Visit(mm.Nodes);
@@ -325,17 +325,6 @@ namespace DataLibrary.Generator
             NewLine();
         }
 
-        private sealed class HelperVisitor : NodeVisitorBase
-        {
-            private readonly HashSet<string> helpers = new HashSet<string>();
-
-            public IEnumerable<string> Helpers
-            {
-                get { return helpers.OrderBy(x => x); }
-            }
-
-            public override void Visit(HelperNode node) => helpers.Add(node.Value);
-        }
 
         private void BeginClass(string className)
         {

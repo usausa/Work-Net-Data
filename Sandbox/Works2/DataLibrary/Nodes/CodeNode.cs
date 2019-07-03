@@ -2,11 +2,11 @@
 {
     public sealed class CodeNode : INode
     {
-        public string Value { get; }
+        public string Code { get; }
 
-        public CodeNode(string value)
+        public CodeNode(string code)
         {
-            Value = value;
+            Code = code;
         }
 
         public void Visit(INodeVisitor visitor) => visitor.Visit(this);
