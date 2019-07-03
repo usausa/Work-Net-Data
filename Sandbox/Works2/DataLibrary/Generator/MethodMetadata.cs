@@ -23,6 +23,8 @@
 
         public IReadOnlyList<INode> Nodes { get; }
 
+        public IReadOnlyList<ParameterEntry> Parameters { get; }
+
         public bool IsAsync { get; }
 
         public Type EngineResultType { get; }
@@ -47,13 +49,20 @@
 
         public bool HasConnectionParameter => ConnectionParameter != null || TransactionParameter != null;
 
-        public MethodMetadata(int no, MethodInfo mi, CommandType commandType, MethodType memberType, IReadOnlyList<INode> nodes)
+        public MethodMetadata(
+            int no,
+            MethodInfo mi,
+            CommandType commandType,
+            MethodType memberType,
+            IReadOnlyList<INode> nodes,
+            IReadOnlyList<ParameterEntry> parameters)
         {
             No = no;
             MethodInfo = mi;
             CommandType = commandType;
             MethodType = memberType;
             Nodes = nodes;
+            Parameters = parameters;
 
             IsAsync = mi.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
             EngineResultType = IsAsync
@@ -87,8 +96,6 @@
                     TransactionParameter = pi;
                 }
             }
-
-            // TODO parameter
         }
     }
 }

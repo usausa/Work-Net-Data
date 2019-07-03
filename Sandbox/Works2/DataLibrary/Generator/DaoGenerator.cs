@@ -96,8 +96,10 @@
                     throw new AccessorGeneratorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
                 }
 
-                var fragments = attribute.GetNodes(loader, method);
-                var methodMetadata = new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, fragments);
+                var nodes = attribute.GetNodes(loader, method);
+                var visitor = new ParameterResolveVisitor();
+                visitor.Visit(nodes);
+                var methodMetadata = new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, nodes, visitor.Entries);
                 builder.AddMethod(methodMetadata);
 
                 no++;

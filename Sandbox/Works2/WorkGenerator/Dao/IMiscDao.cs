@@ -22,10 +22,10 @@ namespace WorkGenerator.Dao
         [Insert("Data")]
         void Insert(DataEntity entity);
 
-        [Procedure("PROC1")]
-        void Call1(Parameter parameter);
+        //[Procedure("PROC1")]
+        //void Call1(Parameter parameter);
 
-        [Procedure("PROC2")]
-        int Call2(int param1, ref int param2, out int param3);
+        //[Procedure("PROC2")]
+        //int Call2(int param1, ref int param2, out int param3);
     }
 }
