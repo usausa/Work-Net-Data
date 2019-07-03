@@ -23,6 +23,8 @@ namespace DataLibrary.Generator
         private const string ProviderField = "_provider";
         private const string ProviderFieldRef = "this." + ProviderField;
         private const string ConvertField = "_convert";
+        private const string NameField = "_name";
+        private const string SetupField = "_setup";
 
         private const string ConnectionVar = "_con";
         private const string CommandVar = "_cmd";
@@ -160,6 +162,10 @@ namespace DataLibrary.Generator
         public string GetConvertFieldName(int no) => ConvertField + no;
 
         public string GetConvertFieldNameRef(int no) => "this." + GetConvertFieldName(no);
+
+        //public string GetNameFieldName(int no, int index) =>
+
+        //public string GetNameFieldNameRef(int no, int index) => "this." + GetNameFieldName(no, index);
 
         // TODO
 
@@ -355,27 +361,31 @@ namespace DataLibrary.Generator
             // Per method
             foreach (var mm in methods)
             {
-                var hasProvider = mm.Provider != null;
-                var hasConverter = (mm.MethodType == MethodType.ExecuteScalar) &&
-                                   (mm.EngineResultType != typeof(object));
+                var previous = source.Length;
+
+                if (mm.Provider != null)
+                {
+                    AppendLine($"private readonly {ProviderType} {GetProviderFieldName(mm.No)};");
+                }
+
+                if ((mm.MethodType == MethodType.ExecuteScalar) &&
+                    (mm.EngineResultType != typeof(object)))
+                {
+                    AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
+                }
+
+                //for (var i = 0; i < mm.Parameters.Count; i++)
+                //{
+                //    AppendLine($"private readonly string {GetNameFieldName(mm.No)};");
+                //}
 
                 // Out converters
                 // TODO
                 // Setup
                 // TODO
 
-                if (hasProvider || hasConverter)
+                if (source.Length > previous)
                 {
-                    if (hasProvider)
-                    {
-                        AppendLine($"private readonly {ProviderType} {GetProviderFieldName(mm.No)};");
-                    }
-
-                    if (hasConverter)
-                    {
-                        AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
-                    }
-
                     NewLine();
                 }
             }

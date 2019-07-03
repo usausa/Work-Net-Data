@@ -17,9 +17,10 @@
         {
             entries.Add(new ParameterEntry(
                 "code",
+                0,
                 typeof(string),
                 ParameterDirection.Input,
-                0));
+                null));
         }
     }
 }

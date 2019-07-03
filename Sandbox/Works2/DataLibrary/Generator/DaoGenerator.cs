@@ -87,7 +87,7 @@
 
             var builder = new DaoSourceBuilder(type);
 
-            var no = 1;
+            var no = 0;
             foreach (var method in type.GetMethods())
             {
                 var attribute = method.GetCustomAttribute<MethodAttribute>(true);
