@@ -7,18 +7,21 @@ namespace DataLibrary.Generator
     {
         public string Source { get; }
 
+        public int Index { get; }
+
         public Type Type { get; }
 
         public ParameterDirection Direction { get; }
 
-        public int ParameterIndex { get; }
+        public string ParameterName { get; }
 
-        public ParameterEntry(string source, Type type, ParameterDirection direction, int parameterIndex)
+        public ParameterEntry(string source, int index, Type type, ParameterDirection direction, string parameterName)
         {
             Source = source;
+            Index = index;
             Type = type;
             Direction = direction;
-            ParameterIndex = parameterIndex;
+            ParameterName = parameterName;
         }
     }
 }

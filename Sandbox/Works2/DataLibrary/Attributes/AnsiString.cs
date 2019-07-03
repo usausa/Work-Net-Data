@@ -3,8 +3,6 @@
     using System;
     using System.Data;
 
-    using Smart.Functional;
-
     public sealed class AnsiString : ParameterAttribute
     {
         private readonly int? size;
