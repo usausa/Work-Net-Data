@@ -63,7 +63,7 @@ namespace WorkGenerator
                 },
                 {
                     "Count2",
-                    "/*! WorkGenerator.Models.TestHelper */" +
+                    "/*!helper WorkGenerator.Models.TestHelper */" +
                     "SELECT COUNT(*) FROM Data WHERE 1 = 1" +
                     "/*% if (IsNotEmpty(code) { */" +
                     "AND Code = /*@ code */ 'aaa'" +
@@ -71,7 +71,7 @@ namespace WorkGenerator
                 },
                 {
                     "QueryDataList",
-                    "/*! WorkGenerator.Models.TestHelper */" +
+                    "/*!helper WorkGenerator.Models.TestHelper */" +
                     "SELECT * FROM Data WHERE 1 = 1 " +
                     "/*% if (IsNotEmpty(name) { */" +
                     "AND Name = /*@ name */ 'xxx'" +

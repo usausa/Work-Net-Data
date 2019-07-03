@@ -315,22 +315,26 @@ namespace DataLibrary.Generator
 
         private void DefineUsing()
         {
-            AppendLine($"using static {typeof(ScriptHelper).Namespace}.{typeof(ScriptHelper).Name};");
-
-            var visitor = new HelperResolveVisitor();
+            var visitor = new UsingResolveVisitor();
             foreach (var mm in methods)
             {
                 visitor.Visit(mm.Nodes);
             }
 
-            foreach (var helper in visitor.Helpers)
+            foreach (var name in visitor.Usings)
             {
-                AppendLine($"using static {helper};");
+                AppendLine($"using {name};");
             }
+
+            foreach (var name in visitor.Helpers)
+            {
+                AppendLine($"using static {name};");
+            }
+
+            AppendLine($"using static {typeof(ScriptHelper).Namespace}.{typeof(ScriptHelper).Name};");
 
             NewLine();
         }
-
 
         private void BeginClass(string className)
         {

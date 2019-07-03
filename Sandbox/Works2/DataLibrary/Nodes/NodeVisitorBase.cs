@@ -12,7 +12,7 @@
             }
         }
 
-        public virtual void Visit(HelperNode node)
+        public virtual void Visit(UsingNode node)
         {
         }
 

@@ -95,7 +95,7 @@
         public void TestCode()
         {
             var tokenizer = new SqlTokenizer(
-                "/*! System */\r\n" +
+                "/*!using System */\r\n" +
                 "SELECT * FROM Employee\r\n" +
                 "/*% if (!String.IsNullOrEmpty(sort)) { */\r\n" +
                 "ORDER BY /* #sort */ Id\r\n" +

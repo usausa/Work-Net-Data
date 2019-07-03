@@ -2,7 +2,7 @@
 {
     public interface INodeVisitor
     {
-        void Visit(HelperNode node);
+        void Visit(UsingNode node);
 
         void Visit(SqlNode node);
 

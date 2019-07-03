@@ -42,21 +42,30 @@
 
         private void ParseComment(string value)
         {
-            if (value.StartsWith("!"))
+            // Pragma
+            if (value.StartsWith("!helper"))
             {
-                nodes.Add(new HelperNode(value.Substring(1).Trim()));
+                nodes.Add(new UsingNode(true, value.Substring(7).Trim()));
             }
 
+            if (value.StartsWith("!using"))
+            {
+                nodes.Add(new UsingNode(false, value.Substring(6).Trim()));
+            }
+
+            // Code
             if (value.StartsWith("%"))
             {
                 nodes.Add(new CodeNode(value.Substring(1).Trim()));
             }
 
+            // Raw
             if (value.StartsWith("#"))
             {
                 nodes.Add(new RawSqlNode(value.Substring(1).Trim()));
             }
 
+            // Parameter
             if (value.StartsWith("@"))
             {
                 nodes.Add(new ParameterNode(value.Substring(1).Trim()));
