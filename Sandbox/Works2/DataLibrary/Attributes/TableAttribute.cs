@@ -2,12 +2,12 @@
 {
     using System;
 
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ParameterAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class TableAttribute : Attribute
     {
         public string Name { get; }
 
-        public ParameterAttribute(string name)
+        public TableAttribute(string name)
         {
             Name = name;
         }

@@ -4,19 +4,19 @@
 
     using System.Data;
 
-    public sealed class DbTypeAttribute : ParameterAttribute
+    public sealed class DbTypeBuilderAttribute : ParameterBuilderAttribute
     {
         private readonly DbType dbType;
 
         private readonly int? size;
 
-        public DbTypeAttribute(DbType dbType)
+        public DbTypeBuilderAttribute(DbType dbType)
         {
             this.dbType = dbType;
             size = null;
         }
 
-        public DbTypeAttribute(DbType dbType, int size)
+        public DbTypeBuilderAttribute(DbType dbType, int size)
         {
             this.dbType = dbType;
             this.size = size;

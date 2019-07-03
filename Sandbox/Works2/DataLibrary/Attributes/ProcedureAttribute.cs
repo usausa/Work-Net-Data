@@ -17,6 +17,12 @@
             this.procedure = procedure;
         }
 
+        public ProcedureAttribute(string procedure, MethodType methodType)
+            : base(CommandType.StoredProcedure, methodType)
+        {
+            this.procedure = procedure;
+        }
+
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
             // TODO parameter ?

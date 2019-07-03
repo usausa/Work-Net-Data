@@ -20,8 +20,8 @@
         {
             var type = typeof(T);
 
-            // ParameterAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInParameterSetupByAction(type, attribute.CreateSetAction(type));
@@ -110,8 +110,8 @@
         {
             var type = typeof(T);
 
-            // ParameterAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInOutParameterSetupByAction(type, attribute.CreateSetAction(type));
@@ -223,8 +223,8 @@
         {
             var type = typeof(T);
 
-            // ParameterAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateArrayParameterSetupByAction<T>(attribute.CreateSetAction(type));
@@ -401,8 +401,8 @@
         {
             var type = typeof(T);
 
-            // ParameterAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateListParameterSetupByAction<T>(attribute.CreateSetAction(type));
@@ -579,8 +579,8 @@
         {
             var type = typeof(T);
 
-            // ParameterAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterAttribute>().FirstOrDefault();
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateEnumerableParameterSetupByAction<T>(attribute.CreateSetAction(type));

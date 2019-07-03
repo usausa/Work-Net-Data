@@ -3,7 +3,7 @@
     using System;
     using System.Data;
 
-    public sealed class AnsiString : ParameterAttribute
+    public sealed class AnsiString : ParameterBuilderAttribute
     {
         private readonly int? size;
 
