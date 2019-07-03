@@ -1,7 +1,17 @@
 ﻿namespace DataLibrary.Nodes
 {
+    using System.Collections.Generic;
+
     public abstract class NodeVisitorBase : INodeVisitor
     {
+        public void Visit(IEnumerable<INode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                node.Visit(this);
+            }
+        }
+
         public virtual void Visit(HelperNode node)
         {
         }

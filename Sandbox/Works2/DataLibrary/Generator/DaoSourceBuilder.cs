@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
+using DataLibrary.Helpers;
+using DataLibrary.Nodes;
 using DataLibrary.Providers;
 
 namespace DataLibrary.Generator
@@ -35,6 +37,7 @@ namespace DataLibrary.Generator
         private static readonly string ProviderType = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
         private static readonly string DataReaderType = GeneratorHelper.MakeGlobalName(typeof(IDataReader));
         private static readonly string DbCommandType = GeneratorHelper.MakeGlobalName(typeof(DbCommand));
+        private static readonly string CommandTypeType = GeneratorHelper.MakeGlobalName(typeof(CommandType));
         private static readonly string ConnectionStateType = GeneratorHelper.MakeGlobalName(typeof(ConnectionState));
         private static readonly string WrappedReaderType = GeneratorHelper.MakeGlobalName(typeof(WrappedReader));
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
@@ -91,8 +94,7 @@ namespace DataLibrary.Generator
             BeginNamespace();
 
             // Using
-            // TODO default helper
-            // TODO namespaces(static helper only ?)
+            DefineUsing();
 
             // Class
             BeginClass(implementName);
@@ -305,7 +307,35 @@ namespace DataLibrary.Generator
             indent++;
         }
 
-        // TODO using
+        private void DefineUsing()
+        {
+            AppendLine($"using static {typeof(ScriptHelper).Namespace}.{typeof(ScriptHelper).Name};");
+
+            var visitor = new HelperVisitor();
+            foreach (var mm in methods)
+            {
+                visitor.Visit(mm.Nodes);
+            }
+
+            foreach (var helper in visitor.Helpers)
+            {
+                AppendLine($"using static {helper};");
+            }
+
+            NewLine();
+        }
+
+        private sealed class HelperVisitor : NodeVisitorBase
+        {
+            private readonly HashSet<string> helpers = new HashSet<string>();
+
+            public IEnumerable<string> Helpers
+            {
+                get { return helpers.OrderBy(x => x); }
+            }
+
+            public override void Visit(HelperNode node) => helpers.Add(node.Value);
+        }
 
         private void BeginClass(string className)
         {
@@ -875,7 +905,7 @@ namespace DataLibrary.Generator
         {
             if (mm.CommandType != CommandType.Text)
             {
-                AppendLine($"{CommandVar}.CommandType = {mm.CommandType}");
+                AppendLine($"{CommandVar}.CommandType = {CommandTypeType}.{mm.CommandType};");
             }
 
             if (mm.Timeout != null)

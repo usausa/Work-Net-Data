@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Reflection;
@@ -27,10 +28,11 @@ namespace WorkGenerator
 
             var engine = config.ToEngine();
 
-            var generator = new DaoGenerator(new DummyLoader(), engine, new Debugger());
+            var generator = new DaoGenerator(new DummyLoader(MakeMiscDaoSql()), engine, new Debugger());
 
             //var dao = generator.Create<ISimpleExecuteDao>();
-            var dao2 = generator.Create<IFullSpecDao>();
+            //var dao2 = generator.Create<IFullSpecDao>();
+            var dao3 = generator.Create<IMiscDao>();
 
             // TODO use
         }
@@ -50,11 +52,54 @@ namespace WorkGenerator
         //        ListReference(cached, Assembly.Load(referencedAssembly));
         //    }
         //}
+
+        private static Dictionary<string, string> MakeMiscDaoSql()
+        {
+            return new Dictionary<string, string>
+            {
+                {
+                    "Count",
+                    "SELECT COUNT(*) FROM Data WHERE Code = /*@ code */"
+                },
+                {
+                    "Count2",
+                    "/*! WorkGenerator.Models.TestHelper */" +
+                    "SELECT COUNT(*) FROM Data WHERE 1 = 1" +
+                    "/*% if (IsNotEmpty(code) { */" +
+                    "AND Code = /*@ code */ 'aaa'" +
+                    "/*% } */"
+                },
+                {
+                    "QueryDataList",
+                    "/*! WorkGenerator.Models.TestHelper */" +
+                    "SELECT * FROM Data WHERE 1 = 1 " +
+                    "/*% if (IsNotEmpty(name) { */" +
+                    "AND Name = /*@ name */ 'xxx'" +
+                    "/*% } */" +
+                    "/*% if (IsNotEmpty(code) { */" +
+                    "AND Code = /*@ code */ 'yyy'" +
+                    "/*% } */" +
+                    "ORDER BY /*# order */"
+                }
+            };
+        }
     }
 
     public class DummyLoader : ISqlLoader
     {
-        public string Load(MethodInfo mi) => "";
+        private readonly Dictionary<string, string> values;
+
+        public DummyLoader()
+            : this(new Dictionary<string, string>())
+        {
+        }
+
+        public DummyLoader(Dictionary<string, string> values)
+        {
+            this.values = values;
+        }
+
+        public string Load(MethodInfo mi) => values.TryGetValue(mi.Name, out var sql) ? sql : string.Empty;
     }
 
     public class Debugger : IGeneratorDebugger
