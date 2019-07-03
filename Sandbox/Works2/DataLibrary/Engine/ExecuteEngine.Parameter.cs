@@ -262,9 +262,9 @@
                         for (var i = 0; i < values.Length; i++)
                         {
                             var value = values[i];
-                            var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                            sql.Append(parameterName);
+                            sql.Append(name);
+                            sql.Append("_");
+                            sql.Append(GetParameterSubName(i));
                             sql.Append(", ");
 
                             var parameter = cmd.CreateParameter();
@@ -293,9 +293,9 @@
                     for (var i = 0; i < values.Length; i++)
                     {
                         var value = values[i];
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -335,9 +335,9 @@
                         for (var i = 0; i < values.Length; i++)
                         {
                             var value = values[i];
-                            var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                            sql.Append(parameterName);
+                            sql.Append(name);
+                            sql.Append("_");
+                            sql.Append(GetParameterSubName(i));
                             sql.Append(", ");
 
                             var parameter = cmd.CreateParameter();
@@ -367,9 +367,9 @@
                     for (var i = 0; i < values.Length; i++)
                     {
                         var value = values[i];
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -440,9 +440,9 @@
                         for (var i = 0; i < values.Count; i++)
                         {
                             var value = values[i];
-                            var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                            sql.Append(parameterName);
+                            sql.Append(name);
+                            sql.Append("_");
+                            sql.Append(GetParameterSubName(i));
                             sql.Append(", ");
 
                             var parameter = cmd.CreateParameter();
@@ -471,9 +471,9 @@
                     for (var i = 0; i < values.Count; i++)
                     {
                         var value = values[i];
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -513,9 +513,9 @@
                         for (var i = 0; i < values.Count; i++)
                         {
                             var value = values[i];
-                            var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                            sql.Append(parameterName);
+                            sql.Append(name);
+                            sql.Append("_");
+                            sql.Append(GetParameterSubName(i));
                             sql.Append(", ");
 
                             var parameter = cmd.CreateParameter();
@@ -545,9 +545,9 @@
                     for (var i = 0; i < values.Count; i++)
                     {
                         var value = values[i];
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -612,9 +612,9 @@
                     var i = 0;
                     foreach (var value in values)
                     {
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -645,9 +645,9 @@
                 var i = 0;
                 foreach (var value in values)
                 {
-                    var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                    sql.Append(parameterName);
+                    sql.Append(name);
+                    sql.Append("_");
+                    sql.Append(GetParameterSubName(i));
                     sql.Append(", ");
 
                     var parameter = cmd.CreateParameter();
@@ -689,9 +689,9 @@
                     var i = 0;
                     foreach (var value in values)
                     {
-                        var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                        sql.Append(parameterName);
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
 
                         var parameter = cmd.CreateParameter();
@@ -723,9 +723,9 @@
                 var i = 0;
                 foreach (var value in values)
                 {
-                    var parameterName = String.Concat(name, "_", GetParameterSubName(i));
-
-                    sql.Append(parameterName);
+                    sql.Append(name);
+                    sql.Append("_");
+                    sql.Append(GetParameterSubName(i));
                     sql.Append(", ");
 
                     var parameter = cmd.CreateParameter();

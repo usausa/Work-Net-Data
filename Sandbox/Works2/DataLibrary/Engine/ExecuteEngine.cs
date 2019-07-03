@@ -12,7 +12,6 @@
     using DataLibrary.Dialect;
     using DataLibrary.Handlers;
     using DataLibrary.Mappers;
-    using DataLibrary.Namings;
 
     using Smart.Converter;
     using Smart.ComponentModel;
@@ -23,8 +22,6 @@
 
         private readonly IEmptyDialect emptyDialect;
 
-        private readonly IParameterNaming parameterNaming;
-
         private readonly Dictionary<Type, DbType> typeMap;
 
         private readonly Dictionary<Type, ITypeHandler> typeHandlers;
@@ -32,8 +29,6 @@
         private readonly IResultMapperFactory[] resultMapperFactories;
 
         private readonly ResultMapperCache resultMapperCache = new ResultMapperCache();
-
-        private readonly string[] parameterNames;
 
         private readonly string[] parameterSubNames;
 
@@ -48,13 +43,11 @@
             Components = config.CreateComponentContainer();
             objectConverter = Components.Get<IObjectConverter>();
             emptyDialect = Components.Get<IEmptyDialect>();
-            parameterNaming = Components.Get<IParameterNaming>();
 
             typeMap = new Dictionary<Type, DbType>(config.GetTypeMap());
             typeHandlers = new Dictionary<Type, ITypeHandler>(config.GetTypeHandlers());
             resultMapperFactories = config.GetResultMapperFactories();
 
-            parameterNames = Enumerable.Range(0, 256).Select(x => parameterNaming.GetName(x)).ToArray();
             parameterSubNames = Enumerable.Range(0, 256).Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray();
         }
 
@@ -152,12 +145,6 @@
         //--------------------------------------------------------------------------------
         // Naming
         //--------------------------------------------------------------------------------
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetParameterName(int index)
-        {
-            return index < parameterNames.Length ? parameterNames[index] : parameterNaming.GetName(index);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string GetParameterSubName(int index)

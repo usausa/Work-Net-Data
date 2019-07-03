@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
+using DataLibrary.Generator;
 using DataLibrary.Helpers;
 using DataLibrary.Providers;
 
@@ -25,11 +26,7 @@ namespace WorkGenerated
         public Func<object, object> converter8;
 
         private readonly Action<DbCommand, string, StringBuilder, string[]> setup25_1;
-        private readonly string name25_1;
 
-        private readonly string name26_1;
-        private readonly string name26_2;
-        private readonly string name26_3;
         private readonly Action<DbCommand, string, object> setup26_1;
         private readonly Func<DbCommand, string, object, DbParameter> setup26_2;
         private readonly Func<DbCommand, string, DbParameter> setup26_3;
@@ -62,12 +59,8 @@ namespace WorkGenerated
 
             var method25 = GetType().GetMethod("ExecuteEnumerable", new[] { typeof(string[]) });
             setup25_1 = engine.CreateArrayParameterSetup<string>(method25.GetParameters()[0]);
-            name25_1 = engine.GetParameterName(0);
 
             var method26 = GetType().GetMethod("ExecuteEx1", new[] { typeof(ProcParameter), typeof(int) });
-            name26_1 = engine.GetParameterName(0);
-            name26_2 = engine.GetParameterName(1);
-            name26_3 = engine.GetParameterName(2);
             setup26_1 = engine.CreateInParameterSetup<string>(null);
             setup26_2 = engine.CreateInOutParameterSetup<int?>(null);
             setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
@@ -692,7 +685,7 @@ namespace WorkGenerated
                 {
                     _sql.Append("WHERE Id IN ");
 
-                    setup25_1(_cmd, name25_1, _sql, ids);
+                    setup25_1(_cmd, "p0", _sql, ids);
                 }
 
                 // Build command
@@ -725,17 +718,17 @@ namespace WorkGenerated
                 // parameter.InParam
                 if (ScriptHelper.IsEmpty(parameter.InParam))
                 {
-                    setup26_1(_cmd, name26_1, parameter.InParam);
+                    setup26_1(_cmd, "p1", parameter.InParam);
                 }
 
                 // parameter.InOutParam
                 if (ScriptHelper.IsNotNull(parameter.InOutParam))
                 {
-                    _outParam2 = setup26_2(_cmd, name26_2, parameter.InOutParam);
+                    _outParam2 = setup26_2(_cmd, "p2", parameter.InOutParam);
                 }
 
                 // parameter.OutParam
-                _outParam3 = setup26_3(_cmd, name26_3);
+                _outParam3 = setup26_3(_cmd, "p3");
 
                 // Build command
                 _cmd.CommandText = "PROC";
@@ -776,11 +769,11 @@ namespace WorkGenerated
                 var _outParam3 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
-                setup27_1(_cmd, engine.GetParameterName(_nameIndex++), param1);
+                setup27_1(_cmd, RuntimeHelper.GetParameterName(_nameIndex++), param1);
                 // param2
-                _outParam2 = setup27_2(_cmd, engine.GetParameterName(_nameIndex++), param2);
+                _outParam2 = setup27_2(_cmd, RuntimeHelper.GetParameterName(_nameIndex++), param2);
                 // param3
-                _outParam3 = setup27_3(_cmd, engine.GetParameterName(_nameIndex++));
+                _outParam3 = setup27_3(_cmd, RuntimeHelper.GetParameterName(_nameIndex++));
 
                 // Build command
                 _cmd.CommandText = "PROC";
