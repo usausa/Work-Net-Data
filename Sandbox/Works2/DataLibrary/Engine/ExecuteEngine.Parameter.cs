@@ -16,7 +16,7 @@
         // In
         //--------------------------------------------------------------------------------
 
-        public Action<DbCommand, string, object> CreateInParameterSetup<T>(ICustomAttributeProvider provider)
+        public Action<DbCommand, string, T> CreateInParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
 
@@ -24,78 +24,49 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateInParameterSetupByAction(type, attribute.CreateSetAction(type));
+                return CreateInParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateInParameterSetupByAction(type, handler.SetValue);
+                return CreateInParameterSetupByHandler<T>(handler.SetValue);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateInParameterSetupByDbType(type, dbType);
+                return CreateInParameterSetupByDbType<T>(dbType, 0);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private static Action<DbCommand, string, object> CreateInParameterSetupByAction(Type type, Action<IDbDataParameter, object> action)
+        private static Action<DbCommand, string, T> CreateInParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            if (type.IsValueType)
-            {
-                return (cmd, name, value) =>
-                {
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    action(parameter, value);
-                    parameter.ParameterName = name;
-                };
-            }
-
             return (cmd, name, value) =>
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                if (value is null)
-                {
-                    parameter.Value = DBNull.Value;
-                }
-                else
-                {
-                    action(parameter, value);
-                }
+                action(parameter, value);
                 parameter.ParameterName = name;
             };
         }
 
-        private static Action<DbCommand, string, object> CreateInParameterSetupByDbType(Type type, DbType dbType)
+        private static Action<DbCommand, string, T> CreateInParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            if (type.IsValueType)
-            {
-                return (cmd, name, value) =>
-                {
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    parameter.DbType = dbType;
-                    parameter.Value = value;
-                    parameter.ParameterName = name;
-                };
-            }
-
             return (cmd, name, value) =>
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                if (value is null)
+                if (value == null)
                 {
                     parameter.Value = DBNull.Value;
                 }
                 else
                 {
                     parameter.DbType = dbType;
+                    parameter.Size = size;
                     parameter.Value = value;
                 }
                 parameter.ParameterName = name;
@@ -106,7 +77,7 @@
         // In/Out
         //--------------------------------------------------------------------------------
 
-        public Func<DbCommand, string, object, DbParameter> CreateInOutParameterSetup<T>(ICustomAttributeProvider provider)
+        public Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
 
@@ -114,84 +85,51 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateInOutParameterSetupByAction(type, attribute.CreateSetAction(type));
+                return CreateInOutParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateInOutParameterSetupByAction(type, handler.SetValue);
+                return CreateInOutParameterSetupByHandler<T>(handler.SetValue);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateInOutParameterSetupByDbType(type, dbType);
+                return CreateInOutParameterSetupByDbType<T>(dbType, 0);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private static Func<DbCommand, string, object, DbParameter> CreateInOutParameterSetupByAction(Type type, Action<IDbDataParameter, object> action)
+        private static Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            if (type.IsValueType)
-            {
-                return (cmd, name, value) =>
-                {
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    action(parameter, value);
-                    parameter.ParameterName = name;
-                    parameter.Direction = ParameterDirection.InputOutput;
-                    return parameter;
-                };
-            }
-
             return (cmd, name, value) =>
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                if (value is null)
-                {
-                    parameter.Value = DBNull.Value;
-                }
-                else
-                {
-                    action(parameter, value);
-                }
+                action(parameter, value);
                 parameter.ParameterName = name;
                 parameter.Direction = ParameterDirection.InputOutput;
                 return parameter;
             };
         }
 
-        private static Func<DbCommand, string, object, DbParameter> CreateInOutParameterSetupByDbType(Type type, DbType dbType)
+        private static Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            if (type.IsValueType)
-            {
-                return (cmd, name, value) =>
-                {
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    parameter.DbType = dbType;
-                    parameter.Value = value;
-                    parameter.ParameterName = name;
-                    parameter.Direction = ParameterDirection.InputOutput;
-                    return parameter;
-                };
-            }
-
             return (cmd, name, value) =>
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                if (value is null)
+                if (value == null)
                 {
                     parameter.Value = DBNull.Value;
                 }
                 else
                 {
                     parameter.DbType = dbType;
+                    parameter.Size = size;
                     parameter.Value = value;
                 }
                 parameter.ParameterName = name;
@@ -204,13 +142,50 @@
         // Out
         //--------------------------------------------------------------------------------
 
-        public Func<DbCommand, string, DbParameter> CreateOutParameterSetup(ParameterDirection direction)
+        public Func<DbCommand, string, DbParameter> CreateOutParameterSetup<T>(ICustomAttributeProvider provider)
+        {
+            var type = typeof(T);
+
+            // ParameterBuilderAttribute
+            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return CreateOutParameterSetupByDbType(attribute.DbType, attribute.Size);
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                return CreateOutParameterSetupByDbType(dbType, 0);
+            }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
+        }
+
+        private static Func<DbCommand, string, DbParameter> CreateOutParameterSetupByDbType(DbType dbType, int size)
         {
             return (cmd, name) =>
             {
                 var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
+                parameter.DbType = dbType;
+                parameter.Size = size;
                 parameter.ParameterName = name;
-                parameter.Direction = direction;
+                parameter.Direction = ParameterDirection.Output;
+                return parameter;
+            };
+        }
+
+        //--------------------------------------------------------------------------------
+        // Return
+        //--------------------------------------------------------------------------------
+
+        public Func<DbCommand, string, DbParameter> CreateReturnParameterSetup()
+        {
+            return (cmd, name) =>
+            {
+                var parameter = cmd.CreateParameter();
+                parameter.Direction = ParameterDirection.ReturnValue;
                 return parameter;
             };
         }
@@ -227,59 +202,59 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateArrayParameterSetupByAction<T>(attribute.CreateSetAction(type));
+                return CreateArrayParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateArrayParameterSetupByAction<T>(handler.SetValue);
+                return CreateArrayParameterSetupByHandler<T>(handler.SetValue);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateArrayParameterSetupByDbType<T>(dbType);
+                return CreateArrayParameterSetupByDbType<T>(dbType, 0);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        public Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            if (typeof(T).IsValueType)
+            return (cmd, name, sql, values) =>
             {
-                return (cmd, name, sql, values) =>
+                sql.Append("(");
+
+                if (values.Length == 0)
                 {
-                    sql.Append("(");
-
-                    if (values.Length == 0)
+                    sql.Append(emptyDialect.GetSql());
+                }
+                else
+                {
+                    for (var i = 0; i < values.Length; i++)
                     {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            var value = values[i];
-                            sql.Append(name);
-                            sql.Append("_");
-                            sql.Append(GetParameterSubName(i));
-                            sql.Append(", ");
+                        var value = values[i];
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
+                        sql.Append(", ");
 
-                            var parameter = cmd.CreateParameter();
-                            cmd.Parameters.Add(parameter);
-                            action(parameter, value);
-                            parameter.ParameterName = name;
-                        }
-
-                        sql.Length -= 2;
+                        var parameter = cmd.CreateParameter();
+                        cmd.Parameters.Add(parameter);
+                        action(parameter, value);
+                        parameter.ParameterName = name;
                     }
 
-                    sql.Append(") ");
-                };
-            }
+                    sql.Length -= 2;
+                }
 
+                sql.Append(") ");
+            };
+        }
+
+        private Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByDbType<T>(DbType dbType, int size)
+        {
             return (cmd, name, sql, values) =>
             {
                 sql.Append("(");
@@ -306,81 +281,8 @@
                         }
                         else
                         {
-                            action(parameter, value);
-                        }
-                        parameter.ParameterName = name;
-                    }
-
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
-            };
-        }
-
-        private Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByDbType<T>(DbType dbType)
-        {
-            if (typeof(T).IsValueType)
-            {
-                return (cmd, name, sql, values) =>
-                {
-                    sql.Append("(");
-
-                    if (values.Length == 0)
-                    {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            var value = values[i];
-                            sql.Append(name);
-                            sql.Append("_");
-                            sql.Append(GetParameterSubName(i));
-                            sql.Append(", ");
-
-                            var parameter = cmd.CreateParameter();
-                            cmd.Parameters.Add(parameter);
                             parameter.DbType = dbType;
-                            parameter.Value = value;
-                            parameter.ParameterName = name;
-                        }
-
-                        sql.Length -= 2;
-                    }
-
-                    sql.Append(") ");
-                };
-            }
-
-            return (cmd, name, sql, values) =>
-            {
-                sql.Append("(");
-
-                if (values.Length == 0)
-                {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    for (var i = 0; i < values.Length; i++)
-                    {
-                        var value = values[i];
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        if (value == null)  // MEMO 最適化
-                        {
-                            parameter.Value = DBNull.Value;
-                        }
-                        else
-                        {
-                            parameter.DbType = dbType;
+                            parameter.Size = size;
                             parameter.Value = value;
                         }
                         parameter.ParameterName = name;
@@ -405,59 +307,26 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateListParameterSetupByAction<T>(attribute.CreateSetAction(type));
+                return CreateListParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateListParameterSetupByAction<T>(handler.SetValue);
+                return CreateListParameterSetupByHandler<T>(handler.SetValue);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateListParameterSetupByDbType<T>(dbType);
+                return CreateListParameterSetupByDbType<T>(dbType, 0);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            if (typeof(T).IsValueType)
-            {
-                return (cmd, name, sql, values) =>
-                {
-                    sql.Append("(");
-
-                    if (values.Count == 0)
-                    {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        for (var i = 0; i < values.Count; i++)
-                        {
-                            var value = values[i];
-                            sql.Append(name);
-                            sql.Append("_");
-                            sql.Append(GetParameterSubName(i));
-                            sql.Append(", ");
-
-                            var parameter = cmd.CreateParameter();
-                            cmd.Parameters.Add(parameter);
-                            action(parameter, value);
-                            parameter.ParameterName = name;
-                        }
-
-                        sql.Length -= 2;
-                    }
-
-                    sql.Append(") ");
-                };
-            }
-
             return (cmd, name, sql, values) =>
             {
                 sql.Append("(");
@@ -478,14 +347,7 @@
 
                         var parameter = cmd.CreateParameter();
                         cmd.Parameters.Add(parameter);
-                        if (value == null)  // MEMO 最適化
-                        {
-                            parameter.Value = DBNull.Value;
-                        }
-                        else
-                        {
-                            action(parameter, value);
-                        }
+                        action(parameter, value);
                         parameter.ParameterName = name;
                     }
 
@@ -496,42 +358,8 @@
             };
         }
 
-        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByDbType<T>(DbType dbType)
+        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            if (typeof(T).IsValueType)
-            {
-                return (cmd, name, sql, values) =>
-                {
-                    sql.Append("(");
-
-                    if (values.Count == 0)
-                    {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        for (var i = 0; i < values.Count; i++)
-                        {
-                            var value = values[i];
-                            sql.Append(name);
-                            sql.Append("_");
-                            sql.Append(GetParameterSubName(i));
-                            sql.Append(", ");
-
-                            var parameter = cmd.CreateParameter();
-                            cmd.Parameters.Add(parameter);
-                            parameter.DbType = dbType;
-                            parameter.Value = value;
-                            parameter.ParameterName = name;
-                        }
-
-                        sql.Length -= 2;
-                    }
-
-                    sql.Append(") ");
-                };
-            }
-
             return (cmd, name, sql, values) =>
             {
                 sql.Append("(");
@@ -552,13 +380,14 @@
 
                         var parameter = cmd.CreateParameter();
                         cmd.Parameters.Add(parameter);
-                        if (value == null)  // MEMO 最適化
+                        if (value == null)
                         {
                             parameter.Value = DBNull.Value;
                         }
                         else
                         {
                             parameter.DbType = dbType;
+                            parameter.Size = size;
                             parameter.Value = value;
                         }
                         parameter.ParameterName = name;
@@ -583,61 +412,26 @@
             var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateEnumerableParameterSetupByAction<T>(attribute.CreateSetAction(type));
+                return CreateEnumerableParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateEnumerableParameterSetupByAction<T>(handler.SetValue);
+                return CreateEnumerableParameterSetupByHandler<T>(handler.SetValue);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateEnumerableParameterSetupByDbType<T>(dbType);
+                return CreateEnumerableParameterSetupByDbType<T>(dbType, 0);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByAction<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            if (typeof(T).IsValueType)
-            {
-                return (cmd, name, sql, values) =>
-                {
-                    sql.Append("(");
-
-                    var i = 0;
-                    foreach (var value in values)
-                    {
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        action(parameter, value);
-                        parameter.ParameterName = name;
-
-                        i++;
-                    }
-
-                    if (i == 0)
-                    {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        sql.Length -= 2;
-                    }
-
-                    sql.Append(") ");
-                };
-            }
-
             return (cmd, name, sql, values) =>
             {
                 sql.Append("(");
@@ -652,14 +446,7 @@
 
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
-                    if (value == null)  // MEMO 最適化
-                    {
-                        parameter.Value = DBNull.Value;
-                    }
-                    else
-                    {
-                        action(parameter, value);
-                    }
+                    action(parameter, value);
                     parameter.ParameterName = name;
 
                     i++;
@@ -678,44 +465,8 @@
             };
         }
 
-        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByDbType<T>(DbType dbType)
+        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            if (typeof(T).IsValueType)
-            {
-                return (cmd, name, sql, values) =>
-                {
-                    sql.Append("(");
-
-                    var i = 0;
-                    foreach (var value in values)
-                    {
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        parameter.DbType = dbType;
-                        parameter.Value = value;
-                        parameter.ParameterName = name;
-
-                        i++;
-                    }
-
-                    if (i == 0)
-                    {
-                        sql.Append(emptyDialect.GetSql());
-                    }
-                    else
-                    {
-                        sql.Length -= 2;
-                    }
-
-                    sql.Append(") ");
-                };
-            }
-
             return (cmd, name, sql, values) =>
             {
                 sql.Append("(");
@@ -730,13 +481,14 @@
 
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
-                    if (value == null)  // MEMO 最適化
+                    if (value == null)
                     {
                         parameter.Value = DBNull.Value;
                     }
                     else
                     {
                         parameter.DbType = dbType;
+                        parameter.Size = size;
                         parameter.Value = value;
                     }
                     parameter.ParameterName = name;

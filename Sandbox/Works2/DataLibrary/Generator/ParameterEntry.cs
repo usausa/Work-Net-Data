@@ -3,7 +3,7 @@ using System.Data;
 
 namespace DataLibrary.Generator
 {
-    public class ParameterEntry
+    internal class ParameterEntry
     {
         public string Source { get; }
 
@@ -15,6 +15,8 @@ namespace DataLibrary.Generator
 
         public string ParameterName { get; }
 
+        public ParameterType ParameterType { get; }
+
         public ParameterEntry(string source, int index, Type type, ParameterDirection direction, string parameterName)
         {
             Source = source;
@@ -22,6 +24,37 @@ namespace DataLibrary.Generator
             Type = type;
             Direction = direction;
             ParameterName = parameterName;
+
+            if (type.IsArray)
+            {
+                ParameterType = ParameterType.Array;
+            }
+            else if (GeneratorHelper.IsListParameter(type))
+            {
+                ParameterType = ParameterType.List;
+            }
+            else if (GeneratorHelper.IsEnumerableParameter(type))
+            {
+                ParameterType = ParameterType.Enumerable;
+            }
+            else
+            {
+                switch (direction)
+                {
+                    case ParameterDirection.InputOutput:
+                        ParameterType = ParameterType.InputOutput;
+                        break;
+                    case ParameterDirection.Output:
+                        ParameterType = ParameterType.Output;
+                        break;
+                    case ParameterDirection.ReturnValue:
+                        ParameterType = ParameterType.Return;
+                        break;
+                    default:
+                        ParameterType = ParameterType.Input;
+                        break;
+                }
+            }
         }
     }
 }

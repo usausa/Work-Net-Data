@@ -63,14 +63,14 @@ namespace WorkGenerated
             var method26 = GetType().GetMethod("ExecuteEx1", new[] { typeof(ProcParameter), typeof(int) });
             setup26_1 = engine.CreateInParameterSetup<string>(null);
             setup26_2 = engine.CreateInOutParameterSetup<int?>(null);
-            setup26_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
+            setup26_3 = engine.CreateOutParameterSetup<int>(method26.GetParameters()[0].ParameterType.GetProperty("OutParam"));
             converter26_2 = engine.CreateConverter<int?>(method26.GetParameters()[0].ParameterType.GetProperty("InParam"));
             converter26_3 = engine.CreateConverter<int>(method26.GetParameters()[0].ParameterType.GetProperty("InOutParam"));
 
             var method27 = GetType().GetMethod("ExecuteEx2", new[] { typeof(int), typeof(int).MakeByRefType(), typeof(int).MakeByRefType() });
             setup27_1 = engine.CreateInParameterSetup<int>(null);
             setup27_2 = engine.CreateInOutParameterSetup<int>(null);
-            setup27_3 = engine.CreateOutParameterSetup(ParameterDirection.Output);
+            setup27_3 = engine.CreateOutParameterSetup<int>(method27.GetParameters()[0]);
             converter27_2 = engine.CreateConverter<int>(method27.GetParameters()[1]);
             converter27_3 = engine.CreateConverter<int>(method27.GetParameters()[2]);
         }

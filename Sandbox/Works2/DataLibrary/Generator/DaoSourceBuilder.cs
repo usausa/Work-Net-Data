@@ -8,7 +8,6 @@ using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Helpers;
-using DataLibrary.Nodes;
 using DataLibrary.Providers;
 
 namespace DataLibrary.Generator
@@ -23,7 +22,6 @@ namespace DataLibrary.Generator
         private const string ProviderField = "_provider";
         private const string ProviderFieldRef = "this." + ProviderField;
         private const string ConvertField = "_convert";
-        private const string NameField = "_name";
         private const string SetupField = "_setup";
 
         private const string ConnectionVar = "_con";
@@ -44,8 +42,6 @@ namespace DataLibrary.Generator
         private static readonly string WrappedReaderType = GeneratorHelper.MakeGlobalName(typeof(WrappedReader));
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
         private static readonly string ConverterType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
-        private static readonly string InSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, string, object>));
-        private static readonly string InOutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, object, DbParameter>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
 
         private readonly Type targetType;
@@ -127,7 +123,7 @@ namespace DataLibrary.Generator
                         DefineMethodExecuteReader(mm);
                         break;
                     case MethodType.Query:
-                        if (!GeneratorHelper.IsListType(mm.EngineResultType))
+                        if (!GeneratorHelper.IsList(mm.EngineResultType))
                         {
                             DefineMethodQueryNonBuffer(mm);
                         }
@@ -163,11 +159,13 @@ namespace DataLibrary.Generator
 
         public string GetConvertFieldNameRef(int no) => "this." + GetConvertFieldName(no);
 
-        //public string GetNameFieldName(int no, int index) =>
+        public string GetConvertFieldName(int no, int index) => ConvertField + no + "_" + index;
 
-        //public string GetNameFieldNameRef(int no, int index) => "this." + GetNameFieldName(no, index);
+        public string GetConvertFieldNameRef(int no, int index) => "this." + GetConvertFieldName(no, index);
 
-        // TODO
+        public string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
+
+        public string GetSetupFieldNameRef(int no, int index) => "this." + GetSetupFieldName(no, index);
 
         //--------------------------------------------------------------------------------
         // Helper
@@ -275,7 +273,7 @@ namespace DataLibrary.Generator
 
         private static bool IsValidQueryResultType(Type type)
         {
-            return GeneratorHelper.IsEnumerableType(type) || GeneratorHelper.IsListType(type);
+            return GeneratorHelper.IsEnumerable(type) || GeneratorHelper.IsList(type);
         }
 
         private static bool IsValidQueryFirstOrDefaultResultType(Type type)
@@ -378,15 +376,38 @@ namespace DataLibrary.Generator
                     AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
                 }
 
-                //for (var i = 0; i < mm.Parameters.Count; i++)
-                //{
-                //    AppendLine($"private readonly string {GetNameFieldName(mm.No)};");
-                //}
+                foreach (var parameter in mm.Parameters)
+                {
+                    switch (parameter.ParameterType)
+                    {
+                        case ParameterType.Array:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.List:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.Enumerable:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeEnumerableParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.Input:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.InputOutput:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.Output:
+                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.Return:
+                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                    }
+                }
 
-                // Out converters
-                // TODO
-                // Setup
-                // TODO
+                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType.IsOutType()))
+                {
+                    AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No, parameter.Index)};");
+                }
 
                 if (source.Length > previous)
                 {

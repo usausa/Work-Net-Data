@@ -11,13 +11,15 @@
 
         public IReadOnlyList<ParameterEntry> Entries => entries;
 
+        private int index;
+
         // TODO ctor
 
         public override void Visit(ParameterNode node)
         {
             entries.Add(new ParameterEntry(
                 "code",
-                0,
+                index++,
                 typeof(string),
                 ParameterDirection.Input,
                 null));
