@@ -374,6 +374,8 @@ namespace DataLibrary.Generator
                     AppendLine($"private readonly {ProviderType} {GetProviderFieldName(mm.No)};");
                 }
 
+                // TODO Return
+
                 if ((mm.MethodType == MethodType.ExecuteScalar) &&
                     (mm.EngineResultType != typeof(object)))
                 {
@@ -460,6 +462,7 @@ namespace DataLibrary.Generator
             // Per method
             foreach (var mm in methods)
             {
+                // TODO Return
                 var hasProvider = mm.Provider != null;
                 var hasConverter = (mm.MethodType == MethodType.ExecuteScalar) &&
                                    (mm.EngineResultType != typeof(object));
@@ -544,12 +547,16 @@ namespace DataLibrary.Generator
             // PreProcess
             DefinePreProcess(mm);
 
+            // TODO Return
+
             DefineSql(mm);
 
             DefineConnectionOpen(mm);
 
             // Body
             Indent();
+
+            // TODO Return
 
             if (mm.EngineResultType != typeof(void))
             {
@@ -1063,7 +1070,7 @@ namespace DataLibrary.Generator
 
         private void DefineSql(MethodMetadata mm)
         {
-            // TODO
+            // TODO proc, simple, dynamic(include array?)
             AppendLine($"{CommandVar}.CommandText = \"***\";");
             NewLine();
         }

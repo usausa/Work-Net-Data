@@ -20,9 +20,13 @@
 
         public MethodType MethodType { get; }
 
+        public bool ReturnValueAsResult { get; }
+
         public IReadOnlyList<INode> Nodes { get; }
 
         public IReadOnlyList<ParameterEntry> Parameters { get; }
+
+        // Helper
 
         public bool IsAsync { get; }
 
@@ -53,6 +57,7 @@
             MethodInfo mi,
             CommandType commandType,
             MethodType memberType,
+            bool returnValueAsResult,
             IReadOnlyList<INode> nodes,
             IReadOnlyList<ParameterEntry> parameters)
         {
@@ -60,6 +65,7 @@
             MethodInfo = mi;
             CommandType = commandType;
             MethodType = memberType;
+            ReturnValueAsResult = returnValueAsResult;
             Nodes = nodes;
             Parameters = parameters;
 
