@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
 
+    using DataLibrary.Helpers;
     using DataLibrary.Attributes;
     using DataLibrary.Nodes;
 
@@ -29,9 +30,9 @@
             var path = node.Source.Split('.');
             if (path.Length == 1)
             {
-                var pi = GetParameterInfo(path[0]);
-                var type = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
-                var direction = GetParameterDirection(pi);
+                var pmi = GetParameterInfo(path[0]);
+                var type = pmi.ParameterType.IsByRef ? pmi.ParameterType.GetElementType() : pmi.ParameterType;
+                var direction = GetParameterDirection(pmi);
                 var parameterType = GetParameterType(type);
                 if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
                 {
@@ -74,13 +75,13 @@
 
         private ParameterInfo GetParameterInfo(string parameterName)
         {
-            var pi = method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
-            if (pi == null)
+            var pmi = method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
+            if (pmi == null)
             {
                 throw new AccessorGeneratorException($"DB parameter argument not found. type=[{method.DeclaringType.FullName}], method=[{method.Name}], argument=[{parameterName}]");
             }
 
-            return pi;
+            return pmi;
         }
 
         private PropertyInfo GetParameterInfo(string parameterName, string propertyName)
@@ -94,16 +95,16 @@
             return pi;
         }
 
-        private static ParameterDirection GetParameterDirection(ParameterInfo pi)
+        private static ParameterDirection GetParameterDirection(ParameterInfo pmi)
         {
-            if (pi.IsOut)
+            if (pmi.IsOut)
             {
-                return pi.GetCustomAttribute<ReturnValueAttribute>() != null
+                return pmi.GetCustomAttribute<ReturnValueAttribute>() != null
                     ? ParameterDirection.ReturnValue
                     : ParameterDirection.Output;
             }
 
-            if (pi.ParameterType.IsByRef)
+            if (pmi.ParameterType.IsByRef)
             {
                 return ParameterDirection.InputOutput;
             }
@@ -119,17 +120,17 @@
 
         private static ParameterType GetParameterType(Type type)
         {
-            if (type.IsArray)
+            if (TypeHelper.IsArrayParameter(type))
             {
                 return ParameterType.Array;
             }
 
-            if (GeneratorHelper.IsListParameter(type))
+            if (TypeHelper.IsListParameter(type))
             {
                 return ParameterType.List;
             }
 
-            if (GeneratorHelper.IsEnumerableParameter(type))
+            if (TypeHelper.IsEnumerableParameter(type))
             {
                 return ParameterType.Enumerable;
             }

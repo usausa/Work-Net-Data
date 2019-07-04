@@ -83,35 +83,5 @@
             var openType = typeof(Action<,,,>);
             return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), enumerableType);
         }
-
-        public static bool IsEnumerable(Type type)
-        {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-        }
-
-        public static bool IsList(Type type)
-        {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>);
-        }
-
-        public static bool IsEnumerableParameter(Type type)
-        {
-            return type != typeof(string) && type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-        }
-
-        public static bool IsListParameter(Type type)
-        {
-            return type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-        }
-
-        public static Type GetEnumerableElementType(Type type)
-        {
-            return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)).GetGenericArguments()[0];
-        }
-
-        public static Type GetListElementType(Type type)
-        {
-            return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)).GetGenericArguments()[0];
-        }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using DataLibrary.Providers;
-
 namespace WorkGenerator.Dao
 {
     using System.Collections.Generic;
@@ -11,11 +9,13 @@ namespace WorkGenerator.Dao
 
     using DataLibrary.Attributes;
 
+    using Smart.ComponentModel;
+
     using WorkGenerator.Models;
 
     public class MyAttribute : ResultParserAttribute
     {
-        public override Func<object, object> CreateConverter(Type type)
+        public override Func<object, object> CreateConverter(IComponentContainer components, Type type)
         {
             return x => x;
         }

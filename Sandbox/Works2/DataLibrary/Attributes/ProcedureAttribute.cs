@@ -28,12 +28,31 @@ namespace DataLibrary.Attributes
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
-            // TODO parameter (name:ParameterAttribute, nested)
-            return mi.GetParameters()
-                .Where(ParameterHelper.IsSqlParameter)
-                .Select(x => (INode)new ParameterNode(x.Name, x.Name))
-                .Prepend(new CodeNode(procedure))
-                .ToList();
+            var nodes = new List<INode>
+            {
+                new CodeNode(procedure)
+            };
+
+            foreach (var pmi in mi.GetParameters().Where(ParameterHelper.IsSqlParameter))
+            {
+                if (ParameterHelper.IsNestedParameter(pmi))
+                {
+                    foreach (var pi in pmi.ParameterType.GetProperties().Where(x => x.GetCustomAttribute<IgnoreAttribute>() == null))
+                    {
+                        nodes.Add(new ParameterNode(
+                            $"{pmi.Name}.{pi.Name}",
+                            pi.GetCustomAttribute<ParameterAttribute>()?.Name ?? pi.Name));
+                    }
+                }
+                else
+                {
+                    nodes.Add(new ParameterNode(
+                        pmi.Name,
+                        pmi.GetCustomAttribute<ParameterAttribute>()?.Name ?? pmi.Name));
+                }
+            }
+
+            return nodes;
         }
     }
 }

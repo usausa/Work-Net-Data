@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Text;
 using DataLibrary.Attributes;
 using WorkGenerator.Models;
@@ -42,8 +41,8 @@ namespace WorkGenerator.Dao
         [Insert("Data")]
         void Insert(DataEntity entity);
 
-        //[Procedure("PROC1")]
-        //void Call1(Parameter parameter);
+        [Procedure("PROC1")]
+        void Call1(ProcParameter parameter);
 
         [Procedure("PROC2")]
         int Call2(out int ret, int param1, ref int param2, out int param3);

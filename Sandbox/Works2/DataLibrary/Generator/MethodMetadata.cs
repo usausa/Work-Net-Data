@@ -73,26 +73,26 @@
             Provider = mi.GetCustomAttribute<ProviderAttribute>();
             Timeout = mi.GetCustomAttribute<TimeoutAttribute>();
 
-            foreach (var pi in mi.GetParameters())
+            foreach (var pmi in mi.GetParameters())
             {
-                if (ParameterHelper.IsTimeoutParameter(pi))
+                if (ParameterHelper.IsTimeoutParameter(pmi))
                 {
-                    TimeoutParameter = pi;
+                    TimeoutParameter = pmi;
                 }
 
-                if (ParameterHelper.IsCancellationTokenParameter(pi))
+                if (ParameterHelper.IsCancellationTokenParameter(pmi))
                 {
-                    CancelParameter = pi;
+                    CancelParameter = pmi;
                 }
 
-                if (ParameterHelper.IsConnectionParameter(pi))
+                if (ParameterHelper.IsConnectionParameter(pmi))
                 {
-                    ConnectionParameter = pi;
+                    ConnectionParameter = pmi;
                 }
 
-                if (ParameterHelper.IsTransactionParameter(pi))
+                if (ParameterHelper.IsTransactionParameter(pmi))
                 {
-                    TransactionParameter = pi;
+                    TransactionParameter = pmi;
                 }
             }
         }

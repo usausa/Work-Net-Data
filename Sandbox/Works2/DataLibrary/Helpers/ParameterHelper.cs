@@ -1,10 +1,13 @@
 ﻿namespace DataLibrary.Helpers
 {
+    using System;
     using System.Data.Common;
     using System.Reflection;
     using System.Threading;
 
     using DataLibrary.Attributes;
+
+    using Smart;
 
     internal static class ParameterHelper
     {
@@ -25,5 +28,46 @@
             !IsCancellationTokenParameter(pi) &&
             !IsConnectionParameter(pi) &&
             !IsTransactionParameter(pi);
+
+        public static bool IsNestedParameter(ParameterInfo pi)
+        {
+            var type = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
+
+            if (type.IsNullableType())
+            {
+                type = Nullable.GetUnderlyingType(type);
+            }
+
+            if (type.IsEnum)
+            {
+                type = Enum.GetUnderlyingType(type);
+            }
+
+            if (type.IsPrimitive ||
+                type == typeof(string) ||
+                type == typeof(Guid) ||
+                type == typeof(DateTime) ||
+                type == typeof(DateTimeOffset) ||
+                type == typeof(TimeSpan) ||
+                type == typeof(byte[]) ||
+                type == typeof(object))
+            {
+                return false;
+            }
+
+            if (TypeHelper.IsArrayParameter(type) ||
+                TypeHelper.IsListParameter(type) ||
+                TypeHelper.IsEnumerableParameter(type))
+            {
+                return false;
+            }
+
+            if (pi.GetCustomAttribute<ParameterBuilderAttribute>() != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

@@ -2,7 +2,7 @@
 {
     using System;
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class ParameterAttribute : Attribute
     {
         public string Name { get; }

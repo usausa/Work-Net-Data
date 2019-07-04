@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
+using DataLibrary.Helpers;
 using DataLibrary.Providers;
 using DataLibrary.Scripts;
 
@@ -124,7 +125,7 @@ namespace DataLibrary.Generator
                         DefineMethodExecuteReader(mm);
                         break;
                     case MethodType.Query:
-                        if (!GeneratorHelper.IsList(mm.EngineResultType))
+                        if (!TypeHelper.IsList(mm.EngineResultType))
                         {
                             DefineMethodQueryNonBuffer(mm);
                         }
@@ -276,7 +277,7 @@ namespace DataLibrary.Generator
 
         private static bool IsValidQueryResultType(Type type)
         {
-            return GeneratorHelper.IsEnumerable(type) || GeneratorHelper.IsList(type);
+            return TypeHelper.IsEnumerable(type) || TypeHelper.IsList(type);
         }
 
         private static bool IsValidQueryFirstOrDefaultResultType(Type type)
@@ -507,10 +508,10 @@ namespace DataLibrary.Generator
                                         Append($"{RuntimeHelperType}.GetArrayParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                         break;
                                     case ParameterType.List:
-                                        Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                         break;
                                     case ParameterType.Enumerable:
-                                        Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                         break;
                                     default:
                                         Append($"{RuntimeHelperType}.GetInParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
@@ -733,7 +734,7 @@ namespace DataLibrary.Generator
             // PostProcess
             DefinePostProcess(mm);
 
-            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(mm.EngineResultType));
+            var resultType = GeneratorHelper.MakeGlobalName(TypeHelper.GetEnumerableElementType(mm.EngineResultType));
             AppendLine($"return {EngineFieldRef}.ReaderToDefer<{resultType}>({CommandVar}, {ReaderVar});");
             EndConnectionForReader(mm);
 
@@ -761,7 +762,7 @@ namespace DataLibrary.Generator
             Indent();
             Append($"var {ResultVar} = ");
 
-            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(mm.EngineResultType));
+            var resultType = GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(mm.EngineResultType));
             var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
             if (mm.IsAsync)
             {
@@ -844,7 +845,7 @@ namespace DataLibrary.Generator
             Append($"{GeneratorHelper.MakeGlobalName(mm.MethodInfo.ReturnType)} {mm.MethodInfo.Name}(");
 
             var first = true;
-            foreach (var pi in mm.MethodInfo.GetParameters())
+            foreach (var pmi in mm.MethodInfo.GetParameters())
             {
                 if (!first)
                 {
@@ -855,17 +856,17 @@ namespace DataLibrary.Generator
                     first = false;
                 }
 
-                if (pi.IsOut)
+                if (pmi.IsOut)
                 {
                     Append("out ");
                 }
-                else if (pi.ParameterType.IsByRef)
+                else if (pmi.ParameterType.IsByRef)
                 {
                     Append("ref ");
                 }
 
-                var parameterType = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
-                Append($"{GeneratorHelper.MakeGlobalName(parameterType)} {pi.Name}");
+                var parameterType = pmi.ParameterType.IsByRef ? pmi.ParameterType.GetElementType() : pmi.ParameterType;
+                Append($"{GeneratorHelper.MakeGlobalName(parameterType)} {pmi.Name}");
             }
 
             AppendLine(")");

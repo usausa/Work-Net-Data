@@ -117,11 +117,10 @@
         private Func<object, object> CreateConverter(Type type, ICustomAttributeProvider provider)
         {
             // ResultAttribute
-
             var attribute = provider?.GetCustomAttributes(true).OfType<ResultParserAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return attribute.CreateConverter(type);
+                return attribute.CreateConverter(Components, type);
             }
 
             // ITypeHandler
