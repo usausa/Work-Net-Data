@@ -99,7 +99,12 @@
                 var nodes = attribute.GetNodes(loader, method);
                 var visitor = new ParameterResolveVisitor(method);
                 visitor.Visit(nodes);
-                var methodMetadata = new MethodMetadata(no, method, attribute.CommandType, attribute.MethodType, nodes, visitor.Entries);
+                var methodMetadata = new MethodMetadata(
+                    no,
+                    method,
+                    attribute.CommandType,
+                    attribute.MethodType, nodes,
+                    visitor.Parameters);
                 builder.AddMethod(methodMetadata);
 
                 no++;

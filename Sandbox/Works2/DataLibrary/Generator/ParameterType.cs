@@ -2,23 +2,9 @@
 {
     internal enum ParameterType
     {
+        Simple,
         Array,
         List,
-        Enumerable,
-        Input,
-        InputOutput,
-        Output,
-        Return
+        Enumerable
     }
-
-    internal static class ParameterTypeExtensions
-    {
-        public static bool IsOutType(this ParameterType parameterType)
-        {
-            return parameterType == ParameterType.InputOutput ||
-                   parameterType == ParameterType.Output ||
-                   parameterType == ParameterType.Return;
-        }
-    }
-
 }

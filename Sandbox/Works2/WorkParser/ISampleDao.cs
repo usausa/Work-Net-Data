@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace WorkParser
+﻿namespace WorkParser
 {
     using System.Collections.Generic;
 
@@ -19,11 +17,11 @@ namespace WorkParser
     {
         public int InParam { get; set; }
 
-        [Direction(ParameterDirection.InputOutput)] public int InOutParam { get; set; }
+        [InputOutput] public int InOutParam { get; set; }
 
-        [Direction(ParameterDirection.Output)] public int OutParam { get; set; }
+        [Output] public int OutParam { get; set; }
 
-        [Direction(ParameterDirection.ReturnValue)] public int RetParam { get; set; }
+        [ReturnValue] public int RetParam { get; set; }
     }
 
     [Dao]

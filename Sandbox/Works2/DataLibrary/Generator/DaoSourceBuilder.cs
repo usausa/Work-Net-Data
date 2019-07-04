@@ -29,14 +29,15 @@ namespace DataLibrary.Generator
         private const string ReaderVar = "_reader";
         private const string ResultVar = "_result";
         private const string WasClosedVar = "_wasClosed";
+        private const string OutParamVar = "_outParam";
 
         private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
-        private static readonly string ConvertHelperType = GeneratorHelper.MakeGlobalName(typeof(ConvertHelper));
         private static readonly string MethodNoAttributeType = GeneratorHelper.MakeGlobalName(typeof(MethodNoAttribute));
         private static readonly string ProviderType = GeneratorHelper.MakeGlobalName(typeof(IDbProvider));
         private static readonly string DataReaderType = GeneratorHelper.MakeGlobalName(typeof(IDataReader));
         private static readonly string DbCommandType = GeneratorHelper.MakeGlobalName(typeof(DbCommand));
+        private static readonly string DbParameterType = GeneratorHelper.MakeGlobalName(typeof(DbParameter));
         private static readonly string CommandTypeType = GeneratorHelper.MakeGlobalName(typeof(CommandType));
         private static readonly string ConnectionStateType = GeneratorHelper.MakeGlobalName(typeof(ConnectionState));
         private static readonly string WrappedReaderType = GeneratorHelper.MakeGlobalName(typeof(WrappedReader));
@@ -166,6 +167,8 @@ namespace DataLibrary.Generator
         public string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
 
         public string GetSetupFieldNameRef(int no, int index) => "this." + GetSetupFieldName(no, index);
+
+        public string GetOutParamName(int index) => OutParamVar + index;
 
         //--------------------------------------------------------------------------------
         // Helper
@@ -378,33 +381,36 @@ namespace DataLibrary.Generator
 
                 foreach (var parameter in mm.Parameters)
                 {
-                    switch (parameter.ParameterType)
+                    switch (parameter.Direction)
                     {
-                        case ParameterType.Array:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                        case ParameterDirection.Output:
+                        case ParameterDirection.ReturnValue:
+                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
                             break;
-                        case ParameterType.List:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
-                            break;
-                        case ParameterType.Enumerable:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeEnumerableParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
-                            break;
-                        case ParameterType.Input:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
-                            break;
-                        case ParameterType.InputOutput:
+                        case ParameterDirection.InputOutput:
                             AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
                             break;
-                        case ParameterType.Output:
-                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
-                            break;
-                        case ParameterType.Return:
-                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                        case ParameterDirection.Input:
+                            switch (parameter.ParameterType)
+                            {
+                                case ParameterType.Array:
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    break;
+                                case ParameterType.List:
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    break;
+                                case ParameterType.Enumerable:
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeEnumerableParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    break;
+                                default:
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    break;
+                            }
                             break;
                     }
                 }
 
-                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType.IsOutType()))
+                foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
                 {
                     AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No, parameter.Index)};");
                 }
@@ -482,35 +488,41 @@ namespace DataLibrary.Generator
                         Indent();
                         Append($"{GetSetupFieldNameRef(mm.No, parameter.Index)} = ");
 
-                        switch (parameter.ParameterType)
+
+                        switch (parameter.Direction)
                         {
-                            case ParameterType.Array:
-                                Append($"{RuntimeHelperType}.GetArrayParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                            case ParameterDirection.Output:
+                                Append($"{CtorArg}.CreateReturnParameterSetup();");
                                 break;
-                            case ParameterType.List:
-                                Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
-                                break;
-                            case ParameterType.Enumerable:
-                                Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
-                                break;
-                            case ParameterType.Input:
-                                Append($"{RuntimeHelperType}.GetInParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
-                                break;
-                            case ParameterType.InputOutput:
-                                Append($"{RuntimeHelperType}.GetInOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
-                                break;
-                            case ParameterType.Output:
+                            case ParameterDirection.ReturnValue:
                                 Append($"{RuntimeHelperType}.GetOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                 break;
-                            case ParameterType.Return:
-                                Append($"{CtorArg}.CreateReturnParameterSetup();");
+                            case ParameterDirection.InputOutput:
+                                Append($"{RuntimeHelperType}.GetInOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterDirection.Input:
+                                switch (parameter.ParameterType)
+                                {
+                                    case ParameterType.Array:
+                                        Append($"{RuntimeHelperType}.GetArrayParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        break;
+                                    case ParameterType.List:
+                                        Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        break;
+                                    case ParameterType.Enumerable:
+                                        Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        break;
+                                    default:
+                                        Append($"{RuntimeHelperType}.GetInParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                        break;
+                                }
                                 break;
                         }
 
                         NewLine();
                     }
 
-                    foreach (var parameter in mm.Parameters.Where(x => x.ParameterType.IsOutType()))
+                    foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
                     {
                         AppendLine($"{GetConvertFieldNameRef(mm.No, parameter.Index)} = {RuntimeHelperType}.GetConverter<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                     }
@@ -587,7 +599,7 @@ namespace DataLibrary.Generator
 
             if (mm.EngineResultType != typeof(object))
             {
-                Append($"{ConvertHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
+                Append($"{RuntimeHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
                 NewLine();
                 indent++;
                 Indent();
@@ -1002,14 +1014,10 @@ namespace DataLibrary.Generator
         {
             var current = source.Length;
 
-            // TODO
-            // dummy
-            foreach (var pi in mm.MethodInfo.GetParameters())
+            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
             {
-                if (pi.IsOut)
-                {
-                    AppendLine($"{pi.Name} = default;");
-                }
+                AppendLine($"var {GetOutParamName(parameter.Index)} = default({DbParameterType});");
+
             }
 
             if (source.Length > current)

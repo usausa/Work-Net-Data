@@ -28,7 +28,7 @@ namespace DataLibrary.Attributes
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
-            // TODO parameter (name, nested)
+            // TODO parameter (name:ParameterAttribute, nested)
             return mi.GetParameters()
                 .Where(ParameterHelper.IsSqlParameter)
                 .Select(x => (INode)new ParameterNode(x.Name, x.Name))

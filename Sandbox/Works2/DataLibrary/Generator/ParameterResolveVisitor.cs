@@ -1,18 +1,19 @@
-﻿using System.Linq;
-
-namespace DataLibrary.Generator
+﻿namespace DataLibrary.Generator
 {
+    using System;
     using System.Data;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
+    using DataLibrary.Attributes;
     using DataLibrary.Nodes;
 
     internal sealed class ParameterResolveVisitor : NodeVisitorBase
     {
-        private readonly List<ParameterEntry> entries = new List<ParameterEntry>();
+        private readonly List<ParameterEntry> parameters = new List<ParameterEntry>();
 
-        public IReadOnlyList<ParameterEntry> Entries => entries;
+        public IReadOnlyList<ParameterEntry> Parameters => parameters;
 
         private readonly MethodInfo method;
 
@@ -29,25 +30,40 @@ namespace DataLibrary.Generator
             if (path.Length == 1)
             {
                 var pi = GetParameterInfo(path[0]);
+                var type = pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType;
+                var direction = GetParameterDirection(pi);
+                var parameterType = GetParameterType(type);
+                if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
+                {
+                    throw new AccessorGeneratorException("TODO");   // TODO
+                }
 
-                // TODO Return 専用ノード？
-                entries.Add(new ParameterEntry(
+                parameters.Add(new ParameterEntry(
                     node.Source,
                     index++,
-                    pi.ParameterType.IsByRef ? pi.ParameterType.GetElementType() : pi.ParameterType,
-                    pi.IsOut ? ParameterDirection.Output : pi.ParameterType.IsByRef ? ParameterDirection.InputOutput : ParameterDirection.Input,
-                    node.ParameterName));
+                    type,
+                    direction,
+                    node.ParameterName,
+                    parameterType));
             }
             else if (path.Length == 2)
             {
-                var pi = GetParameterInfo(path[0]);
-                // TODO
-                entries.Add(new ParameterEntry(
+                var pi = GetParameterInfo(path[0], path[1]);
+                var type = pi.PropertyType;
+                var direction = GetParameterDirection(pi);
+                var parameterType = GetParameterType(type);
+                if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
+                {
+                    throw new AccessorGeneratorException("TODO");   // TODO
+                }
+
+                parameters.Add(new ParameterEntry(
                     node.Source,
                     index++,
-                    typeof(string),
-                    ParameterDirection.Input,
-                    node.ParameterName));
+                    type,
+                    direction,
+                    node.ParameterName,
+                    parameterType));
             }
             else
             {
@@ -55,15 +71,69 @@ namespace DataLibrary.Generator
             }
         }
 
-        private ParameterInfo GetParameterInfo(string name)
+        private ParameterInfo GetParameterInfo(string parameterName)
         {
-            var pi = method.GetParameters().FirstOrDefault(x => x.Name == name);
+            var pi = method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
             if (pi == null)
             {
                 throw new AccessorGeneratorException("TODO");   // TODO
             }
 
             return pi;
+        }
+
+        private PropertyInfo GetParameterInfo(string parameterName, string propertyName)
+        {
+            var pi = GetParameterInfo(parameterName).ParameterType.GetProperty(propertyName);
+            if (pi == null)
+            {
+                throw new AccessorGeneratorException("TODO");   // TODO
+            }
+
+            return pi;
+        }
+
+        private static ParameterDirection GetParameterDirection(ParameterInfo pi)
+        {
+            if (pi.IsOut)
+            {
+                return pi.GetCustomAttribute<ReturnValueAttribute>() != null
+                    ? ParameterDirection.ReturnValue
+                    : ParameterDirection.Output;
+            }
+
+            if (pi.ParameterType.IsByRef)
+            {
+                return ParameterDirection.InputOutput;
+            }
+
+            return ParameterDirection.Input;
+        }
+
+        private static ParameterDirection GetParameterDirection(PropertyInfo pi)
+        {
+            var attribute = pi.GetCustomAttribute<DirectionAttribute>();
+            return attribute?.Direction ?? ParameterDirection.Input;
+        }
+
+        private static ParameterType GetParameterType(Type type)
+        {
+            if (type.IsArray)
+            {
+                return ParameterType.Array;
+            }
+
+            if (GeneratorHelper.IsListParameter(type))
+            {
+                return ParameterType.List;
+            }
+
+            if (GeneratorHelper.IsEnumerableParameter(type))
+            {
+                return ParameterType.Enumerable;
+            }
+
+            return ParameterType.Simple;
         }
     }
 }

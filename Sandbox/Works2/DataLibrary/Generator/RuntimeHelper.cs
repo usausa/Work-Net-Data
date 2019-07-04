@@ -28,6 +28,22 @@ namespace DataLibrary.Generator
             return index < ParameterNames.Length ? ParameterNames[index] : $"p{index}";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Convert<T>(object source, Func<object, object> converter)
+        {
+            if (source is T value)
+            {
+                return value;
+            }
+
+            if (source is DBNull)
+            {
+                return default;
+            }
+
+            return (T)converter(source);
+        }
+
         public static MethodInfo GetInterfaceMethodByNo(Type type, Type interfaceType, int no)
         {
             var implementMethod = type.GetMethods().First(x => x.GetCustomAttribute<MethodNoAttribute>().No == no);

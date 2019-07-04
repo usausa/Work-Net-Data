@@ -167,7 +167,7 @@ namespace WorkGenerated
                 // Execute
                 con.Open();
 
-                var result = ConvertHelper.Convert<long>(
+                var result = RuntimeHelper.Convert<long>(
                     engine.ExecuteScalar(cmd),
                     converter5);
 
@@ -189,7 +189,7 @@ namespace WorkGenerated
                 // Execute
                 await con.OpenAsync(cancel).ConfigureAwait(false);
 
-                var result = ConvertHelper.Convert<long>(
+                var result = RuntimeHelper.Convert<long>(
                     await engine.ExecuteScalarAsync(cmd, cancel).ConfigureAwait(false),
                     converter6);
 
@@ -208,7 +208,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = ConvertHelper.Convert<long>(
+                var result = RuntimeHelper.Convert<long>(
                     engine.ExecuteScalar(con, cmd),
                     converter7);
 
@@ -227,7 +227,7 @@ namespace WorkGenerated
                 cmd.CommandText = "SELECT COUNT(*) FROM Data";
 
                 // Execute
-                var result = ConvertHelper.Convert<long>(
+                var result = RuntimeHelper.Convert<long>(
                     await engine.ExecuteScalarAsync(con, cmd, cancel).ConfigureAwait(false),
                     converter8);
 
@@ -744,12 +744,12 @@ namespace WorkGenerated
                 // [MEMO] Dynamicでなければnullチェックが不要
                 if (_outParam2 != null)
                 {
-                    parameter.InOutParam = ConvertHelper.Convert<int?>(_outParam2.Value, converter26_2);
+                    parameter.InOutParam = RuntimeHelper.Convert<int?>(_outParam2.Value, converter26_2);
                 }
 
                 if (_outParam3 != null)
                 {
-                    parameter.OutParam = ConvertHelper.Convert<int>(_outParam3.Value, converter26_3);
+                    parameter.OutParam = RuntimeHelper.Convert<int>(_outParam3.Value, converter26_3);
                 }
 
                 return _result;
@@ -789,12 +789,12 @@ namespace WorkGenerated
                 // [MEMO] Dynamicでなければnullチェックが不要
                 if (_outParam2 != null)
                 {
-                    param2 = ConvertHelper.Convert<int>(_outParam2.Value, converter26_2);
+                    param2 = RuntimeHelper.Convert<int>(_outParam2.Value, converter26_2);
                 }
 
                 if (_outParam3 != null)
                 {
-                    param3 = ConvertHelper.Convert<int>(_outParam3.Value, converter26_3);
+                    param3 = RuntimeHelper.Convert<int>(_outParam3.Value, converter26_3);
                 }
                 else
                 {

@@ -1,16 +1,13 @@
-﻿using DataLibrary.Helpers;
-
-namespace DataLibrary.Generator
+﻿namespace DataLibrary.Generator
 {
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.Common;
     using System.Reflection;
     using System.Threading.Tasks;
-    using System.Threading;
 
     using DataLibrary.Attributes;
+    using DataLibrary.Helpers;
     using DataLibrary.Nodes;
 
     internal sealed class MethodMetadata
