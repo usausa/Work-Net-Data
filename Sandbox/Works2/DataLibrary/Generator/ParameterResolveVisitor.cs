@@ -35,7 +35,7 @@
                 var parameterType = GetParameterType(type);
                 if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
                 {
-                    throw new AccessorGeneratorException("TODO");   // TODO
+                    throw new AccessorGeneratorException($"DB parameter argument is not valid. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Source}]");
                 }
 
                 parameters.Add(new ParameterEntry(
@@ -54,7 +54,7 @@
                 var parameterType = GetParameterType(type);
                 if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
                 {
-                    throw new AccessorGeneratorException("TODO");   // TODO
+                    throw new AccessorGeneratorException($"DB parameter argument is not valid. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Source}]");
                 }
 
                 parameters.Add(new ParameterEntry(
@@ -67,7 +67,8 @@
             }
             else
             {
-                throw new AccessorGeneratorException("TODO");   // TODO
+                // [MEMO] Extend ?
+                throw new AccessorGeneratorException($"DB parameter is not exist in argument. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Source}]");
             }
         }
 
@@ -76,7 +77,7 @@
             var pi = method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
             if (pi == null)
             {
-                throw new AccessorGeneratorException("TODO");   // TODO
+                throw new AccessorGeneratorException($"DB parameter argument not found. type=[{method.DeclaringType.FullName}], method=[{method.Name}], argument=[{parameterName}]");
             }
 
             return pi;
@@ -87,7 +88,7 @@
             var pi = GetParameterInfo(parameterName).ParameterType.GetProperty(propertyName);
             if (pi == null)
             {
-                throw new AccessorGeneratorException("TODO");   // TODO
+                throw new AccessorGeneratorException($"DB parameter property not found. type=[{method.DeclaringType.FullName}], method=[{method.Name}], argument=[{parameterName}], property=[{propertyName}]");
             }
 
             return pi;
