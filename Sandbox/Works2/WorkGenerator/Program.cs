@@ -83,15 +83,27 @@ namespace WorkGenerator
                 },
                 {
                     "QueryDataList2",
-                    "/*!helper WorkGenerator.Models.TestHelper */" +
+                    "/*!using System */" +
                     "SELECT * FROM Data WHERE 1 = 1 " +
-                    "/*% if (IsNotEmpty(parameter.Name) { */" +
+                    "/*% if (!String.IsNullOrEmtpy(parameter.Name) { */" +
                     "AND Name = /*@ parameter.Name */ 'xxx'" +
                     "/*% } */" +
-                    "/*% if (IsNotEmpty(parameter.Code) { */" +
+                    "/*% if (!String.IsNullOrEmtpy(parameter.Code) { */" +
                     "AND Code = /*@ parameter.Code */ 'yyy'" +
                     "/*% } */" +
                     "ORDER BY /*# parameter.Order */"
+                },
+                {
+                    "ExecuteIn1",
+                    "/*@ ids */"
+                },
+                {
+                    "ExecuteIn2",
+                    "/*@ ids */"
+                },
+                {
+                    "ExecuteIn3",
+                    "/*@ ids */"
                 }
             };
         }

@@ -24,6 +24,15 @@ namespace WorkGenerator.Dao
         [ExecuteScalar]
         long Count2(string code);
 
+        [Execute]
+        int ExecuteIn1(string[] ids);
+
+        [Execute]
+        int ExecuteIn2(IList<string> ids);
+
+        [Execute]
+        int ExecuteIn3(IEnumerable<string> ids);
+
         [Query]
         IList<DataEntity> QueryDataList(string name, string code, string sort);
 
@@ -33,8 +42,8 @@ namespace WorkGenerator.Dao
         [Insert("Data")]
         void Insert(DataEntity entity);
 
-        [Procedure("PROC1")]
-        void Call1(Parameter parameter);
+        //[Procedure("PROC1")]
+        //void Call1(Parameter parameter);
 
         [Procedure("PROC2")]
         int Call2(int param1, ref int param2, out int param3);

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Data;
-
-namespace DataLibrary.Generator
+﻿namespace DataLibrary.Generator
 {
+    using System;
+    using System.Data;
+
     internal class ParameterEntry
     {
         public string Source { get; }

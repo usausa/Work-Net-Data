@@ -7,8 +7,8 @@ using System.Reflection;
 using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
-using DataLibrary.Helpers;
 using DataLibrary.Providers;
+using DataLibrary.Scripts;
 
 namespace DataLibrary.Generator
 {
@@ -390,7 +390,7 @@ namespace DataLibrary.Generator
                             AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeEnumerableParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterType.Input:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterType.InputOutput:
                             AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
@@ -457,12 +457,7 @@ namespace DataLibrary.Generator
                 var hasConverter = (mm.MethodType == MethodType.ExecuteScalar) &&
                                    (mm.EngineResultType != typeof(object));
 
-                // Out converters
-                // TODO
-                // Setup
-                // TODO
-
-                if (hasProvider || hasConverter)
+                if (hasProvider || hasConverter || mm.Parameters.Count > 0)
                 {
                     NewLine();
                     AppendLine($"var method{mm.No} = {RuntimeHelperType}.GetInterfaceMethodByNo(GetType(), typeof({interfaceFullName}), {mm.No});");
@@ -480,6 +475,44 @@ namespace DataLibrary.Generator
                     if (hasConverter)
                     {
                         AppendLine($"{GetConvertFieldNameRef(mm.No)} = {CtorArg}.CreateConverter<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(method{mm.No});");
+                    }
+
+                    foreach (var parameter in mm.Parameters)
+                    {
+                        Indent();
+                        Append($"{GetSetupFieldNameRef(mm.No, parameter.Index)} = ");
+
+                        switch (parameter.ParameterType)
+                        {
+                            case ParameterType.Array:
+                                Append($"{RuntimeHelperType}.GetArrayParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.List:
+                                Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.Enumerable:
+                                Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.Input:
+                                Append($"{RuntimeHelperType}.GetInParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.InputOutput:
+                                Append($"{RuntimeHelperType}.GetInOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.Output:
+                                Append($"{RuntimeHelperType}.GetOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                                break;
+                            case ParameterType.Return:
+                                Append($"{CtorArg}.CreateReturnParameterSetup();");
+                                break;
+                        }
+
+                        NewLine();
+                    }
+
+                    foreach (var parameter in mm.Parameters.Where(x => x.ParameterType.IsOutType()))
+                    {
+                        AppendLine($"{GetConvertFieldNameRef(mm.No, parameter.Index)} = {RuntimeHelperType}.GetConverter<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                     }
                 }
             }
@@ -688,7 +721,7 @@ namespace DataLibrary.Generator
             // PostProcess
             DefinePostProcess(mm);
 
-            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetElementType(mm.EngineResultType));
+            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetEnumerableElementType(mm.EngineResultType));
             AppendLine($"return {EngineFieldRef}.ReaderToDefer<{resultType}>({CommandVar}, {ReaderVar});");
             EndConnectionForReader(mm);
 
@@ -716,7 +749,7 @@ namespace DataLibrary.Generator
             Indent();
             Append($"var {ResultVar} = ");
 
-            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetElementType(mm.EngineResultType));
+            var resultType = GeneratorHelper.MakeGlobalName(GeneratorHelper.GetListElementType(mm.EngineResultType));
             var commandOption = mm.HasConnectionParameter ? $"{GetConnectionName(mm)}, " : string.Empty;
             if (mm.IsAsync)
             {

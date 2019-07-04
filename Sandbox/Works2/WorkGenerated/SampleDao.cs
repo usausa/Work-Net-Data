@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Generator;
-using DataLibrary.Helpers;
 using DataLibrary.Providers;
+using DataLibrary.Scripts;
 
 namespace WorkGenerated
 {
@@ -27,14 +27,14 @@ namespace WorkGenerated
 
         private readonly Action<DbCommand, string, StringBuilder, string[]> setup25_1;
 
-        private readonly Action<DbCommand, string, object> setup26_1;
-        private readonly Func<DbCommand, string, object, DbParameter> setup26_2;
+        private readonly Action<DbCommand, string, string> setup26_1;
+        private readonly Func<DbCommand, string, int?, DbParameter> setup26_2;
         private readonly Func<DbCommand, string, DbParameter> setup26_3;
         public Func<object, object> converter26_2;
         public Func<object, object> converter26_3;
 
-        private readonly Action<DbCommand, string, object> setup27_1;
-        private readonly Func<DbCommand, string, object, DbParameter> setup27_2;
+        private readonly Action<DbCommand, string, int> setup27_1;
+        private readonly Func<DbCommand, string, int, DbParameter> setup27_2;
         private readonly Func<DbCommand, string, DbParameter> setup27_3;
         public Func<object, object> converter27_2;
         public Func<object, object> converter27_3;

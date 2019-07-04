@@ -21,7 +21,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -82,7 +82,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInOutParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -147,7 +147,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateOutParameterSetupByDbType(attribute.DbType, attribute.Size);
@@ -199,7 +199,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateArrayParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -304,7 +304,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateListParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -409,7 +409,7 @@
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).Cast<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateEnumerableParameterSetupByDbType<T>(attribute.DbType, attribute.Size);

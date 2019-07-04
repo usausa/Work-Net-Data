@@ -1,4 +1,6 @@
-﻿namespace DataLibrary.Generator
+﻿using DataLibrary.Helpers;
+
+namespace DataLibrary.Generator
 {
     using System;
     using System.Collections.Generic;
@@ -76,22 +78,22 @@
 
             foreach (var pi in mi.GetParameters())
             {
-                if (pi.GetCustomAttribute<TimeoutParameterAttribute>() != null)
+                if (ParameterHelper.IsTimeoutParameter(pi))
                 {
                     TimeoutParameter = pi;
                 }
 
-                if (pi.ParameterType == typeof(CancellationToken))
+                if (ParameterHelper.IsCancellationTokenParameter(pi))
                 {
                     CancelParameter = pi;
                 }
 
-                if (typeof(DbConnection).IsAssignableFrom(pi.ParameterType))
+                if (ParameterHelper.IsConnectionParameter(pi))
                 {
                     ConnectionParameter = pi;
                 }
 
-                if (typeof(DbTransaction).IsAssignableFrom(pi.ParameterType))
+                if (ParameterHelper.IsTransactionParameter(pi))
                 {
                     TransactionParameter = pi;
                 }

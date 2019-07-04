@@ -72,14 +72,14 @@
 
         public static Type MakeListParameterType(Type type)
         {
-            var listType = type.GetInterfaces().First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
             var openType = typeof(Action<,,,>);
             return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), listType);
         }
 
         public static Type MakeEnumerableParameterType(Type type)
         {
-            var enumerableType = type.GetInterfaces().First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            var enumerableType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
             var openType = typeof(Action<,,,>);
             return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), enumerableType);
         }
@@ -96,17 +96,22 @@
 
         public static bool IsEnumerableParameter(Type type)
         {
-            return type != typeof(string) && type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            return type != typeof(string) && type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         }
 
         public static bool IsListParameter(Type type)
         {
-            return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            return type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
         }
 
-        public static Type GetElementType(Type type)
+        public static Type GetEnumerableElementType(Type type)
         {
-            return type.GetGenericArguments()[0];
+            return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)).GetGenericArguments()[0];
+        }
+
+        public static Type GetListElementType(Type type)
+        {
+            return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)).GetGenericArguments()[0];
         }
     }
 }

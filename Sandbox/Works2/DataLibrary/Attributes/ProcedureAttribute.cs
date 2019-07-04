@@ -1,4 +1,7 @@
-﻿namespace DataLibrary.Attributes
+﻿using System.Linq;
+using DataLibrary.Helpers;
+
+namespace DataLibrary.Attributes
 {
     using System.Collections.Generic;
     using System.Data;
@@ -25,11 +28,12 @@
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
-            // TODO parameter ?
-            return new[]
-            {
-                new CodeNode(procedure),
-            };
+            // TODO parameter (name, nested)
+            return mi.GetParameters()
+                .Where(ParameterHelper.IsSqlParameter)
+                .Select(x => (INode)new ParameterNode(x.Name, x.Name))
+                .Prepend(new CodeNode(procedure))
+                .ToList();
         }
     }
 }
