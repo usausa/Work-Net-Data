@@ -7,6 +7,14 @@ using WorkGenerator.Models;
 
 namespace WorkGenerator.Dao
 {
+    public class QueryParameter
+    {
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public string Sort { get; set; }
+    }
+
+
     [Dao]
     public interface IMiscDao
     {
@@ -18,6 +26,9 @@ namespace WorkGenerator.Dao
 
         [Query]
         IList<DataEntity> QueryDataList(string name, string code, string sort);
+
+        [Query]
+        IList<DataEntity> QueryDataList2(QueryParameter parameter);
 
         [Insert("Data")]
         void Insert(DataEntity entity);

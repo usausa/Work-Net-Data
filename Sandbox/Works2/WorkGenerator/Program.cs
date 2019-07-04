@@ -80,6 +80,18 @@ namespace WorkGenerator
                     "AND Code = /*@ code */ 'yyy'" +
                     "/*% } */" +
                     "ORDER BY /*# order */"
+                },
+                {
+                    "QueryDataList2",
+                    "/*!helper WorkGenerator.Models.TestHelper */" +
+                    "SELECT * FROM Data WHERE 1 = 1 " +
+                    "/*% if (IsNotEmpty(parameter.Name) { */" +
+                    "AND Name = /*@ parameter.Name */ 'xxx'" +
+                    "/*% } */" +
+                    "/*% if (IsNotEmpty(parameter.Code) { */" +
+                    "AND Code = /*@ parameter.Code */ 'yyy'" +
+                    "/*% } */" +
+                    "ORDER BY /*# parameter.Order */"
                 }
             };
         }
