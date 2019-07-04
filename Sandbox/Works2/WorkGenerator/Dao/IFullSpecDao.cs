@@ -54,8 +54,8 @@ namespace WorkGenerator.Dao
         [QueryFirstOrDefault] DataEntity QueryFirstOrDefault(DbConnection con);
         [QueryFirstOrDefault] Task<DataEntity> QueryFirstOrDefaultAsync(DbConnection con, CancellationToken cancel);
         [Execute] int ExecuteEnumerable([AnsiString(3)] string[] ids);
-        [Execute] int ExecuteEx1(ProcParameter parameter, [TimeoutParameter] int timeout);
-        [Execute] void ExecuteEx2(int param1, ref int param2, out int param3);
+        [Procedure("TEST1")] int ExecuteEx1(ProcParameter parameter, [TimeoutParameter] int timeout);
+        [Procedure("TEST2")] void ExecuteEx2(int param1, ref int param2, out int param3);
         //// TODO Provider, Timeout, Tx only ?
     }
 }

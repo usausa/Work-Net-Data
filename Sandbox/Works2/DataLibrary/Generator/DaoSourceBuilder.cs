@@ -411,7 +411,7 @@ namespace DataLibrary.Generator
                     }
                 }
 
-                foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
+                foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
                 {
                     AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No, parameter.Index)};");
                 }
@@ -523,7 +523,7 @@ namespace DataLibrary.Generator
                         NewLine();
                     }
 
-                    foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
+                    foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
                     {
                         AppendLine($"{GetConvertFieldNameRef(mm.No, parameter.Index)} = {RuntimeHelperType}.GetConverter<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                     }
@@ -679,10 +679,10 @@ namespace DataLibrary.Generator
                 AppendLine($"{WasClosedVar} = false;");
             }
 
-            NewLine();
-
             // PostProcess
             DefinePostProcess(mm);
+
+            NewLine();
 
             AppendLine($"return new {WrappedReaderType}({CommandVar}, {ReaderVar});");
             EndConnectionForReader(mm);
@@ -729,10 +729,10 @@ namespace DataLibrary.Generator
                 AppendLine($"{WasClosedVar} = false;");
             }
 
-            NewLine();
-
             // PostProcess
             DefinePostProcess(mm);
+
+            NewLine();
 
             var resultType = GeneratorHelper.MakeGlobalName(TypeHelper.GetEnumerableElementType(mm.EngineResultType));
             AppendLine($"return {EngineFieldRef}.ReaderToDefer<{resultType}>({CommandVar}, {ReaderVar});");
@@ -1015,10 +1015,9 @@ namespace DataLibrary.Generator
         {
             var current = source.Length;
 
-            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
+            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
             {
                 AppendLine($"var {GetOutParamName(parameter.Index)} = default({DbParameterType});");
-
             }
 
             if (source.Length > current)
@@ -1029,7 +1028,37 @@ namespace DataLibrary.Generator
 
         private void DefinePostProcess(MethodMetadata mm)
         {
-            // TODO
+            var first = true;
+            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
+            {
+                if (first)
+                {
+                    NewLine();
+                    first = false;
+                }
+
+                Indent();
+                Append($"{parameter.Source} = ");
+
+                if (parameter.Type != typeof(object))
+                {
+                    Append($"{RuntimeHelperType}.Convert<{GeneratorHelper.MakeGlobalName(parameter.Type)}>(");
+                    NewLine();
+                    indent++;
+                    Indent();
+                    Append($"{GetOutParamName(parameter.Index)}.Value,");
+                    NewLine();
+                    Indent();
+                    Append($"{GetConvertFieldNameRef(mm.No, parameter.Index)});");
+                    indent--;
+                }
+                else
+                {
+                    Append($"{GetOutParamName(parameter.Index)}.Value;");
+                }
+
+                NewLine();
+            }
         }
 
         private void DefineSql(MethodMetadata mm)

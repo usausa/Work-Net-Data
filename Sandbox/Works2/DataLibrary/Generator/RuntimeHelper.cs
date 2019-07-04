@@ -22,6 +22,10 @@ namespace DataLibrary.Generator
             ParameterNames = Enumerable.Range(0, 256).Select(x => $"p{x}").ToArray();
         }
 
+        //--------------------------------------------------------------------------------
+        // Execute
+        //--------------------------------------------------------------------------------
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetParameterName(int index)
         {
@@ -43,6 +47,33 @@ namespace DataLibrary.Generator
 
             return (T)converter(source);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Convert<T>(DbParameter parameter, Func<object, object> converter)
+        {
+            if (parameter is null)
+            {
+                return default;
+            }
+
+            var source = parameter.Value;
+
+            if (source is T value)
+            {
+                return value;
+            }
+
+            if (source is DBNull)
+            {
+                return default;
+            }
+
+            return (T)converter(source);
+        }
+
+        //--------------------------------------------------------------------------------
+        // Initialize
+        //--------------------------------------------------------------------------------
 
         public static MethodInfo GetInterfaceMethodByNo(Type type, Type interfaceType, int no)
         {

@@ -26,12 +26,12 @@
 
         public static bool IsEnumerableParameter(Type type)
         {
-            return type != typeof(string) && type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            return (type != typeof(string)) && (type != typeof(byte[])) && type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         }
 
         public static bool IsArrayParameter(Type type)
         {
-            return type != typeof(byte[]) && type.IsArray;
+            return (type != typeof(byte[])) && type.IsArray;
         }
 
         public static bool IsListParameter(Type type)
