@@ -63,7 +63,7 @@ namespace WorkGenerator
                 },
                 {
                     "Count1",
-                    "SELECT COUNT(*) FROM Data WHERE Code = /*@ code */"
+                    "SELECT COUNT(*) FROM Data WHERE Name = /*@ name */ 'xxx' AND Code = /*@ code */ 'aaa'"
                 },
                 {
                     "Count2",

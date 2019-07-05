@@ -21,7 +21,7 @@ namespace WorkGenerator.Dao
         long Count();
 
         [ExecuteScalar]
-        long Count1(string code);
+        long Count1(string name, string code);
 
         [ExecuteScalar]
         long Count2(string code);
