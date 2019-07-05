@@ -1,29 +1,40 @@
-﻿using System.Linq;
-using DataLibrary.Helpers;
-
-namespace DataLibrary.Attributes
+﻿namespace DataLibrary.Attributes
 {
     using System.Collections.Generic;
     using System.Data;
+    using System.Linq;
     using System.Reflection;
 
-    using DataLibrary.Nodes;
+    using DataLibrary.Helpers;
     using DataLibrary.Loader;
+    using DataLibrary.Nodes;
 
-    public sealed class ProcedureAttribute : MethodAttribute
+    public sealed class ProcedureAttribute : MethodAttribute, IReturnValueBehavior
     {
         private readonly string procedure;
 
+        public bool ReturnValueAsResult { get; }
+
         public ProcedureAttribute(string procedure)
-            : base(CommandType.StoredProcedure, MethodType.Execute)
+            : this(procedure, MethodType.Execute)
         {
-            this.procedure = procedure;
         }
 
         public ProcedureAttribute(string procedure, MethodType methodType)
+            : this(procedure, methodType, true)
+        {
+        }
+
+        public ProcedureAttribute(string procedure, bool returnValueAsResult)
+            : this(procedure, MethodType.Execute, returnValueAsResult)
+        {
+        }
+
+        private ProcedureAttribute(string procedure, MethodType methodType, bool returnValueAsResult)
             : base(CommandType.StoredProcedure, methodType)
         {
             this.procedure = procedure;
+            ReturnValueAsResult = returnValueAsResult;
         }
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)

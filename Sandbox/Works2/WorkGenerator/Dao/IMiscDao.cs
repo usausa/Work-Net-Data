@@ -45,6 +45,6 @@ namespace WorkGenerator.Dao
         void Call1(ProcParameter parameter);
 
         [Procedure("PROC2")]
-        int Call2(out int ret, int param1, ref int param2, out int param3);
+        int Call2(int param1, ref int param2, out int param3);
     }
 }

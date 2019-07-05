@@ -24,6 +24,7 @@ namespace DataLibrary.Generator
         private const string ProviderFieldRef = "this." + ProviderField;
         private const string ConvertField = "_convert";
         private const string SetupField = "_setup";
+        private const string SetupReturnField = "_setupReturn";
 
         private const string ConnectionVar = "_con";
         private const string CommandVar = "_cmd";
@@ -31,6 +32,7 @@ namespace DataLibrary.Generator
         private const string ResultVar = "_result";
         private const string WasClosedVar = "_wasClosed";
         private const string OutParamVar = "_outParam";
+        private const string ReturnOutParamVar = "_outParamReturn";
 
         private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
@@ -45,6 +47,7 @@ namespace DataLibrary.Generator
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
         private static readonly string ConverterType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
+        private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, DbParameter>));
 
         private readonly Type targetType;
 
@@ -155,24 +158,55 @@ namespace DataLibrary.Generator
 
         public string GetProviderFieldName(int no) => ProviderField + no;
 
-        public string GetProviderFieldNameRef(int no) => "this." + GetProviderFieldName(no);
+        public string GetProviderFieldRef(int no) => "this." + GetProviderFieldName(no);
 
         public string GetConvertFieldName(int no) => ConvertField + no;
 
-        public string GetConvertFieldNameRef(int no) => "this." + GetConvertFieldName(no);
+        public string GetConvertFieldRef(int no) => "this." + GetConvertFieldName(no);
 
         public string GetConvertFieldName(int no, int index) => ConvertField + no + "_" + index;
 
-        public string GetConvertFieldNameRef(int no, int index) => "this." + GetConvertFieldName(no, index);
+        public string GetConvertFieldRef(int no, int index) => "this." + GetConvertFieldName(no, index);
 
         public string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
 
-        public string GetSetupFieldNameRef(int no, int index) => "this." + GetSetupFieldName(no, index);
+        public string GetSetupFieldRef(int no, int index) => "this." + GetSetupFieldName(no, index);
+
+        public string GetSetupReturnFieldName() => SetupReturnField;
+
+        public string GetSetupReturnFieldRef() => "this." + GetSetupReturnFieldName();
 
         public string GetOutParamName(int index) => OutParamVar + index;
 
         //--------------------------------------------------------------------------------
         // Helper
+        //--------------------------------------------------------------------------------
+
+        private static bool IsResultConverterRequired(MethodMetadata mm)
+        {
+            return (((mm.MethodType == MethodType.Execute) && mm.ReturnValueAsResult) ||
+                    (mm.MethodType == MethodType.ExecuteScalar)) &&
+                   (mm.EngineResultType != typeof(object) &&
+                    (mm.EngineResultType != typeof(void)));
+        }
+
+        private static string GetConnectionName(MethodMetadata mm)
+        {
+            if (mm.ConnectionParameter != null)
+            {
+                return mm.ConnectionParameter.Name;
+            }
+
+            if (mm.TransactionParameter != null)
+            {
+                return $"{mm.TransactionParameter.Name}.Connection";
+            }
+
+            return ConnectionVar;
+        }
+
+        //--------------------------------------------------------------------------------
+        // Source
         //--------------------------------------------------------------------------------
 
         private void Indent()
@@ -228,7 +262,7 @@ namespace DataLibrary.Generator
             switch (mm.MethodType)
             {
                 case MethodType.Execute:
-                    if (!IsValidExecuteResultType(mm.EngineResultType))
+                    if (!IsValidExecuteResultType(mm.EngineResultType, mm.ReturnValueAsResult))
                     {
                         throw new AccessorGeneratorException($"ReturnType is not match for MethodType.Execute. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}], returnType=[{mm.MethodInfo.ReturnType}]");
                     }
@@ -260,9 +294,9 @@ namespace DataLibrary.Generator
             }
         }
 
-        private static bool IsValidExecuteResultType(Type type)
+        private static bool IsValidExecuteResultType(Type type, bool returnValueAsResult)
         {
-            return type == typeof(int) || type == typeof(void);
+            return returnValueAsResult || type == typeof(int) || type == typeof(void);
         }
 
         private static bool IsValidExecuteScalarResultType(Type type)
@@ -283,25 +317,6 @@ namespace DataLibrary.Generator
         private static bool IsValidQueryFirstOrDefaultResultType(Type type)
         {
             return type != typeof(void);
-        }
-
-        //--------------------------------------------------------------------------------
-        // Helper
-        //--------------------------------------------------------------------------------
-
-        private static string GetConnectionName(MethodMetadata mm)
-        {
-            if (mm.ConnectionParameter != null)
-            {
-                return mm.ConnectionParameter.Name;
-            }
-
-            if (mm.TransactionParameter != null)
-            {
-                return $"{mm.TransactionParameter.Name}.Connection";
-            }
-
-            return ConnectionVar;
         }
 
         //--------------------------------------------------------------------------------
@@ -374,20 +389,23 @@ namespace DataLibrary.Generator
                     AppendLine($"private readonly {ProviderType} {GetProviderFieldName(mm.No)};");
                 }
 
-                // TODO Return
-
-                if ((mm.MethodType == MethodType.ExecuteScalar) &&
-                    (mm.EngineResultType != typeof(object)))
+                if (IsResultConverterRequired(mm))
                 {
                     AppendLine($"private readonly {ConverterType} {GetConvertFieldName(mm.No)};");
+                    if (mm.ReturnValueAsResult)
+                    {
+                        AppendLine($"private readonly {ReturnSetupType} {GetSetupReturnFieldName()};");
+                    }
                 }
 
                 foreach (var parameter in mm.Parameters)
                 {
                     switch (parameter.Direction)
                     {
-                        case ParameterDirection.Output:
                         case ParameterDirection.ReturnValue:
+                            AppendLine($"private readonly {ReturnSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterDirection.Output:
                             AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterDirection.InputOutput:
@@ -462,11 +480,8 @@ namespace DataLibrary.Generator
             // Per method
             foreach (var mm in methods)
             {
-                // TODO Return
                 var hasProvider = mm.Provider != null;
-                var hasConverter = (mm.MethodType == MethodType.ExecuteScalar) &&
-                                   (mm.EngineResultType != typeof(object));
-
+                var hasConverter = IsResultConverterRequired(mm);
                 if (hasProvider || hasConverter || mm.Parameters.Count > 0)
                 {
                     NewLine();
@@ -479,26 +494,30 @@ namespace DataLibrary.Generator
                             throw new AccessorGeneratorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}]");
                         }
 
-                        AppendLine($"{GetProviderFieldNameRef(mm.No)} = {RuntimeHelperType}.GetDbProvider({CtorArg}, method{mm.No});");
+                        AppendLine($"{GetProviderFieldRef(mm.No)} = {RuntimeHelperType}.GetDbProvider({CtorArg}, method{mm.No});");
                     }
 
                     if (hasConverter)
                     {
-                        AppendLine($"{GetConvertFieldNameRef(mm.No)} = {CtorArg}.CreateConverter<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(method{mm.No});");
+                        AppendLine($"{GetConvertFieldRef(mm.No)} = {CtorArg}.CreateConverter<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(method{mm.No});");
+                        if (mm.ReturnValueAsResult)
+                        {
+                            AppendLine($"{GetSetupReturnFieldRef()} = {CtorArg}.CreateReturnParameterSetup();");
+                        }
                     }
 
                     foreach (var parameter in mm.Parameters)
                     {
                         Indent();
-                        Append($"{GetSetupFieldNameRef(mm.No, parameter.Index)} = ");
+                        Append($"{GetSetupFieldRef(mm.No, parameter.Index)} = ");
 
 
                         switch (parameter.Direction)
                         {
-                            case ParameterDirection.Output:
+                            case ParameterDirection.ReturnValue:
                                 Append($"{CtorArg}.CreateReturnParameterSetup();");
                                 break;
-                            case ParameterDirection.ReturnValue:
+                            case ParameterDirection.Output:
                                 Append($"{RuntimeHelperType}.GetOutParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                 break;
                             case ParameterDirection.InputOutput:
@@ -528,7 +547,7 @@ namespace DataLibrary.Generator
 
                     foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
                     {
-                        AppendLine($"{GetConvertFieldNameRef(mm.No, parameter.Index)} = {RuntimeHelperType}.GetConverter<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
+                        AppendLine($"{GetConvertFieldRef(mm.No, parameter.Index)} = {RuntimeHelperType}.GetConverter<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                     }
                 }
             }
@@ -547,7 +566,11 @@ namespace DataLibrary.Generator
             // PreProcess
             DefinePreProcess(mm);
 
-            // TODO Return
+            if (mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
+            {
+                AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef()}({CommandVar});");
+                NewLine();
+            }
 
             DefineSql(mm);
 
@@ -556,9 +579,7 @@ namespace DataLibrary.Generator
             // Body
             Indent();
 
-            // TODO Return
-
-            if (mm.EngineResultType != typeof(void))
+            if (!mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
             {
                 Append($"var {ResultVar} = ");
             }
@@ -578,6 +599,31 @@ namespace DataLibrary.Generator
 
             // PostProcess
             DefinePostProcess(mm);
+
+            if (mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
+            {
+                if (mm.EngineResultType != typeof(object))
+                {
+                    NewLine();
+
+                    Indent();
+                    Append($"var {ResultVar} = {RuntimeHelperType}.Convert<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(");
+                    NewLine();
+                    indent++;
+                    Indent();
+                    Append($"{ReturnOutParamVar}.Value,");
+                    NewLine();
+                    Indent();
+                    Append($"{GetConvertFieldRef(mm.No)});");
+                    indent--;
+                    NewLine();
+                }
+                else
+                {
+                    NewLine();
+                    AppendLine($"var {ResultVar} = {ReturnOutParamVar}.Value;");
+                }
+            }
 
             EndConnectionSimple(mm);
 
@@ -629,7 +675,7 @@ namespace DataLibrary.Generator
                 Append(",");
                 NewLine();
                 Indent();
-                Append($"{GetConvertFieldNameRef(mm.No)});");
+                Append($"{GetConvertFieldRef(mm.No)});");
                 indent--;
             }
             else
@@ -886,7 +932,7 @@ namespace DataLibrary.Generator
         {
             if (!mm.HasConnectionParameter)
             {
-                var providerName = mm.Provider != null ? GetProviderFieldNameRef(mm.No) : ProviderFieldRef;
+                var providerName = mm.Provider != null ? GetProviderFieldRef(mm.No) : ProviderFieldRef;
                 AppendLine($"using (var {ConnectionVar} = {providerName}.CreateConnection())");
             }
 
@@ -926,7 +972,7 @@ namespace DataLibrary.Generator
             }
             else
             {
-                var providerName = mm.Provider != null ? GetProviderFieldNameRef(mm.No) : ProviderFieldRef;
+                var providerName = mm.Provider != null ? GetProviderFieldRef(mm.No) : ProviderFieldRef;
                 AppendLine($"var {ConnectionVar} = {providerName}.CreateConnection();");
             }
 
@@ -1022,7 +1068,7 @@ namespace DataLibrary.Generator
         {
             var current = source.Length;
 
-            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
+            foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input))
             {
                 AppendLine($"var {GetOutParamName(parameter.Index)} = default({DbParameterType});");
             }
@@ -1056,7 +1102,7 @@ namespace DataLibrary.Generator
                     Append($"{GetOutParamName(parameter.Index)}.Value,");
                     NewLine();
                     Indent();
-                    Append($"{GetConvertFieldNameRef(mm.No, parameter.Index)});");
+                    Append($"{GetConvertFieldRef(mm.No, parameter.Index)});");
                     indent--;
                 }
                 else
@@ -1067,6 +1113,10 @@ namespace DataLibrary.Generator
                 NewLine();
             }
         }
+
+        //--------------------------------------------------------------------------------
+        // SQL
+        //--------------------------------------------------------------------------------
 
         private void DefineSql(MethodMetadata mm)
         {

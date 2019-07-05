@@ -180,9 +180,9 @@
         // Return
         //--------------------------------------------------------------------------------
 
-        public Func<DbCommand, string, DbParameter> CreateReturnParameterSetup()
+        public Func<DbCommand, DbParameter> CreateReturnParameterSetup()
         {
-            return (cmd, name) =>
+            return cmd =>
             {
                 var parameter = cmd.CreateParameter();
                 parameter.Direction = ParameterDirection.ReturnValue;

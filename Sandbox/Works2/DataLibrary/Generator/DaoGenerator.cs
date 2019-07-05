@@ -96,7 +96,6 @@
                     throw new AccessorGeneratorException($"Method is not supported for generation. type=[{type.FullName}], method=[{method.Name}]");
                 }
 
-                // TODO
                 var nodes = attribute.GetNodes(loader, method);
                 var visitor = new ParameterResolveVisitor(method);
                 visitor.Visit(nodes);
@@ -105,7 +104,7 @@
                     method,
                     attribute.CommandType,
                     attribute.MethodType,
-                    false,
+                    (attribute as IReturnValueBehavior)?.ReturnValueAsResult ?? false,
                     nodes,
                     visitor.Parameters);
                 builder.AddMethod(methodMetadata);
