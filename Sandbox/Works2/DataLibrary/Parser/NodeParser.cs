@@ -23,13 +23,13 @@
                 switch (token.TokenType)
                 {
                     case TokenType.Block:
-                        nodes.Add(new SqlNode(token.Value.Trim() + " "));
+                        nodes.Add(new SqlNode(token.Value.Trim() + " "));   // TODO
                         break;
                     case TokenType.OpenParenthesis:
                         nodes.Add(new SqlNode(token.Value.Trim()));
                         break;
                     case TokenType.CloseParenthesis:
-                        nodes.Add(new SqlNode(token.Value.Trim() + " "));
+                        nodes.Add(new SqlNode(token.Value.Trim() + " "));   // TODO
                         break;
                     case TokenType.Comment:
                         ParseComment(token.Value.Trim());

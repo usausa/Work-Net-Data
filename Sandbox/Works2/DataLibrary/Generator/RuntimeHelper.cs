@@ -15,22 +15,10 @@ namespace DataLibrary.Generator
 
     public static class RuntimeHelper
     {
-        private static readonly string[] ParameterNames;
-
-        static RuntimeHelper()
-        {
-            ParameterNames = Enumerable.Range(0, 256).Select(x => $"p{x}").ToArray();
-        }
-
         //--------------------------------------------------------------------------------
         // Execute
         //--------------------------------------------------------------------------------
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetParameterName(int index)
-        {
-            return index < ParameterNames.Length ? ParameterNames[index] : $"p{index}";
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Convert<T>(object source, Func<object, object> converter)

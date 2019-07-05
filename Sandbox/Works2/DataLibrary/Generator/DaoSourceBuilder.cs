@@ -8,6 +8,7 @@ using System.Text;
 using DataLibrary.Attributes;
 using DataLibrary.Engine;
 using DataLibrary.Helpers;
+using DataLibrary.Nodes;
 using DataLibrary.Providers;
 using DataLibrary.Scripts;
 
@@ -31,6 +32,7 @@ namespace DataLibrary.Generator
         private const string ReaderVar = "_reader";
         private const string ResultVar = "_result";
         private const string WasClosedVar = "_wasClosed";
+        private const string BuilderVar = "_sql";
         private const string OutParamVar = "_outParam";
         private const string ReturnOutParamVar = "_outParamReturn";
 
@@ -156,27 +158,27 @@ namespace DataLibrary.Generator
         // Naming
         //--------------------------------------------------------------------------------
 
-        public string GetProviderFieldName(int no) => ProviderField + no;
+        private static string GetProviderFieldName(int no) => ProviderField + no;
 
-        public string GetProviderFieldRef(int no) => "this." + GetProviderFieldName(no);
+        private static string GetProviderFieldRef(int no) => "this." + GetProviderFieldName(no);
 
-        public string GetConvertFieldName(int no) => ConvertField + no;
+        private static string GetConvertFieldName(int no) => ConvertField + no;
 
-        public string GetConvertFieldRef(int no) => "this." + GetConvertFieldName(no);
+        private static string GetConvertFieldRef(int no) => "this." + GetConvertFieldName(no);
 
-        public string GetConvertFieldName(int no, int index) => ConvertField + no + "_" + index;
+        private static string GetConvertFieldName(int no, int index) => ConvertField + no + "_" + index;
 
-        public string GetConvertFieldRef(int no, int index) => "this." + GetConvertFieldName(no, index);
+        private static string GetConvertFieldRef(int no, int index) => "this." + GetConvertFieldName(no, index);
 
-        public string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
+        private static string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
 
-        public string GetSetupFieldRef(int no, int index) => "this." + GetSetupFieldName(no, index);
+        private static string GetSetupFieldRef(int no, int index) => "this." + GetSetupFieldName(no, index);
 
-        public string GetSetupReturnFieldName() => SetupReturnField;
+        private static string GetSetupReturnFieldName() => SetupReturnField;
 
-        public string GetSetupReturnFieldRef() => "this." + GetSetupReturnFieldName();
+        private static string GetSetupReturnFieldRef() => "this." + GetSetupReturnFieldName();
 
-        public string GetOutParamName(int index) => OutParamVar + index;
+        private static string GetOutParamName(int index) => OutParamVar + index;
 
         //--------------------------------------------------------------------------------
         // Helper
@@ -566,13 +568,13 @@ namespace DataLibrary.Generator
             // PreProcess
             DefinePreProcess(mm);
 
+            DefineSql(mm);
+
             if (mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
             {
                 AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef()}({CommandVar});");
                 NewLine();
             }
-
-            DefineSql(mm);
 
             DefineConnectionOpen(mm);
 
@@ -1120,9 +1122,166 @@ namespace DataLibrary.Generator
 
         private void DefineSql(MethodMetadata mm)
         {
-            // TODO proc, simple, dynamic(include array?)
-            AppendLine($"{CommandVar}.CommandText = \"***\";");
-            NewLine();
+            if (mm.CommandType == CommandType.StoredProcedure)
+            {
+                var visitor = new ProcedureBuildVisitor(this, mm);
+                visitor.Visit(mm.Nodes);
+                NewLine();
+            }
+            else
+            {
+                var checkVisitor = new DynamicCheckVisitor();
+                checkVisitor.Visit(mm.Nodes);
+                if (checkVisitor.IsDynamic || mm.Parameters.Any(x => x.ParameterType != ParameterType.Simple))
+                {
+                    // TODO dynamic
+                    var visitor = new DynamicBuildVisitor(this, mm);
+                    visitor.Visit(mm.Nodes);
+                    AppendLine("// TODO");
+                    NewLine();
+                }
+                else
+                {
+                    // TODO WIP
+                    var visitor = new SimpleBuildVisitor(this, mm);
+                    visitor.Visit(mm.Nodes);
+                    visitor.Flush();
+                    NewLine();
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Procedure
+        //--------------------------------------------------------------------------------
+
+        private sealed class ProcedureBuildVisitor : NodeVisitorBase
+        {
+            private readonly DaoSourceBuilder builder;
+
+            private readonly MethodMetadata mm;
+
+            public ProcedureBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
+            {
+                this.builder = builder;
+                this.mm = mm;
+            }
+
+            public override void Visit(SqlNode node)
+            {
+                builder.AppendLine($"{CommandVar}.CommandText = \"{node.Sql}\";");
+                builder.NewLine();
+            }
+
+            public override void Visit(ParameterNode node)
+            {
+                var parameter = mm.Parameters.First(x => x.Source == node.Source);
+                builder.AppendLine(MakeParameterSetup(mm, parameter, node.ParameterName));
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Simple
+        //--------------------------------------------------------------------------------
+
+        private sealed class SimpleBuildVisitor : NodeVisitorBase
+        {
+            private readonly StringBuilder sql = new StringBuilder();
+
+            private readonly DaoSourceBuilder builder;
+
+            private readonly MethodMetadata mm;
+
+            public SimpleBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
+            {
+                this.builder = builder;
+                this.mm = mm;
+            }
+
+            public override void Visit(SqlNode node) => sql.Append(node.Sql);
+
+            public override void Visit(ParameterNode node)
+            {
+                var parameter = mm.Parameters.First(x => x.Source == node.Source);
+                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+
+                builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+
+                sql.Append("@");
+                sql.Append(parameterName);
+            }
+
+            public void Flush()
+            {
+                if (mm.Parameters.Count > 0)
+                {
+                    builder.NewLine();
+                }
+
+                builder.AppendLine($"{CommandVar}.CommandText = \"{sql}\";");
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Dynamic
+        //--------------------------------------------------------------------------------
+
+        // TODO
+        private sealed class DynamicBuildVisitor : NodeVisitorBase
+        {
+            private readonly DaoSourceBuilder builder;
+
+            private readonly MethodMetadata mm;
+
+            public DynamicBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
+            {
+                this.builder = builder;
+                this.mm = mm;
+            }
+
+            public override void Visit(SqlNode node)
+            {
+            }
+
+            public override void Visit(RawSqlNode node)
+            {
+            }
+
+            public override void Visit(CodeNode node)
+            {
+            }
+
+            public override void Visit(ParameterNode node)
+            {
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Helper
+        //--------------------------------------------------------------------------------
+
+        private static string MakeParameterSetup(MethodMetadata mm, ParameterEntry parameter, string name)
+        {
+            switch (parameter.Direction)
+            {
+                case ParameterDirection.ReturnValue:
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar});";
+                case ParameterDirection.Output:
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\");";
+                case ParameterDirection.InputOutput:
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
+                case ParameterDirection.Input:
+                    if (parameter.ParameterType == ParameterType.Simple)
+                    {
+                        return $"{GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
+                    }
+                    else
+                    {
+                        return $"{GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {BuilderVar}, {parameter.Source});";
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(parameter.Direction), $"Invalid parameter direction. direction=[{parameter.Direction}]");
+            }
         }
     }
 }

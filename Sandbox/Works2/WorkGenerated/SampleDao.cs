@@ -769,11 +769,11 @@ namespace WorkGenerated
                 var _outParam3 = default(DbParameter);   // [MEMO] コード的には冗長だが
 
                 // param1
-                setup27_1(_cmd, RuntimeHelper.GetParameterName(_nameIndex++), param1);
+                setup27_1(_cmd, ParameterNames.GetParameterName(_nameIndex++), param1);
                 // param2
-                _outParam2 = setup27_2(_cmd, RuntimeHelper.GetParameterName(_nameIndex++), param2);
+                _outParam2 = setup27_2(_cmd, ParameterNames.GetParameterName(_nameIndex++), param2);
                 // param3
-                _outParam3 = setup27_3(_cmd, RuntimeHelper.GetParameterName(_nameIndex++));
+                _outParam3 = setup27_3(_cmd, ParameterNames.GetParameterName(_nameIndex++));
 
                 // Build command
                 _cmd.CommandText = "PROC";

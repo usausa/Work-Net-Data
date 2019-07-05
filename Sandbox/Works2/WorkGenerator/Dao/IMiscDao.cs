@@ -18,7 +18,10 @@ namespace WorkGenerator.Dao
     public interface IMiscDao
     {
         [ExecuteScalar]
-        long Count(string code);
+        long Count();
+
+        [ExecuteScalar]
+        long Count1(string code);
 
         [ExecuteScalar]
         long Count2(string code);
@@ -41,10 +44,10 @@ namespace WorkGenerator.Dao
         [Insert("Data")]
         void Insert(DataEntity entity);
 
-        [Procedure("PROC1")]
-        void Call1(ProcParameter parameter);
+        //[Procedure("PROC1")]
+        //void Call1(ProcParameter parameter);
 
-        [Procedure("PROC2")]
-        int Call2(int param1, ref int param2, out int param3);
+        //[Procedure("PROC2")]
+        //int Call2(int param1, ref int param2, out int param3);
     }
 }

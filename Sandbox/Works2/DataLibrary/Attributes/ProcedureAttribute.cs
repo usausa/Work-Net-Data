@@ -41,7 +41,7 @@
         {
             var nodes = new List<INode>
             {
-                new CodeNode(procedure)
+                new SqlNode(procedure)
             };
 
             foreach (var pmi in mi.GetParameters().Where(ParameterHelper.IsSqlParameter))

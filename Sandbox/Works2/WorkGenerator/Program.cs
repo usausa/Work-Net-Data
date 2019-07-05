@@ -59,6 +59,10 @@ namespace WorkGenerator
             {
                 {
                     "Count",
+                    "SELECT COUNT(*) FROM Data"
+                },
+                {
+                    "Count1",
                     "SELECT COUNT(*) FROM Data WHERE Code = /*@ code */"
                 },
                 {
