@@ -19,13 +19,47 @@
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, MethodInfo mi)
         {
-            // TODO object(single and not simple) or parameters!
-            var nodes = new List<INode>();
+            var parameters = AttributeHelper.CreateParameterNodes(mi);
 
-            nodes.Add(new SqlNode($"INSERT INTO {table} ("));
-            // TODO
+            var nodes = new List<INode>
+            {
+                new SqlNode("INSERT INTO "),
+                new SqlNode(table),
+                new SqlNode(" (")
+            };
+
+            var first = true;
+            foreach (var parameter in parameters)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    nodes.Add(new SqlNode(", "));
+                }
+
+                nodes.Add(new SqlNode(parameter.ParameterName));
+            }
+
             nodes.Add(new SqlNode(") VALUES ("));
-            // TODO
+
+            first = true;
+            foreach (var parameter in parameters)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    nodes.Add(new SqlNode(", "));
+                }
+
+                nodes.Add(parameter);
+            }
+
             nodes.Add(new SqlNode(")"));
 
             return nodes;

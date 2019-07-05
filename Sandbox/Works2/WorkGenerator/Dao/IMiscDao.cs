@@ -41,8 +41,8 @@ namespace WorkGenerator.Dao
         [Query]
         IList<DataEntity> QueryDataList2(QueryParameter parameter);
 
-        [Insert("Data")]
-        void Insert(DataEntity entity);
+        //[Insert("Data")]
+        //void Insert(DataEntity entity);
 
         //[Procedure("PROC1")]
         //void Call1(ProcParameter parameter);
