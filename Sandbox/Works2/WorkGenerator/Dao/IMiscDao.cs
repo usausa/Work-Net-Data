@@ -17,11 +17,11 @@ namespace WorkGenerator.Dao
     [Dao]
     public interface IMiscDao
     {
-        [ExecuteScalar]
-        long Count();
+        //[ExecuteScalar]
+        //long Count();
 
-        [ExecuteScalar]
-        long Count1(string name, string code);
+        //[ExecuteScalar]
+        //long Count1(string name, string code);
 
         [ExecuteScalar]
         long Count2(string code);
