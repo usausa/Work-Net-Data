@@ -18,6 +18,8 @@
 
         private readonly MethodInfo method;
 
+        private readonly HashSet<string> processed = new HashSet<string>();
+
         private int index;
 
         public ParameterResolveVisitor(MethodInfo method)
@@ -27,6 +29,13 @@
 
         public override void Visit(ParameterNode node)
         {
+            if (processed.Contains(node.Source))
+            {
+                return;
+            }
+
+            processed.Add(node.Source);
+
             var path = node.Source.Split('.');
             if (path.Length == 1)
             {

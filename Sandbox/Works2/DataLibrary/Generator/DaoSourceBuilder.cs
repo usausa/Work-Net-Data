@@ -1186,11 +1186,13 @@ namespace DataLibrary.Generator
 
         private sealed class SimpleBuildVisitor : NodeVisitorBase
         {
-            private readonly StringBuilder sql = new StringBuilder();
-
             private readonly DaoSourceBuilder builder;
 
             private readonly MethodMetadata mm;
+
+            private readonly StringBuilder sql = new StringBuilder();
+
+            private readonly HashSet<string> setupedParameters = new HashSet<string>();
 
             public SimpleBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
             {
@@ -1205,7 +1207,11 @@ namespace DataLibrary.Generator
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
                 var parameterName = ParameterNames.GetParameterName(parameter.Index);
 
-                builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                if (!setupedParameters.Contains(node.Source))
+                {
+                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                    setupedParameters.Add(node.Source);
+                }
 
                 sql.Append("@");
                 sql.Append(parameterName);
