@@ -1142,7 +1142,6 @@ namespace DataLibrary.Generator
                 }
                 else
                 {
-                    // TODO WIP
                     var visitor = new SimpleBuildVisitor(this, mm);
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
