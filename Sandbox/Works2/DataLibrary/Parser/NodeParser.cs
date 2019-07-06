@@ -26,7 +26,7 @@
             this.tokens = tokens;
         }
 
-        private Token NextToken() => current + 1 < tokens.Count ? tokens[current + 1] : null;
+        private Token NextToken() => current + 1 < tokens.Count ? tokens[++current] : null;
 
         private void Flush(bool appendBlank)
         {
@@ -48,9 +48,9 @@
             pragmaNodes.Add(node);
         }
 
-        private void AddBody(INode node)
+        private void AddBody(INode node, bool appendBlank)
         {
-            Flush(true);
+            Flush(appendBlank);
             bodyNodes.Add(node);
             lastParenthesis = false;
         }
@@ -112,31 +112,28 @@
             // Code
             if (value.StartsWith("%"))
             {
-                AddBody(new CodeNode(value.Substring(1).Trim()));
+                AddBody(new CodeNode(value.Substring(1).Trim()), false);
             }
 
             // Raw
             if (value.StartsWith("#"))
             {
-                AddBody(new RawSqlNode(value.Substring(1).Trim()));
+                AddBody(new RawSqlNode(value.Substring(1).Trim()), true);
             }
 
             // Parameter
             if (value.StartsWith("@"))
             {
-                AddBody(new ParameterNode(value.Substring(1).Trim()));
+                AddBody(new ParameterNode(value.Substring(1).Trim()), true);
 
-                var next = NextToken();
-                if (next != null)
+                var token = NextToken();
+                if (token != null)
                 {
-                    current++;
-
-                    if (next.TokenType == TokenType.OpenParenthesis)
+                    if (token.TokenType == TokenType.OpenParenthesis)
                     {
                         var count = 1;
-                        while ((count > 0) || (current < tokens.Count))
+                        while ((count > 0) && ((token = NextToken()) != null))
                         {
-                            var token = tokens[current];
                             if (token.TokenType == TokenType.OpenParenthesis)
                             {
                                 count++;
@@ -145,8 +142,6 @@
                             {
                                 count--;
                             }
-
-                            current++;
                         }
                     }
                 }

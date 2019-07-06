@@ -1254,12 +1254,14 @@ namespace DataLibrary.Generator
                 this.builder = builder;
                 this.mm = mm;
 
-                foreach (var parameter in mm.Parameters)
+                var current = builder.source.Length;
+
+                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType == ParameterType.Simple))
                 {
                     builder.AppendLine($"var {FlagVar}{parameter.Index} = false;");
                 }
 
-                if (mm.Parameters.Count > 0)
+                if (builder.source.Length > current)
                 {
                     builder.NewLine();
                 }
@@ -1290,8 +1292,16 @@ namespace DataLibrary.Generator
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
                 var parameterName = ParameterNames.GetParameterName(parameter.Index);
 
-                sql.Append($"@{parameterName}");
-                builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
+                if (parameter.ParameterType == ParameterType.Simple)
+                {
+                    sql.Append($"@{parameterName}");
+                    builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
+                }
+                else
+                {
+                    FlushSql();
+                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                }
             }
 
             private void FlushSql()
@@ -1310,7 +1320,9 @@ namespace DataLibrary.Generator
 
                 builder.NewLine();
 
-                foreach (var parameter in mm.Parameters)
+                var current = builder.source.Length;
+
+                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType == ParameterType.Simple))
                 {
                     builder.AppendLine($"if ({FlagVar}{parameter.Index})");
                     builder.AppendLine("{");
@@ -1323,7 +1335,7 @@ namespace DataLibrary.Generator
                     builder.AppendLine("}");
                 }
 
-                if (mm.Parameters.Count > 0)
+                if (builder.source.Length > current)
                 {
                     builder.NewLine();
                 }

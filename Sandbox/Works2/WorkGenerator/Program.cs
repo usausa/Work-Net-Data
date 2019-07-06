@@ -78,6 +78,21 @@ namespace WorkGenerator
                     "/*% } */"
                 },
                 {
+                    "ExecuteIn1",
+                    "SELECT * FROM Data" +
+                    "/*% if (ids.Length > 0) { */" +
+                    "WHERE Id IN /*@ ids */(1)" +
+                    "/*% } */"
+                },
+                {
+                    "ExecuteIn2",
+                    "SELECT * FROM Data WHERE Id IN /*@ ids */(1)"
+                },
+                {
+                    "ExecuteIn3",
+                    "SELECT * FROM Data WHERE Id IN /*@ ids */(1)"
+                },
+                {
                     "QueryDataList",
                     "/*!helper WorkGenerator.Models.TestHelper */" +
                     "SELECT * FROM Data WHERE 1 = 1 " +
@@ -100,18 +115,6 @@ namespace WorkGenerator
                     "AND Code = /*@ parameter.Code */ 'yyy'" +
                     "/*% } */" +
                     "ORDER BY /*# parameter.Order */"
-                },
-                {
-                    "ExecuteIn1",
-                    "/*@ ids */"
-                },
-                {
-                    "ExecuteIn2",
-                    "/*@ ids */"
-                },
-                {
-                    "ExecuteIn3",
-                    "/*@ ids */"
                 }
             };
         }
