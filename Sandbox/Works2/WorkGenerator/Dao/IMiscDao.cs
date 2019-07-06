@@ -10,13 +10,16 @@ namespace WorkGenerator.Dao
     {
         public string Name { get; set; }
         public string Code { get; set; }
-        public string Sort { get; set; }
+        public string Order { get; set; }
     }
 
 
     [Dao]
     public interface IMiscDao
     {
+        [Execute]
+        int Execute(int id, string name);
+
         [ExecuteScalar]
         long Count();
 
@@ -26,17 +29,17 @@ namespace WorkGenerator.Dao
         [ExecuteScalar]
         long Count2(string code);
 
-        [Execute]
-        int ExecuteIn1(string[] ids);
+        //[Execute]
+        //int ExecuteIn1(string[] ids);
 
-        [Execute]
-        int ExecuteIn2(IList<string> ids);
+        //[Execute]
+        //int ExecuteIn2(IList<string> ids);
 
-        [Execute]
-        int ExecuteIn3(IEnumerable<string> ids);
+        //[Execute]
+        //int ExecuteIn3(IEnumerable<string> ids);
 
         [Query]
-        IList<DataEntity> QueryDataList(string name, string code, string sort);
+        IList<DataEntity> QueryDataList(string name, string code, string order);
 
         [Query]
         IList<DataEntity> QueryDataList2(QueryParameter parameter);

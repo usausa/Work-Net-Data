@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,6 +12,8 @@ using DataLibrary.Helpers;
 using DataLibrary.Nodes;
 using DataLibrary.Providers;
 using DataLibrary.Scripts;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DataLibrary.Generator
 {
@@ -35,6 +38,8 @@ namespace DataLibrary.Generator
         private const string BuilderVar = "_sql";
         private const string OutParamVar = "_outParam";
         private const string ReturnOutParamVar = "_outParamReturn";
+        private const string FlagVar = "_flag";
+        private const string SqlVar = "_sql";
 
         private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
@@ -46,6 +51,7 @@ namespace DataLibrary.Generator
         private static readonly string CommandTypeType = GeneratorHelper.MakeGlobalName(typeof(CommandType));
         private static readonly string ConnectionStateType = GeneratorHelper.MakeGlobalName(typeof(ConnectionState));
         private static readonly string WrappedReaderType = GeneratorHelper.MakeGlobalName(typeof(WrappedReader));
+        private static readonly string StringBuilderType = GeneratorHelper.MakeGlobalName(typeof(StringBuilder));
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
         private static readonly string ConverterType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
@@ -334,6 +340,9 @@ namespace DataLibrary.Generator
 
         private void DefineUsing()
         {
+            AppendLine($"using System;");
+            AppendLine($"using System.Linq;");
+
             var visitor = new UsingResolveVisitor();
             foreach (var mm in methods)
             {
@@ -1132,12 +1141,13 @@ namespace DataLibrary.Generator
             {
                 var checkVisitor = new DynamicCheckVisitor();
                 checkVisitor.Visit(mm.Nodes);
+                // TODO not dynamic and not simple pattern divide?
                 if (checkVisitor.IsDynamic || mm.Parameters.Any(x => x.ParameterType != ParameterType.Simple))
                 {
-                    // TODO dynamic
-                    var visitor = new DynamicBuildVisitor(this, mm);
+                    // TODO calc size
+                    var visitor = new DynamicBuildVisitor(this, mm, 128);
                     visitor.Visit(mm.Nodes);
-                    AppendLine("// TODO");
+                    visitor.Flush();
                     NewLine();
                 }
                 else
@@ -1191,7 +1201,7 @@ namespace DataLibrary.Generator
 
             private readonly StringBuilder sql = new StringBuilder();
 
-            private readonly HashSet<string> setupedParameters = new HashSet<string>();
+            private readonly HashSet<string> processedParameters = new HashSet<string>();
 
             public SimpleBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
             {
@@ -1206,10 +1216,10 @@ namespace DataLibrary.Generator
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
                 var parameterName = ParameterNames.GetParameterName(parameter.Index);
 
-                if (!setupedParameters.Contains(node.Source))
+                if (!processedParameters.Contains(node.Source))
                 {
                     builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
-                    setupedParameters.Add(node.Source);
+                    processedParameters.Add(node.Source);
                 }
 
                 sql.Append("@");
@@ -1231,33 +1241,94 @@ namespace DataLibrary.Generator
         // Dynamic
         //--------------------------------------------------------------------------------
 
-        // TODO
         private sealed class DynamicBuildVisitor : NodeVisitorBase
         {
             private readonly DaoSourceBuilder builder;
 
             private readonly MethodMetadata mm;
 
-            public DynamicBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
+            private readonly StringBuilder sql = new StringBuilder();
+
+            public DynamicBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm, int size)
             {
                 this.builder = builder;
                 this.mm = mm;
+
+                foreach (var parameter in mm.Parameters)
+                {
+                    builder.AppendLine($"var {FlagVar}{parameter.Index} = false;");
+                }
+
+                if (mm.Parameters.Count > 0)
+                {
+                    builder.NewLine();
+                }
+
+                builder.AppendLine($"var {SqlVar} = new {StringBuilderType}({size});");
+                builder.NewLine();
             }
 
             public override void Visit(SqlNode node)
             {
+                sql.Append(node.Sql);
             }
 
             public override void Visit(RawSqlNode node)
             {
+                FlushSql();
+                builder.AppendLine($"{SqlVar}.Append({node.Source});");
             }
 
             public override void Visit(CodeNode node)
             {
+                FlushSql();
+                builder.AppendLine(node.Code);
             }
 
             public override void Visit(ParameterNode node)
             {
+                var parameter = mm.Parameters.First(x => x.Source == node.Source);
+                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+
+                sql.Append($"@{parameterName}");
+                builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
+            }
+
+            private void FlushSql()
+            {
+                if (sql.Length > 0)
+                {
+                    builder.AppendLine($"{SqlVar}.Append(\"{sql}\");");
+                }
+
+                sql.Clear();
+            }
+
+            public void Flush()
+            {
+                FlushSql();
+
+                builder.NewLine();
+
+                foreach (var parameter in mm.Parameters)
+                {
+                    builder.AppendLine($"if ({FlagVar}{parameter.Index})");
+                    builder.AppendLine("{");
+                    builder.indent++;
+
+                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+
+                    builder.indent--;
+                    builder.AppendLine("}");
+                }
+
+                if (mm.Parameters.Count > 0)
+                {
+                    builder.NewLine();
+                }
+
+                builder.AppendLine($"{CommandVar}.CommandText = {SqlVar}.ToString();");
             }
         }
 

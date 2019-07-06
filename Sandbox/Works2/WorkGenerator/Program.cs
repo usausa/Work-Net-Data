@@ -58,6 +58,10 @@ namespace WorkGenerator
             return new Dictionary<string, string>
             {
                 {
+                    "Execute",
+                    "INSERT INTO Data (Id, Name) VALUES (@id, @name)"
+                },
+                {
                     "Count",
                     "SELECT COUNT(*) FROM Data"
                 },
@@ -69,7 +73,7 @@ namespace WorkGenerator
                     "Count2",
                     "/*!helper WorkGenerator.Models.TestHelper */" +
                     "SELECT COUNT(*) FROM Data WHERE 1 = 1" +
-                    "/*% if (IsNotEmpty(code) { */" +
+                    "/*% if (IsNotEmpty(code)) { */" +
                     "AND Code = /*@ code */ 'aaa'" +
                     "/*% } */"
                 },
@@ -77,10 +81,10 @@ namespace WorkGenerator
                     "QueryDataList",
                     "/*!helper WorkGenerator.Models.TestHelper */" +
                     "SELECT * FROM Data WHERE 1 = 1 " +
-                    "/*% if (IsNotEmpty(name) { */" +
+                    "/*% if (IsNotEmpty(name)) { */" +
                     "AND Name = /*@ name */ 'xxx'" +
                     "/*% } */" +
-                    "/*% if (IsNotEmpty(code) { */" +
+                    "/*% if (IsNotEmpty(code)) { */" +
                     "AND Code = /*@ code */ 'yyy'" +
                     "/*% } */" +
                     "ORDER BY /*# order */"
@@ -89,10 +93,10 @@ namespace WorkGenerator
                     "QueryDataList2",
                     "/*!using System */" +
                     "SELECT * FROM Data WHERE 1 = 1 " +
-                    "/*% if (!String.IsNullOrEmtpy(parameter.Name) { */" +
+                    "/*% if (!String.IsNullOrEmpty(parameter.Name)) { */" +
                     "AND Name = /*@ parameter.Name */ 'xxx'" +
                     "/*% } */" +
-                    "/*% if (!String.IsNullOrEmtpy(parameter.Code) { */" +
+                    "/*% if (!String.IsNullOrEmpty(parameter.Code)) { */" +
                     "AND Code = /*@ parameter.Code */ 'yyy'" +
                     "/*% } */" +
                     "ORDER BY /*# parameter.Order */"
