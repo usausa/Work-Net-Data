@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+    <PackageReference Include="Usa.Smart.Core" Version="1.7.3" />
+    <PackageReference Include="Usa.Smart.Data.Mapper" Version="1.0.2" />
+    <PackageReference Include="Usa.Smart.Mock.Data" Version="1.5.0" />
+  </ItemGroup>
+
+</Project>
