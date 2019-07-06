@@ -17,17 +17,17 @@ namespace WorkGenerator.Dao
     [Dao]
     public interface IMiscDao
     {
-        //[Execute]
-        //int Execute(int id, string name);
+        [Execute]
+        int Execute(int id, string name);
 
-        //[ExecuteScalar]
-        //long Count();
+        [ExecuteScalar]
+        long Count();
 
-        //[ExecuteScalar]
-        //long Count1(string name, string code);
+        [ExecuteScalar]
+        long Count1(string name, string code);
 
-        //[ExecuteScalar]
-        //long Count2(string code);
+        [ExecuteScalar]
+        long Count2(string code);
 
         [Execute]
         int ExecuteIn1(string[] ids);
@@ -35,22 +35,19 @@ namespace WorkGenerator.Dao
         [Execute]
         int ExecuteIn2(IList<string> ids);
 
-        [Execute]
-        int ExecuteIn3(IEnumerable<string> ids);
+        [Query]
+        IList<DataEntity> QueryDataList(string name, string code, string order);
 
-        //[Query]
-        //IList<DataEntity> QueryDataList(string name, string code, string order);
+        [Query]
+        IList<DataEntity> QueryDataList2(QueryParameter parameter);
 
-        //[Query]
-        //IList<DataEntity> QueryDataList2(QueryParameter parameter);
+        [Insert("Data")]
+        void Insert(DataEntity entity);
 
-        //[Insert("Data")]
-        //void Insert(DataEntity entity);
+        [Procedure("PROC1")]
+        void Call1(ProcParameter parameter);
 
-        //[Procedure("PROC1")]
-        //void Call1(ProcParameter parameter);
-
-        //[Procedure("PROC2")]
-        //int Call2(int param1, ref int param2, out int param3);
+        [Procedure("PROC2")]
+        int Call2(int param1, ref int param2, out int param3);
     }
 }

@@ -64,24 +64,30 @@
             return openType.MakeGenericType(typeof(DbCommand), typeof(string), type, typeof(DbParameter));
         }
 
+        public static Type MakeArraySqlType(Type type)
+        {
+            var openType = typeof(Action<,,>);
+            return openType.MakeGenericType(typeof(string), typeof(StringBuilder), type);
+        }
+
         public static Type MakeArrayParameterType(Type type)
         {
-            var openType = typeof(Action<,,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), type);
+            var openType = typeof(Action<,,>);
+            return openType.MakeGenericType(typeof(DbCommand), typeof(string), type);
+        }
+
+        public static Type MakeListSqlType(Type type)
+        {
+            var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            var openType = typeof(Action<,,>);
+            return openType.MakeGenericType(typeof(string), typeof(StringBuilder), listType);
         }
 
         public static Type MakeListParameterType(Type type)
         {
             var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-            var openType = typeof(Action<,,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), listType);
-        }
-
-        public static Type MakeEnumerableParameterType(Type type)
-        {
-            var enumerableType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-            var openType = typeof(Action<,,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), typeof(StringBuilder), enumerableType);
+            var openType = typeof(Action<,,>);
+            return openType.MakeGenericType(typeof(DbCommand), typeof(string), listType);
         }
     }
 }

@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using DataLibrary.Attributes;
-using DataLibrary.Engine;
-using DataLibrary.Helpers;
-using DataLibrary.Nodes;
-using DataLibrary.Providers;
-using DataLibrary.Scripts;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-namespace DataLibrary.Generator
+﻿namespace DataLibrary.Generator
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Data.Common;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+
+    using DataLibrary.Attributes;
+    using DataLibrary.Engine;
+    using DataLibrary.Helpers;
+    using DataLibrary.Nodes;
+    using DataLibrary.Providers;
+    using DataLibrary.Scripts;
+
     internal sealed class DaoSourceBuilder
     {
         private const string ImplementSuffix = "_Impl";
@@ -27,8 +25,9 @@ namespace DataLibrary.Generator
         private const string ProviderField = "_provider";
         private const string ProviderFieldRef = "this." + ProviderField;
         private const string ConvertField = "_convert";
-        private const string SetupField = "_setup";
         private const string SetupReturnField = "_setupReturn";
+        private const string SetupParameterField = "_setupParameter";
+        private const string SetupSqlField = "_setupSql";
 
         private const string ConnectionVar = "_con";
         private const string CommandVar = "_cmd";
@@ -176,13 +175,17 @@ namespace DataLibrary.Generator
 
         private static string GetConvertFieldRef(int no, int index) => "this." + GetConvertFieldName(no, index);
 
-        private static string GetSetupFieldName(int no, int index) => SetupField + no + "_" + index;
-
-        private static string GetSetupFieldRef(int no, int index) => "this." + GetSetupFieldName(no, index);
-
         private static string GetSetupReturnFieldName() => SetupReturnField;
 
         private static string GetSetupReturnFieldRef() => "this." + GetSetupReturnFieldName();
+
+        private static string GetSetupParameterFieldName(int no, int index) => SetupParameterField + no + "_" + index;
+
+        private static string GetSetupParameterFieldRef(int no, int index) => "this." + GetSetupParameterFieldName(no, index);
+
+        private static string GetSetupSqlFieldName(int no, int index) => SetupSqlField + no + "_" + index;
+
+        private static string GetSetupSqlFieldRef(int no, int index) => "this." + GetSetupSqlFieldName(no, index);
 
         private static string GetOutParamName(int index) => OutParamVar + index;
 
@@ -340,8 +343,8 @@ namespace DataLibrary.Generator
 
         private void DefineUsing()
         {
-            AppendLine($"using System;");
-            AppendLine($"using System.Linq;");
+            AppendLine("using System;");
+            AppendLine("using System.Linq;");
 
             var visitor = new UsingResolveVisitor();
             foreach (var mm in methods)
@@ -414,30 +417,40 @@ namespace DataLibrary.Generator
                     switch (parameter.Direction)
                     {
                         case ParameterDirection.ReturnValue:
-                            AppendLine($"private readonly {ReturnSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            AppendLine($"private readonly {ReturnSetupType} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterDirection.Output:
-                            AppendLine($"private readonly {OutSetupType} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            AppendLine($"private readonly {OutSetupType} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterDirection.InputOutput:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInOutParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterDirection.Input:
                             switch (parameter.ParameterType)
                             {
                                 case ParameterType.Array:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                                     break;
                                 case ParameterType.List:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
-                                    break;
-                                case ParameterType.Enumerable:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeEnumerableParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                                     break;
                                 default:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupFieldName(mm.No, parameter.Index)};");
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                                     break;
                             }
+                            break;
+                    }
+                }
+
+                foreach (var parameter in mm.Parameters)
+                {
+                    switch (parameter.ParameterType)
+                    {
+                        case ParameterType.Array:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArraySqlType(parameter.Type))} {GetSetupSqlFieldName(mm.No, parameter.Index)};");
+                            break;
+                        case ParameterType.List:
+                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListSqlType(parameter.Type))} {GetSetupSqlFieldName(mm.No, parameter.Index)};");
                             break;
                     }
                 }
@@ -520,8 +533,7 @@ namespace DataLibrary.Generator
                     foreach (var parameter in mm.Parameters)
                     {
                         Indent();
-                        Append($"{GetSetupFieldRef(mm.No, parameter.Index)} = ");
-
+                        Append($"{GetSetupParameterFieldRef(mm.No, parameter.Index)} = ");
 
                         switch (parameter.Direction)
                         {
@@ -543,9 +555,6 @@ namespace DataLibrary.Generator
                                     case ParameterType.List:
                                         Append($"{RuntimeHelperType}.GetListParameterSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                         break;
-                                    case ParameterType.Enumerable:
-                                        Append($"{RuntimeHelperType}.GetEnumerableParameterSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetEnumerableElementType(parameter.Type))}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
-                                        break;
                                     default:
                                         Append($"{RuntimeHelperType}.GetInParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type)}>({CtorArg}, method{mm.No}, \"{parameter.Source}\");");
                                         break;
@@ -554,6 +563,27 @@ namespace DataLibrary.Generator
                         }
 
                         NewLine();
+                    }
+
+                    foreach (var parameter in mm.Parameters)
+                    {
+                        if (parameter.ParameterType != ParameterType.Simple)
+                        {
+                            Indent();
+                            Append($"{GetSetupSqlFieldRef(mm.No, parameter.Index)} = ");
+
+                            switch (parameter.ParameterType)
+                            {
+                                case ParameterType.Array:
+                                    Append($"{CtorArg}.CreateArraySqlSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>();");
+                                    break;
+                                case ParameterType.List:
+                                    Append($"{CtorArg}.CreateListSqlSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}>();");
+                                    break;
+                            }
+
+                            NewLine();
+                        }
                     }
 
                     foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
@@ -1135,29 +1165,39 @@ namespace DataLibrary.Generator
             {
                 var visitor = new ProcedureBuildVisitor(this, mm);
                 visitor.Visit(mm.Nodes);
-                NewLine();
             }
             else
             {
                 var checkVisitor = new DynamicCheckVisitor();
                 checkVisitor.Visit(mm.Nodes);
-                // TODO not dynamic and not simple pattern divide?
-                if (checkVisitor.IsDynamic || mm.Parameters.Any(x => x.ParameterType != ParameterType.Simple))
+
+                if (checkVisitor.IsDynamic)
                 {
-                    // TODO calc size
-                    var visitor = new DynamicBuildVisitor(this, mm, 128);
+                    var calc = new CalcSizeVisitor(mm);
+                    calc.Visit(mm.Nodes);
+
+                    var visitor = new DynamicBuildVisitor(this, mm, calc.InitialSize);
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
-                    NewLine();
+                }
+                else if (mm.Parameters.Any(x => x.ParameterType != ParameterType.Simple))
+                {
+                    var calc = new CalcSizeVisitor(mm);
+                    calc.Visit(mm.Nodes);
+
+                    var visitor = new HasArrayBuildVisitor(this, mm, calc.InitialSize);
+                    visitor.Visit(mm.Nodes);
+                    visitor.Flush();
                 }
                 else
                 {
                     var visitor = new SimpleBuildVisitor(this, mm);
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
-                    NewLine();
                 }
             }
+
+            NewLine();
         }
 
         //--------------------------------------------------------------------------------
@@ -1201,8 +1241,6 @@ namespace DataLibrary.Generator
 
             private readonly StringBuilder sql = new StringBuilder();
 
-            private readonly HashSet<string> processedParameters = new HashSet<string>();
-
             public SimpleBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm)
             {
                 this.builder = builder;
@@ -1215,25 +1253,101 @@ namespace DataLibrary.Generator
             {
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
                 var parameterName = ParameterNames.GetParameterName(parameter.Index);
-
-                if (!processedParameters.Contains(node.Source))
-                {
-                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
-                    processedParameters.Add(node.Source);
-                }
-
                 sql.Append("@");
                 sql.Append(parameterName);
             }
 
             public void Flush()
             {
-                if (mm.Parameters.Count > 0)
+                var current = builder.source.Length;
+
+                foreach (var parameter in mm.Parameters)
+                {
+                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                }
+
+                if (builder.source.Length > current)
                 {
                     builder.NewLine();
                 }
 
                 builder.AppendLine($"{CommandVar}.CommandText = \"{sql}\";");
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Array
+        //--------------------------------------------------------------------------------
+
+        private sealed class HasArrayBuildVisitor : NodeVisitorBase
+        {
+            private readonly DaoSourceBuilder builder;
+
+            private readonly MethodMetadata mm;
+
+            private readonly StringBuilder sql = new StringBuilder();
+
+            public HasArrayBuildVisitor(DaoSourceBuilder builder, MethodMetadata mm, int size)
+            {
+                this.builder = builder;
+                this.mm = mm;
+
+                builder.AppendLine($"var {SqlVar} = new {StringBuilderType}({size});");
+                builder.NewLine();
+            }
+
+            public override void Visit(SqlNode node)
+            {
+                sql.Append(node.Sql);
+            }
+
+            public override void Visit(ParameterNode node)
+            {
+                var parameter = mm.Parameters.First(x => x.Source == node.Source);
+                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+
+                if (parameter.ParameterType == ParameterType.Simple)
+                {
+                    sql.Append($"@{parameterName}");
+                }
+                else
+                {
+                    FlushSql();
+                    builder.AppendLine(MakeSqlSetup(mm, parameter, parameterName));
+                }
+            }
+
+            private void FlushSql()
+            {
+                if (sql.Length > 0)
+                {
+                    builder.AppendLine($"{SqlVar}.Append(\"{sql}\");");
+                }
+
+                sql.Clear();
+            }
+
+            public void Flush()
+            {
+                FlushSql();
+
+                builder.NewLine();
+
+                var current = builder.source.Length;
+
+                foreach (var parameter in mm.Parameters)
+                {
+                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                }
+
+                if (builder.source.Length > current)
+                {
+                    builder.NewLine();
+                }
+
+                builder.AppendLine($"{CommandVar}.CommandText = {SqlVar}.ToString();");
             }
         }
 
@@ -1256,7 +1370,7 @@ namespace DataLibrary.Generator
 
                 var current = builder.source.Length;
 
-                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType == ParameterType.Simple))
+                foreach (var parameter in mm.Parameters)
                 {
                     builder.AppendLine($"var {FlagVar}{parameter.Index} = false;");
                 }
@@ -1295,13 +1409,13 @@ namespace DataLibrary.Generator
                 if (parameter.ParameterType == ParameterType.Simple)
                 {
                     sql.Append($"@{parameterName}");
-                    builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
                 }
                 else
                 {
                     FlushSql();
-                    builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
+                    builder.AppendLine(MakeSqlSetup(mm, parameter, parameterName));
                 }
+                builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
             }
 
             private void FlushSql()
@@ -1322,7 +1436,7 @@ namespace DataLibrary.Generator
 
                 var current = builder.source.Length;
 
-                foreach (var parameter in mm.Parameters.Where(x => x.ParameterType == ParameterType.Simple))
+                foreach (var parameter in mm.Parameters)
                 {
                     builder.AppendLine($"if ({FlagVar}{parameter.Index})");
                     builder.AppendLine("{");
@@ -1345,28 +1459,65 @@ namespace DataLibrary.Generator
         }
 
         //--------------------------------------------------------------------------------
+        // Calc
+        //--------------------------------------------------------------------------------
+
+        private sealed class CalcSizeVisitor : NodeVisitorBase
+        {
+            private readonly MethodMetadata mm;
+
+            private int size;
+
+            private int args;
+
+            public int InitialSize => (int)(Math.Ceiling((double)size / 32) * 32);
+
+            public CalcSizeVisitor(MethodMetadata mm)
+            {
+                this.mm = mm;
+            }
+
+            public override void Visit(SqlNode node) => size += node.Sql.Length;
+
+            public override void Visit(RawSqlNode node) => size += 16;
+
+            public override void Visit(ParameterNode node)
+            {
+                var parameterSize = (int) Math.Log10(++args) + 2;
+
+                var parameter = mm.Parameters.First(x => x.Source == node.Source);
+                if (parameter.ParameterType == ParameterType.Simple)
+                {
+                    size += parameterSize;
+                }
+                else
+                {
+                    size += ((parameterSize + 4) * 8);
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
         // Helper
         //--------------------------------------------------------------------------------
+
+        private static string MakeSqlSetup(MethodMetadata mm, ParameterEntry parameter, string name)
+        {
+            return $"{GetSetupSqlFieldRef(mm.No, parameter.Index)}(\"{name}\", {BuilderVar}, {parameter.Source});";
+        }
 
         private static string MakeParameterSetup(MethodMetadata mm, ParameterEntry parameter, string name)
         {
             switch (parameter.Direction)
             {
                 case ParameterDirection.ReturnValue:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar});";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar});";
                 case ParameterDirection.Output:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\");";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\");";
                 case ParameterDirection.InputOutput:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
                 case ParameterDirection.Input:
-                    if (parameter.ParameterType == ParameterType.Simple)
-                    {
-                        return $"{GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
-                    }
-                    else
-                    {
-                        return $"{GetSetupFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {BuilderVar}, {parameter.Source});";
-                    }
+                    return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(parameter.Direction), $"Invalid parameter direction. direction=[{parameter.Direction}]");
             }

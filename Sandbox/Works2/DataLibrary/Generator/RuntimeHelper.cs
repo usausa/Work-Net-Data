@@ -96,22 +96,16 @@ namespace DataLibrary.Generator
             return parameter.ParameterType.GetProperty(path[1]);
         }
 
-        public static Action<DbCommand, string, StringBuilder, T[]> GetArrayParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)
+        public static Action<DbCommand, string, T[]> GetArrayParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)
         {
             var provider = GetCustomAttributeProvider(method, source);
             return engine.CreateArrayParameterSetup<T>(provider);
         }
 
-        public static Action<DbCommand, string, StringBuilder, IList<T>> GetListParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)
+        public static Action<DbCommand, string, IList<T>> GetListParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)
         {
             var provider = GetCustomAttributeProvider(method, source);
             return engine.CreateListParameterSetup<T>(provider);
-        }
-
-        public static Action<DbCommand, string, StringBuilder, IEnumerable<T>> GetEnumerableParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)
-        {
-            var provider = GetCustomAttributeProvider(method, source);
-            return engine.CreateEnumerableParameterSetup<T>(provider);
         }
 
         public static Action<DbCommand, string, T> GetInParameterSetup<T>(ExecuteEngine engine, MethodInfo method, string source)

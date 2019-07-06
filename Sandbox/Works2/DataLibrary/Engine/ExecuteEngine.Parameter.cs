@@ -194,7 +194,34 @@
         // Array
         //--------------------------------------------------------------------------------
 
-        public Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetup<T>(ICustomAttributeProvider provider)
+        public Action<string, StringBuilder, T[]> CreateArraySqlSetup<T>()
+        {
+            return (name, sql, values) =>
+            {
+                sql.Append("(");
+
+                if (values.Length == 0)
+                {
+                    sql.Append(emptyDialect.GetSql());
+                }
+                else
+                {
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
+                        sql.Append(", ");
+                    }
+
+                    sql.Length -= 2;
+                }
+
+                sql.Append(") ");
+            };
+        }
+
+        public Action<DbCommand, string, T[]> CreateArrayParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
 
@@ -220,78 +247,42 @@
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, T[]> CreateArrayParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            return (cmd, name, sql, values) =>
+            return (cmd, name, values) =>
             {
-                sql.Append("(");
-
-                if (values.Length == 0)
+                for (var i = 0; i < values.Length; i++)
                 {
-                    sql.Append(emptyDialect.GetSql());
+                    var value = values[i];
+                    var parameter = cmd.CreateParameter();
+                    cmd.Parameters.Add(parameter);
+                    action(parameter, value);
+                    parameter.ParameterName = name;
                 }
-                else
-                {
-                    for (var i = 0; i < values.Length; i++)
-                    {
-                        var value = values[i];
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        action(parameter, value);
-                        parameter.ParameterName = name;
-                    }
-
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
             };
         }
 
-        private Action<DbCommand, string, StringBuilder, T[]> CreateArrayParameterSetupByDbType<T>(DbType dbType, int size)
+        private Action<DbCommand, string, T[]> CreateArrayParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            return (cmd, name, sql, values) =>
+            return (cmd, name, values) =>
             {
-                sql.Append("(");
-
-                if (values.Length == 0)
+                for (var i = 0; i < values.Length; i++)
                 {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    for (var i = 0; i < values.Length; i++)
+                    var value = values[i];
+                    var parameter = cmd.CreateParameter();
+                    cmd.Parameters.Add(parameter);
+                    if (value == null)
                     {
-                        var value = values[i];
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        if (value == null)
-                        {
-                            parameter.Value = DBNull.Value;
-                        }
-                        else
-                        {
-                            parameter.DbType = dbType;
-                            parameter.Size = size;
-                            parameter.Value = value;
-                        }
-                        parameter.ParameterName = name;
+                        parameter.Value = DBNull.Value;
                     }
-
-                    sql.Length -= 2;
+                    else
+                    {
+                        parameter.DbType = dbType;
+                        parameter.Size = size;
+                        parameter.Value = value;
+                    }
+                    parameter.ParameterName = name;
                 }
-
-                sql.Append(") ");
             };
         }
 
@@ -299,7 +290,34 @@
         // IList
         //--------------------------------------------------------------------------------
 
-        public Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetup<T>(ICustomAttributeProvider provider)
+        public Action<string, StringBuilder, IList<T>> CreateListSqlSetup<T>()
+        {
+            return (name, sql, values) =>
+            {
+                sql.Append("(");
+
+                if (values.Count == 0)
+                {
+                    sql.Append(emptyDialect.GetSql());
+                }
+                else
+                {
+                    for (var i = 0; i < values.Count; i++)
+                    {
+                        sql.Append(name);
+                        sql.Append("_");
+                        sql.Append(GetParameterSubName(i));
+                        sql.Append(", ");
+                    }
+
+                    sql.Length -= 2;
+                }
+
+                sql.Append(") ");
+            };
+        }
+
+        public Action<DbCommand, string, IList<T>> CreateListParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
 
@@ -325,160 +343,28 @@
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
+        private Action<DbCommand, string, IList<T>> CreateListParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
         {
-            return (cmd, name, sql, values) =>
+            return (cmd, name, values) =>
             {
-                sql.Append("(");
-
-                if (values.Count == 0)
+                for (var i = 0; i < values.Count; i++)
                 {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    for (var i = 0; i < values.Count; i++)
-                    {
-                        var value = values[i];
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        action(parameter, value);
-                        parameter.ParameterName = name;
-                    }
-
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
-            };
-        }
-
-        private Action<DbCommand, string, StringBuilder, IList<T>> CreateListParameterSetupByDbType<T>(DbType dbType, int size)
-        {
-            return (cmd, name, sql, values) =>
-            {
-                sql.Append("(");
-
-                if (values.Count == 0)
-                {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    for (var i = 0; i < values.Count; i++)
-                    {
-                        var value = values[i];
-                        sql.Append(name);
-                        sql.Append("_");
-                        sql.Append(GetParameterSubName(i));
-                        sql.Append(", ");
-
-                        var parameter = cmd.CreateParameter();
-                        cmd.Parameters.Add(parameter);
-                        if (value == null)
-                        {
-                            parameter.Value = DBNull.Value;
-                        }
-                        else
-                        {
-                            parameter.DbType = dbType;
-                            parameter.Size = size;
-                            parameter.Value = value;
-                        }
-                        parameter.ParameterName = name;
-                    }
-
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
-            };
-        }
-
-        //--------------------------------------------------------------------------------
-        // IEnumerable
-        //--------------------------------------------------------------------------------
-
-        public Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetup<T>(ICustomAttributeProvider provider)
-        {
-            var type = typeof(T);
-
-            // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
-            if (attribute != null)
-            {
-                return CreateEnumerableParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
-            }
-
-            // ITypeHandler
-            if (LookupTypeHandler(type, out var handler))
-            {
-                return CreateEnumerableParameterSetupByHandler<T>(handler.SetValue);
-            }
-
-            // Type
-            if (LookupDbType(type, out var dbType))
-            {
-                return CreateEnumerableParameterSetupByDbType<T>(dbType, 0);
-            }
-
-            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
-        }
-
-        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByHandler<T>(Action<IDbDataParameter, object> action)
-        {
-            return (cmd, name, sql, values) =>
-            {
-                sql.Append("(");
-
-                var i = 0;
-                foreach (var value in values)
-                {
-                    sql.Append(name);
-                    sql.Append("_");
-                    sql.Append(GetParameterSubName(i));
-                    sql.Append(", ");
-
+                    var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
                     action(parameter, value);
                     parameter.ParameterName = name;
-
-                    i++;
                 }
-
-                if (i == 0)
-                {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
             };
         }
 
-        private Action<DbCommand, string, StringBuilder, IEnumerable<T>> CreateEnumerableParameterSetupByDbType<T>(DbType dbType, int size)
+        private Action<DbCommand, string, IList<T>> CreateListParameterSetupByDbType<T>(DbType dbType, int size)
         {
-            return (cmd, name, sql, values) =>
+            return (cmd, name, values) =>
             {
-                sql.Append("(");
-
-                var i = 0;
-                foreach (var value in values)
+                for (var i = 0; i < values.Count; i++)
                 {
-                    sql.Append(name);
-                    sql.Append("_");
-                    sql.Append(GetParameterSubName(i));
-                    sql.Append(", ");
-
+                    var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
                     if (value == null)
@@ -492,20 +378,7 @@
                         parameter.Value = value;
                     }
                     parameter.ParameterName = name;
-
-                    i++;
                 }
-
-                if (i == 0)
-                {
-                    sql.Append(emptyDialect.GetSql());
-                }
-                else
-                {
-                    sql.Length -= 2;
-                }
-
-                sql.Append(") ");
             };
         }
     }

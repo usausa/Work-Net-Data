@@ -4,7 +4,6 @@
     {
         Simple,
         Array,
-        List,
-        Enumerable
+        List
     }
 }

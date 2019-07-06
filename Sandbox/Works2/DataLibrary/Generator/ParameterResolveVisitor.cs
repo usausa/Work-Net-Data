@@ -139,11 +139,6 @@
                 return ParameterType.List;
             }
 
-            if (TypeHelper.IsEnumerableParameter(type))
-            {
-                return ParameterType.Enumerable;
-            }
-
             return ParameterType.Simple;
         }
     }
