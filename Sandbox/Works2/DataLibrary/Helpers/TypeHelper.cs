@@ -52,11 +52,5 @@
         {
             return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)).GetGenericArguments()[0];
         }
-
-        //--------------------------------------------------------------------------------
-        // Helper
-        //--------------------------------------------------------------------------------
-
-        // TODO
     }
 }
