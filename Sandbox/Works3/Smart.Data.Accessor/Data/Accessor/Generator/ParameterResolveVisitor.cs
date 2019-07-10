@@ -36,6 +36,7 @@ namespace Smart.Data.Accessor.Generator
 
             processed.Add(node.Source);
 
+            // TODO entity.IdではなくIdを引っ張れるように
             var path = node.Source.Split('.');
             if (path.Length == 1)
             {
