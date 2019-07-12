@@ -44,21 +44,20 @@
 
         private IDao dynamicDao;
 
-        private MockDbConnection mockExecute;
+        private MockRepeatDbConnection mockExecute;
 
-        [IterationSetup]
-        public void IterationSetup()
+        [GlobalSetup]
+        public void Setup()
         {
-            mockExecute = new MockDbConnection();
-            mockExecute.SetupCommand(cmd => cmd.SetupResult(1));
+            mockExecute = new MockRepeatDbConnection(1);
 
             var provider = new DelegateDbProvider(() => mockExecute);
             staticDao = new StaticDao(provider);
             dynamicDao = DaoGenerator.Create(provider);
         }
 
-        [IterationCleanup]
-        public void IterationCleanup()
+        [GlobalCleanup]
+        public void Cleanup()
         {
             mockExecute.Dispose();
         }
