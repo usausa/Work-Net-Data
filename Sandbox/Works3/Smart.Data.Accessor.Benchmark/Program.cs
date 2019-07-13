@@ -45,30 +45,28 @@ namespace Smart.Data.Accessor.Benchmark
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", Justification = "Ignore")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "Ignore")]
     [Config(typeof(BenchmarkConfig))]
     public class DaoBenchmark
     {
-        private MockDbConnection mockExecute;
-        private MockDbConnection mockExecuteScalar;
-        private MockDbConnection mockQuery;
-        private MockDbConnection mockQueryFirst;
+        private MockRepeatDbConnection mockExecute;
+        private MockRepeatDbConnection mockExecuteScalar;
+        private MockRepeatDbConnection mockQuery;
+        private MockRepeatDbConnection mockQueryFirst;
 
         private IBenchmarkDao dapperExecuteDao;
         private IBenchmarkDao smartExecuteDao;
 
         // TODO
 
-        [IterationSetup]
-        public void IterationSetup()
+        [GlobalSetup]
+        public void Setup()
         {
-            mockExecute = new MockDbConnection();
-            mockExecute.SetupCommand(cmd => cmd.SetupResult(1));
+            mockExecute = new MockRepeatDbConnection(1);
 
-            mockExecuteScalar = new MockDbConnection();
-            mockExecuteScalar.SetupCommand(cmd => cmd.SetupResult(1L));
+            mockExecuteScalar = new MockRepeatDbConnection(1L);
 
-            mockQuery = new MockDbConnection();
-            mockQuery.SetupCommand(cmd => cmd.SetupResult(new MockDataReader(
+            mockQuery = new MockRepeatDbConnection(new MockDataReader(
                 new[]
                 {
                     new MockColumn(typeof(long), "Id"),
@@ -78,10 +76,9 @@ namespace Smart.Data.Accessor.Benchmark
                 {
                     (long)x,
                     "test"
-                }).ToList())));
+                })));
 
-            mockQueryFirst = new MockDbConnection();
-            mockQueryFirst.SetupCommand(cmd => cmd.SetupResult(new MockDataReader(
+            mockQueryFirst = new MockRepeatDbConnection(new MockDataReader(
                 new[]
                 {
                     new MockColumn(typeof(long), "Id"),
@@ -107,7 +104,7 @@ namespace Smart.Data.Accessor.Benchmark
                     "user",
                     DBNull.Value,
                     DBNull.Value
-                }).ToList())));
+                })));
 
             // DAO
             var executeProvider = new DelegateDbProvider(() => mockExecute);
@@ -124,13 +121,12 @@ namespace Smart.Data.Accessor.Benchmark
                 })
                 .ToEngine();
 
-            //var generator = new DaoGenerator(engine, new DummyLoader());
-            //return generator.Create<IBenchmarkDao>();
-            return new IBenchmarkDao_Impl(engine);
+            var generator = new DaoGenerator(engine, new DummyLoader());
+            return generator.Create<IBenchmarkDao>();
         }
 
-        [IterationCleanup]
-        public void IterationCleanup()
+        [GlobalCleanup]
+        public void Cleanup()
         {
             mockExecute.Dispose();
             mockExecuteScalar.Dispose();
@@ -224,45 +220,5 @@ namespace Smart.Data.Accessor.Benchmark
         public DateTimeOffset? UpdatedAt { get; set; }
 
         public string UpdatedBy { get; set; }
-    }
-
-    internal sealed class IBenchmarkDao_Impl : IBenchmarkDao
-    {
-        private readonly global::Smart.Data.Accessor.Engine.ExecuteEngine _engine;
-
-        private readonly global::Smart.Data.IDbProvider _provider;
-
-        private readonly global::System.Action<global::System.Data.Common.DbCommand, global::System.String, global::System.Int64> _setupParameter0_0;
-        private readonly global::System.Action<global::System.Data.Common.DbCommand, global::System.String, global::System.String> _setupParameter0_1;
-
-        public IBenchmarkDao_Impl(global::Smart.Data.Accessor.Engine.ExecuteEngine engine)
-        {
-            this._engine = engine;
-
-            this._provider = engine.Components.Get<global::Smart.Data.IDbProvider>();
-
-            var method0 = global::Smart.Data.Accessor.Generator.RuntimeHelper.GetInterfaceMethodByNo(GetType(), typeof(IBenchmarkDao), 0);
-            this._setupParameter0_0 = global::Smart.Data.Accessor.Generator.RuntimeHelper.CreateInParameterSetup<global::System.Int64>(engine, method0, "entity.Id");
-            this._setupParameter0_1 = global::Smart.Data.Accessor.Generator.RuntimeHelper.CreateInParameterSetup<global::System.String>(engine, method0, "entity.Name");
-        }
-
-        [global::Smart.Data.Accessor.Generator.MethodNoAttribute(0)]
-        public global::System.Int32 Execute(DataEntity entity)
-        {
-            using (var _con = this._provider.CreateConnection())
-            using (var _cmd = _con.CreateCommand())
-            {
-                this._setupParameter0_0(_cmd, "p0", entity.Id);
-                this._setupParameter0_1(_cmd, "p1", entity.Name);
-
-                _cmd.CommandText = "INSERT INTO Table (Id, Name) VALUES (@p0, @p1)";
-
-                _con.Open();
-
-                var _result = this._engine.Execute(_cmd);
-
-                return _result;
-            }
-        }
     }
 }
