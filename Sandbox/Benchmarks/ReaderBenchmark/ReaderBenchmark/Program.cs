@@ -1,4 +1,6 @@
-﻿namespace ReaderBenchmark
+﻿using System.Data;
+
+namespace ReaderBenchmark
 {
     using System;
     using System.Collections;
@@ -6,8 +8,6 @@
     using System.Data.Common;
     using System.Linq;
     using System.Runtime.CompilerServices;
-
-    using Dapper;
 
     using BenchmarkDotNet.Attributes;
     using BenchmarkDotNet.Configs;
@@ -17,6 +17,7 @@
     using BenchmarkDotNet.Running;
 
     using Smart.Mock.Data;
+    using Smart.Data.Mapper;
     using Smart.Collections.Concurrent;
 
     public static class Program
@@ -33,7 +34,6 @@
         {
             Add(MarkdownExporter.Default, MarkdownExporter.GitHub);
             Add(MemoryDiagnoser.Default);
-            //Add(Job.LongRun);
             Add(Job.MediumRun);
         }
     }
@@ -54,15 +54,15 @@
         private MockRepeatDbConnection conString201000;
         private MockRepeatDbConnection conString202000;
 
-        private readonly MyDao myDao = new MyDao();
+        private readonly MyDaoConfig config = new MyDaoConfig();
 
         [GlobalSetup]
         public void Setup()
         {
-            myDao.AddMap(typeof(IntEntity10), new Int10Mapper());
-            myDao.AddMap(typeof(IntEntity20), new Int20Mapper());
-            myDao.AddMap(typeof(StringEntity10), new String10Mapper());
-            myDao.AddMap(typeof(StringEntity20), new String20Mapper());
+            config.AddMap(typeof(IntEntity10), new Int10Mapper());
+            config.AddMap(typeof(IntEntity20), new Int20Mapper());
+            config.AddMap(typeof(StringEntity10), new String10Mapper());
+            config.AddMap(typeof(StringEntity20), new String20Mapper());
 
             conInt100000 = new MockRepeatDbConnection(new TestDataReader(typeof(int), 1, 0, 10, "Id"));
             conInt101000 = new MockRepeatDbConnection(new TestDataReader(typeof(int), 1, 1000, 10, "Id"));
@@ -78,47 +78,60 @@
             conString202000 = new MockRepeatDbConnection(new TestDataReader(typeof(int), "a", 2000, 20, "Id"));
         }
 
-        [Benchmark] public void BufferInt100000() => conInt100000.Query<IntEntity10>("", true);
-        [Benchmark] public void BufferInt101000() => conInt101000.Query<IntEntity10>("", true);
-        [Benchmark] public void BufferInt102000() => conInt102000.Query<IntEntity10>("", true);
-        [Benchmark] public void BufferInt200000() => conInt200000.Query<IntEntity20>("", true);
-        [Benchmark] public void BufferInt201000() => conInt201000.Query<IntEntity20>("", true);
-        [Benchmark] public void BufferInt202000() => conInt202000.Query<IntEntity20>("", true);
-        [Benchmark] public void BufferString100000() => conString100000.Query<StringEntity10>("", true);
-        [Benchmark] public void BufferString101000() => conString101000.Query<StringEntity10>("", true);
-        [Benchmark] public void BufferString102000() => conString102000.Query<StringEntity10>("", true);
-        [Benchmark] public void BufferString200000() => conString200000.Query<StringEntity20>("", true);
-        [Benchmark] public void BufferString201000() => conString201000.Query<StringEntity20>("", true);
-        [Benchmark] public void BufferString202000() => conString202000.Query<StringEntity20>("", true);
+        [Benchmark] public void BufferDapperInt100000() => Dapper.SqlMapper.Query<IntEntity10>(conInt100000, "", buffered: true);
+        [Benchmark] public void BufferDapperInt101000() => Dapper.SqlMapper.Query<IntEntity10>(conInt101000, "", buffered: true);
+        [Benchmark] public void BufferDapperInt102000() => Dapper.SqlMapper.Query<IntEntity10>(conInt102000, "", buffered: true);
+        [Benchmark] public void BufferDapperInt200000() => Dapper.SqlMapper.Query<IntEntity20>(conInt200000, "", buffered: true);
+        [Benchmark] public void BufferDapperInt201000() => Dapper.SqlMapper.Query<IntEntity20>(conInt201000, "", buffered: true);
+        [Benchmark] public void BufferDapperInt202000() => Dapper.SqlMapper.Query<IntEntity20>(conInt202000, "", buffered: true);
+        [Benchmark] public void BufferDapperString100000() => Dapper.SqlMapper.Query<StringEntity10>(conString100000, "", buffered: true);
+        [Benchmark] public void BufferDapperString101000() => Dapper.SqlMapper.Query<StringEntity10>(conString101000, "", buffered: true);
+        [Benchmark] public void BufferDapperString102000() => Dapper.SqlMapper.Query<StringEntity10>(conString102000, "", buffered: true);
+        [Benchmark] public void BufferDapperString200000() => Dapper.SqlMapper.Query<StringEntity20>(conString200000, "", buffered: true);
+        [Benchmark] public void BufferDapperString201000() => Dapper.SqlMapper.Query<StringEntity20>(conString201000, "", buffered: true);
+        [Benchmark] public void BufferDapperString202000() => Dapper.SqlMapper.Query<StringEntity20>(conString202000, "", buffered: true);
 
-        [Benchmark] public void NonBufferInt100000() { foreach (var _ in conInt100000.Query<IntEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferInt101000() { foreach (var _ in conInt101000.Query<IntEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferInt102000() { foreach (var _ in conInt102000.Query<IntEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferInt200000() { foreach (var _ in conInt200000.Query<IntEntity20>("", false)) { } }
-        [Benchmark] public void NonBufferInt201000() { foreach (var _ in conInt201000.Query<IntEntity20>("", false)) { } }
-        [Benchmark] public void NonBufferInt202000() { foreach (var _ in conInt202000.Query<IntEntity20>("", false)) { } }
-        [Benchmark] public void NonBufferString100000() { foreach (var _ in conString100000.Query<StringEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferString101000() { foreach (var _ in conString101000.Query<StringEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferString102000() { foreach (var _ in conString102000.Query<StringEntity10>("", false)) { } }
-        [Benchmark] public void NonBufferString200000() { foreach (var _ in conString200000.Query<StringEntity20>("", false)) { } }
-        [Benchmark] public void NonBufferString201000() { foreach (var _ in conString201000.Query<StringEntity20>("", false)) { } }
-        [Benchmark] public void NonBufferString202000() { foreach (var _ in conString202000.Query<StringEntity20>("", false)) { } }
+        [Benchmark] public void NonBufferDapperInt100000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity10>(conInt100000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperInt101000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity10>(conInt101000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperInt102000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity10>(conInt102000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperInt200000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity20>(conInt200000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperInt201000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity20>(conInt201000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperInt202000() { foreach (var _ in Dapper.SqlMapper.Query<IntEntity20>(conInt202000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString100000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity10>(conString100000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString101000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity10>(conString101000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString102000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity10>(conString102000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString200000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity20>(conString200000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString201000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity20>(conString201000, "", buffered: false)) { } }
+        [Benchmark] public void NonBufferDapperString202000() { foreach (var _ in Dapper.SqlMapper.Query<StringEntity20>(conString202000, "", buffered: false)) { } }
 
-        [Benchmark] public void BufferMyInt100000() => myDao.Query<IntEntity10>(conInt100000, "");
-        [Benchmark] public void BufferMyInt101000() => myDao.Query<IntEntity10>(conInt101000, "");
-        [Benchmark] public void BufferMyInt102000() => myDao.Query<IntEntity10>(conInt102000, "");
-        [Benchmark] public void BufferMyInt200000() => myDao.Query<IntEntity20>(conInt200000, "");
-        [Benchmark] public void BufferMyInt201000() => myDao.Query<IntEntity20>(conInt201000, "");
-        [Benchmark] public void BufferMyInt202000() => myDao.Query<IntEntity20>(conInt202000, "");
-        [Benchmark] public void BufferMyString100000() => myDao.Query<StringEntity10>(conString100000, "");
-        [Benchmark] public void BufferMyString101000() => myDao.Query<StringEntity10>(conString101000, "");
-        [Benchmark] public void BufferMyString102000() => myDao.Query<StringEntity10>(conString102000, "");
-        [Benchmark] public void BufferMyString200000() => myDao.Query<StringEntity20>(conString200000, "");
-        [Benchmark] public void BufferMyString201000() => myDao.Query<StringEntity20>(conString201000, "");
-        [Benchmark] public void BufferMyString202000() => myDao.Query<StringEntity20>(conString202000, "");
+        [Benchmark] public void BufferSmartInt100000() => conInt100000.QueryList<IntEntity10>("");
+        [Benchmark] public void BufferSmartInt101000() => conInt101000.QueryList<IntEntity10>("");
+        [Benchmark] public void BufferSmartInt102000() => conInt102000.QueryList<IntEntity10>("");
+        [Benchmark] public void BufferSmartInt200000() => conInt200000.QueryList<IntEntity20>("");
+        [Benchmark] public void BufferSmartInt201000() => conInt201000.QueryList<IntEntity20>("");
+        [Benchmark] public void BufferSmartInt202000() => conInt202000.QueryList<IntEntity20>("");
+        [Benchmark] public void BufferSmartString100000() => conString100000.QueryList<StringEntity10>("");
+        [Benchmark] public void BufferSmartString101000() => conString101000.QueryList<StringEntity10>("");
+        [Benchmark] public void BufferSmartString102000() => conString102000.QueryList<StringEntity10>("");
+        [Benchmark] public void BufferSmartString200000() => conString200000.QueryList<StringEntity20>("");
+        [Benchmark] public void BufferSmartString201000() => conString201000.QueryList<StringEntity20>("");
+        [Benchmark] public void BufferSmartString202000() => conString202000.QueryList<StringEntity20>("");
+
+        [Benchmark] public void BufferMyInt100000() => MyDao.Query<IntEntity10>(conInt100000, config, "");
+        [Benchmark] public void BufferMyInt101000() => MyDao.Query<IntEntity10>(conInt101000, config, "");
+        [Benchmark] public void BufferMyInt102000() => MyDao.Query<IntEntity10>(conInt102000, config, "");
+        [Benchmark] public void BufferMyInt200000() => MyDao.Query<IntEntity20>(conInt200000, config, "");
+        [Benchmark] public void BufferMyInt201000() => MyDao.Query<IntEntity20>(conInt201000, config, "");
+        [Benchmark] public void BufferMyInt202000() => MyDao.Query<IntEntity20>(conInt202000, config, "");
+        [Benchmark] public void BufferMyString100000() => MyDao.Query<StringEntity10>(conString100000, config, "");
+        [Benchmark] public void BufferMyString101000() => MyDao.Query<StringEntity10>(conString101000, config, "");
+        [Benchmark] public void BufferMyString102000() => MyDao.Query<StringEntity10>(conString102000, config, "");
+        [Benchmark] public void BufferMyString200000() => MyDao.Query<StringEntity20>(conString200000, config, "");
+        [Benchmark] public void BufferMyString201000() => MyDao.Query<StringEntity20>(conString201000, config, "");
+        [Benchmark] public void BufferMyString202000() => MyDao.Query<StringEntity20>(conString202000, config, "");
     }
 
-    public class MyDao
+    public class MyDaoConfig
     {
         private readonly ThreadsafeTypeHashArrayMap<object> mappers = new ThreadsafeTypeHashArrayMap<object>();
 
@@ -127,20 +140,48 @@
             mappers.AddIfNotExist(type, mapper);
         }
 
-        private IMapper<T> GetMapper<T>()
+        public IMapper<T> GetMapper<T>()
         {
             return mappers.TryGetValue(typeof(T), out var mapper) ? (IMapper<T>)mapper : null;
         }
 
-        public List<T> Query<T>(DbConnection con, string sql)
+    }
+
+    public static class MyDao
+    {
+        private static DbCommand SetupCommand(DbConnection con, DbTransaction transaction, string sql, int? commandTimeout, CommandType? commandType)
         {
-            var mapper = GetMapper<T>();
+            var cmd = con.CreateCommand();
+
+            if (transaction != null)
+            {
+                cmd.Transaction = transaction;
+            }
+
+            cmd.CommandText = sql;
+
+            if (commandTimeout.HasValue)
+            {
+                cmd.CommandTimeout = commandTimeout.Value;
+            }
+
+            if (commandType.HasValue)
+            {
+                cmd.CommandType = commandType.Value;
+            }
+
+            return cmd;
+        }
+
+        public static List<T> Query<T>(DbConnection con, MyDaoConfig config, string sql, DbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            var mapper = config.GetMapper<T>();
 
             con.Open();
 
             try
             {
-                using (var cmd = con.CreateCommand())
+                using (var cmd = SetupCommand(con, transaction, sql, commandTimeout, commandType))
                 {
                     cmd.CommandText = sql;
 
