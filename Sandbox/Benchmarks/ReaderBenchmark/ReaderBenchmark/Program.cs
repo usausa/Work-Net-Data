@@ -1,4 +1,9 @@
-﻿namespace ReaderBenchmark
+﻿using System.Reflection;
+using Smart;
+using Smart.Data.Mapper.Attributes;
+using Smart.Reflection;
+
+namespace ReaderBenchmark
 {
     using System;
     using System.Collections;
@@ -56,14 +61,20 @@
         private MockRepeatDbConnection conString202000;
 
         private readonly TestMapperConfig config = new TestMapperConfig();
+        private readonly TestMapperConfig config2 = new TestMapperConfig();
 
         [GlobalSetup]
         public void Setup()
         {
-            config.AddMap(typeof(IntEntity10), (Func<IDataRecord, IntEntity10>)new Int10Mapper().Map);
-            config.AddMap(typeof(IntEntity20), (Func<IDataRecord, IntEntity20>)new Int20Mapper().Map);
-            config.AddMap(typeof(StringEntity10), (Func<IDataRecord, StringEntity10>)new String10Mapper().Map);
-            config.AddMap(typeof(StringEntity20), (Func<IDataRecord, StringEntity20>)new String20Mapper().Map);
+            config.AddMap(typeof(IntEntity10), (Func<DbDataReader, IntEntity10>)new Int10Mapper().Map);
+            config.AddMap(typeof(IntEntity20), (Func<DbDataReader, IntEntity20>)new Int20Mapper().Map);
+            config.AddMap(typeof(StringEntity10), (Func<DbDataReader, StringEntity10>)new String10Mapper().Map);
+            config.AddMap(typeof(StringEntity20), (Func<DbDataReader, StringEntity20>)new String20Mapper().Map);
+
+            config2.AddMap(typeof(IntEntity10), ObjectResultMapperFactory.CreateMapper<IntEntity10>());
+            config2.AddMap(typeof(IntEntity20), ObjectResultMapperFactory.CreateMapper<IntEntity20>());
+            config2.AddMap(typeof(StringEntity10), ObjectResultMapperFactory.CreateMapper<StringEntity10>());
+            config2.AddMap(typeof(StringEntity20), ObjectResultMapperFactory.CreateMapper<StringEntity20>());
 
             conInt100000 = new MockRepeatDbConnection(new TestDataReader(typeof(int), 1, 0, 10, "Id"));
             conInt101000 = new MockRepeatDbConnection(new TestDataReader(typeof(int), 1, 1000, 10, "Id"));
@@ -118,11 +129,11 @@
         //[Benchmark] public void BufferSmartString201000() => conString201000.QueryList<StringEntity20>("");
         //[Benchmark] public void BufferSmartString202000() => conString202000.QueryList<StringEntity20>("");
 
-        [Benchmark] public void BufferMyInt100000() => TestMapper.Query<IntEntity10>(conInt100000, config, "");
-        [Benchmark] public void BufferMyInt101000() => TestMapper.Query<IntEntity10>(conInt101000, config, "");
+        //[Benchmark] public void BufferMyInt100000() => TestMapper.Query<IntEntity10>(conInt100000, config, "");
+        //[Benchmark] public void BufferMyInt101000() => TestMapper.Query<IntEntity10>(conInt101000, config, "");
         [Benchmark] public void BufferMyInt102000() => TestMapper.Query<IntEntity10>(conInt102000, config, "");
-        [Benchmark] public void BufferMyInt200000() => TestMapper.Query<IntEntity20>(conInt200000, config, "");
-        [Benchmark] public void BufferMyInt201000() => TestMapper.Query<IntEntity20>(conInt201000, config, "");
+        //[Benchmark] public void BufferMyInt200000() => TestMapper.Query<IntEntity20>(conInt200000, config, "");
+        //[Benchmark] public void BufferMyInt201000() => TestMapper.Query<IntEntity20>(conInt201000, config, "");
         [Benchmark] public void BufferMyInt202000() => TestMapper.Query<IntEntity20>(conInt202000, config, "");
         //[Benchmark] public void BufferMyString100000() => TestMapper.Query<StringEntity10>(conString100000, config, "");
         //[Benchmark] public void BufferMyString101000() => TestMapper.Query<StringEntity10>(conString101000, config, "");
@@ -130,6 +141,19 @@
         //[Benchmark] public void BufferMyString200000() => TestMapper.Query<StringEntity20>(conString200000, config, "");
         //[Benchmark] public void BufferMyString201000() => TestMapper.Query<StringEntity20>(conString201000, config, "");
         //[Benchmark] public void BufferMyString202000() => TestMapper.Query<StringEntity20>(conString202000, config, "");
+
+        //[Benchmark] public void BufferMy2Int100000() => TestMapper.Query<IntEntity10>(conInt100000, config2, "");
+        //[Benchmark] public void BufferMy2Int101000() => TestMapper.Query<IntEntity10>(conInt101000, config2, "");
+        [Benchmark] public void BufferMy2Int102000() => TestMapper.Query<IntEntity10>(conInt102000, config2, "");
+        //[Benchmark] public void BufferMy2Int200000() => TestMapper.Query<IntEntity20>(conInt200000, config2, "");
+        //[Benchmark] public void BufferMy2Int201000() => TestMapper.Query<IntEntity20>(conInt201000, config2, "");
+        [Benchmark] public void BufferMy2Int202000() => TestMapper.Query<IntEntity20>(conInt202000, config2, "");
+        //[Benchmark] public void BufferMy2String100000() => TestMapper.Query<StringEntity10>(conString100000, config2, "");
+        //[Benchmark] public void BufferMy2String101000() => TestMapper.Query<StringEntity10>(conString101000, config2, "");
+        //[Benchmark] public void BufferMy2String102000() => TestMapper.Query<StringEntity10>(conString102000, config2, "");
+        //[Benchmark] public void BufferMy2String200000() => TestMapper.Query<StringEntity20>(conString200000, config2, "");
+        //[Benchmark] public void BufferMy2String201000() => TestMapper.Query<StringEntity20>(conString201000, config2, "");
+        //[Benchmark] public void BufferMy2String202000() => TestMapper.Query<StringEntity20>(conString202000, config2, "");
     }
 
     public class TestMapperConfig
@@ -141,9 +165,9 @@
             mappers.AddIfNotExist(type, mapper);
         }
 
-        public Func<IDataReader, T> GetMapper<T>()
+        public Func<DbDataReader, T> GetMapper<T>()
         {
-            return mappers.TryGetValue(typeof(T), out var mapper) ? (Func<IDataReader, T>)mapper : null;
+            return mappers.TryGetValue(typeof(T), out var mapper) ? (Func<DbDataReader, T>)mapper : null;
         }
     }
 
@@ -213,14 +237,69 @@
         }
     }
 
-
     public static class Helper
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T GetValue<T>(IDataRecord reader, int index)
+        public static T GetValue<T>(DbDataReader reader, int index)
         {
             var value = reader.GetValue(index);
             return value is DBNull ? default : (T)value;
+        }
+    }
+
+    public static class ObjectResultMapperFactory
+    {
+        public static Func<IDataRecord, T> CreateMapper<T>()
+        {
+            var objectFactory = DelegateFactory.Default.CreateFactory<T>();
+            var entries = CreateMapEntries(typeof(T));
+
+            return record =>
+            {
+                var obj = objectFactory();
+
+                for (var i = 0; i < entries.Length; i++)
+                {
+                    var entry = entries[i];
+                    entry.Setter(obj, record.GetValue(i));
+                }
+
+                return obj;
+            };
+        }
+
+        private static MapEntry[] CreateMapEntries(Type type)
+        {
+            var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(IsTargetProperty)
+                .ToArray();
+
+            var list = new List<MapEntry>();
+            foreach (var pi in properties)
+            {
+                var setter = DelegateFactory.Default.CreateSetter(pi);
+                var defaultValue = pi.PropertyType.GetDefaultValue();
+
+                list.Add(new MapEntry((obj, value) => setter(obj, value is DBNull ? defaultValue : value)));
+            }
+
+            return list.ToArray();
+        }
+
+        private static bool IsTargetProperty(PropertyInfo pi)
+        {
+            return pi.CanWrite;
+            //return pi.CanWrite && (pi.GetCustomAttribute<IgnoreAttribute>() == null);
+        }
+
+        private sealed class MapEntry
+        {
+            public Action<object, object> Setter { get; }
+
+            public MapEntry(Action<object, object> setter)
+            {
+                Setter = setter;
+            }
         }
     }
 }

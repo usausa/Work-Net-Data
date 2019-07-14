@@ -1,12 +1,12 @@
 ﻿namespace ReaderBenchmark
 {
-    using System.Data;
+    using System.Data.Common;
 
     using ReaderBenchmark.Mock;
 
     public sealed class Int10Mapper
     {
-        public IntEntity10 Map(IDataRecord reader)
+        public IntEntity10 Map(DbDataReader reader)
         {
             var entity = new IntEntity10();
             entity.Id1 = Helper.GetValue<int>(reader, 0);
@@ -25,7 +25,7 @@
 
     public sealed class Int20Mapper
     {
-        public IntEntity20 Map(IDataRecord reader)
+        public IntEntity20 Map(DbDataReader reader)
         {
             var entity = new IntEntity20();
             entity.Id1 = Helper.GetValue<int>(reader, 0);
@@ -54,7 +54,7 @@
 
     public sealed class String10Mapper
     {
-        public StringEntity10 Map(IDataRecord reader)
+        public StringEntity10 Map(DbDataReader reader)
         {
             var entity = new StringEntity10();
             entity.Id1 = Helper.GetValue<string>(reader, 0);
@@ -73,7 +73,7 @@
 
     public sealed class String20Mapper
     {
-        public StringEntity20 Map(IDataRecord reader)
+        public StringEntity20 Map(DbDataReader reader)
         {
             var entity = new StringEntity20();
             entity.Id1 = Helper.GetValue<string>(reader, 0);
