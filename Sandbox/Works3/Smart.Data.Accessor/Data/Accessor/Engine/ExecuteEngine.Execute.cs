@@ -151,7 +151,7 @@ namespace Smart.Data.Accessor.Engine
         //--------------------------------------------------------------------------------
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IList<T> QueryBuffer<T>(DbCommand cmd)
+        public List<T> QueryBuffer<T>(DbCommand cmd)
         {
             using (var reader = cmd.ExecuteReader(CommandBehaviorForList))
             {
@@ -168,7 +168,7 @@ namespace Smart.Data.Accessor.Engine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<IList<T>> QueryBufferAsync<T>(DbCommand cmd, CancellationToken cancel = default)
+        public async Task<List<T>> QueryBufferAsync<T>(DbCommand cmd, CancellationToken cancel = default)
         {
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehaviorForList, cancel).ConfigureAwait(false))
             {

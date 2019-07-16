@@ -21,18 +21,18 @@ namespace WorkGenerator
     [Dao]
     public interface IFullSpecDao
     {
-        ////[NamedProvider("")]
-        //[Execute] int Execute();
-        //[Execute] Task<int> ExecuteAsync(CancellationToken cancel);
-        //[Execute] int Execute(DbConnection con);
-        //[Execute] Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel);
-        //[ExecuteScalar] object ExecuteScalarObject();
-        //[ExecuteScalar] Task<object> ExecuteScalarObjectAsync();
-        ////[My]
-        //[ExecuteScalar] long ExecuteScalar();
-        //[ExecuteScalar] Task<long> ExecuteScalarAsync(CancellationToken cancel);
-        //[ExecuteScalar] long ExecuteScalar(DbConnection con);
-        //[ExecuteScalar] Task<long> ExecuteScalarAsync(DbConnection con, CancellationToken cancel);
+        //[NamedProvider("")]
+        [Execute] int Execute();
+        [Execute] Task<int> ExecuteAsync(CancellationToken cancel);
+        [Execute] int Execute(DbConnection con);
+        [Execute] Task<int> ExecuteAsync(DbConnection con, CancellationToken cancel);
+        [ExecuteScalar] object ExecuteScalarObject();
+        [ExecuteScalar] Task<object> ExecuteScalarObjectAsync();
+        //[My]
+        [ExecuteScalar] long ExecuteScalar();
+        [ExecuteScalar] Task<long> ExecuteScalarAsync(CancellationToken cancel);
+        [ExecuteScalar] long ExecuteScalar(DbConnection con);
+        [ExecuteScalar] Task<long> ExecuteScalarAsync(DbConnection con, CancellationToken cancel);
         [ExecuteScalarReader] IDataReader ExecuteReader();
         [ExecuteScalarReader] Task<IDataReader> ExecuteReaderAsync(CancellationToken cancel);
         [ExecuteScalarReader] IDataReader ExecuteReader(DbConnection con);
@@ -41,17 +41,21 @@ namespace WorkGenerator
         [Query] Task<IEnumerable<DataEntity>> QueryNonBufferAsync(CancellationToken cancel);
         [Query] IEnumerable<DataEntity> QueryNonBuffer(DbConnection con);
         [Query] Task<IEnumerable<DataEntity>> QueryNonBufferAsync(DbConnection con, CancellationToken cancel);
-        //[Query] IList<DataEntity> QueryBuffer();
-        //[Query] Task<IList<DataEntity>> QueryBufferAsync(CancellationToken cancel);
-        //[Query] IList<DataEntity> QueryBuffer(DbConnection con);
-        //[Query] Task<IList<DataEntity>> QueryBufferAsync(DbConnection con, CancellationToken cancel);
-        //[QueryFirstOrDefault] DataEntity QueryFirstOrDefault();
-        //[QueryFirstOrDefault] Task<DataEntity> QueryFirstOrDefaultAsync(CancellationToken cancel);
-        //[QueryFirstOrDefault] DataEntity QueryFirstOrDefault(DbConnection con);
-        //[QueryFirstOrDefault] Task<DataEntity> QueryFirstOrDefaultAsync(DbConnection con, CancellationToken cancel);
-        //[Execute] int ExecuteEnumerable([AnsiString(3)] string[] ids);
-        //[Procedure("TEST1")] int ExecuteEx1(ProcParameter parameter, [TimeoutParameter] int timeout);
-        //[Procedure("TEST2")] void ExecuteEx2(int param1, ref int param2, out int param3);
+        [Query] IList<DataEntity> QueryBuffer();
+        [Query] Task<IList<DataEntity>> QueryBufferAsync(CancellationToken cancel);
+        [Query] IList<DataEntity> QueryBuffer(DbConnection con);
+        [Query] Task<IList<DataEntity>> QueryBufferAsync(DbConnection con, CancellationToken cancel);
+        //[Query] List<DataEntity> QueryBuffer2();
+        //[Query] Task<List<DataEntity>> QueryBuffer2Async(CancellationToken cancel);
+        //[Query] List<DataEntity> QueryBuffer2(DbConnection con);
+        //[Query] Task<List<DataEntity>> QueryBuffer2Async(DbConnection con, CancellationToken cancel);
+        [QueryFirstOrDefault] DataEntity QueryFirstOrDefault();
+        [QueryFirstOrDefault] Task<DataEntity> QueryFirstOrDefaultAsync(CancellationToken cancel);
+        [QueryFirstOrDefault] DataEntity QueryFirstOrDefault(DbConnection con);
+        [QueryFirstOrDefault] Task<DataEntity> QueryFirstOrDefaultAsync(DbConnection con, CancellationToken cancel);
+        [Execute] int ExecuteEnumerable([AnsiString(3)] string[] ids);
+        [Procedure("TEST1")] int ExecuteEx1(ProcParameter parameter, [TimeoutParameter] int timeout);
+        [Procedure("TEST2")] void ExecuteEx2(int param1, ref int param2, out int param3);
         //// TODO Provider, Timeout, Tx only ?
     }
 
