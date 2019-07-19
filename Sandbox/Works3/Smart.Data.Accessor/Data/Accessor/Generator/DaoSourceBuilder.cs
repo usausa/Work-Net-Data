@@ -359,7 +359,7 @@ namespace Smart.Data.Accessor.Generator
                 AppendLine($"using static {name};");
             }
 
-            AppendLine($"using static {typeof(ScriptHelper).FullName};");
+            AppendLine($"using static {typeof(ScriptHelper).FullName.Replace('+', '.')};");
 
             NewLine();
         }
