@@ -5,18 +5,18 @@ namespace Smart.Data.Accessor.Engine
 
     using Xunit;
 
-    [Dao]
-    public interface IExecuteSimpleDao
-    {
-        [Execute]
-        int Execute(long id, string name);
-    }
-
     public class ExecuteEngineTest
     {
         //--------------------------------------------------------------------------------
         // Execute
         //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteSimpleDao
+        {
+            [Execute]
+            int Execute(long id, string name);
+        }
 
         [Fact]
         public void ExecuteSimple()
