@@ -23,7 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Benchma
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Tests", "Smart.Data.Accessor.Tests\Smart.Data.Accessor.Tests.csproj", "{C24CD0E3-D070-4DFF-97A8-5788FCFE6AB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkGenerator", "WorkGenerator\WorkGenerator.csproj", "{D51D3B00-32A7-4418-960A-BAB241C6F891}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkGenerator", "WorkGenerator\WorkGenerator.csproj", "{D51D3B00-32A7-4418-960A-BAB241C6F891}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkPerformance", "WorkPerformance\WorkPerformance.csproj", "{740D683D-4D36-4285-8F57-72DBD9670158}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{D51D3B00-32A7-4418-960A-BAB241C6F891}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D51D3B00-32A7-4418-960A-BAB241C6F891}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D51D3B00-32A7-4418-960A-BAB241C6F891}.Release|Any CPU.Build.0 = Release|Any CPU
+		{740D683D-4D36-4285-8F57-72DBD9670158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{740D683D-4D36-4285-8F57-72DBD9670158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{740D683D-4D36-4285-8F57-72DBD9670158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{740D683D-4D36-4285-8F57-72DBD9670158}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
