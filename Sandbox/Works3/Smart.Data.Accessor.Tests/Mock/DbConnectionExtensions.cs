@@ -12,6 +12,12 @@ namespace Smart.Mock
             return con;
         }
 
+        public static DbConnection InsertData(this DbConnection con, DataEntity entity)
+        {
+            con.Execute("INSERT INTO Data (Id, Name) VALUES (@Id, @Name)", entity);
+            return con;
+        }
+
         public static DataEntity QueryData(this DbConnection con, long id)
         {
             return con.QueryFirstOrDefault<DataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });

@@ -33,10 +33,10 @@ namespace WorkGenerator
         [ExecuteScalar] Task<long> ExecuteScalarAsync(CancellationToken cancel);
         [ExecuteScalar] long ExecuteScalar(DbConnection con);
         [ExecuteScalar] Task<long> ExecuteScalarAsync(DbConnection con, CancellationToken cancel);
-        [ExecuteScalarReader] IDataReader ExecuteReader();
-        [ExecuteScalarReader] Task<IDataReader> ExecuteReaderAsync(CancellationToken cancel);
-        [ExecuteScalarReader] IDataReader ExecuteReader(DbConnection con);
-        [ExecuteScalarReader] Task<IDataReader> ExecuteReaderAsync(DbConnection con, CancellationToken cancel);
+        [ExecuteReader] IDataReader ExecuteReader();
+        [ExecuteReader] Task<IDataReader> ExecuteReaderAsync(CancellationToken cancel);
+        [ExecuteReader] IDataReader ExecuteReader(DbConnection con);
+        [ExecuteReader] Task<IDataReader> ExecuteReaderAsync(DbConnection con, CancellationToken cancel);
         [Query] IEnumerable<DataEntity> QueryNonBuffer();
         [Query] Task<IEnumerable<DataEntity>> QueryNonBufferAsync(CancellationToken cancel);
         [Query] IEnumerable<DataEntity> QueryNonBuffer(DbConnection con);
