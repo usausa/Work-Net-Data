@@ -1,5 +1,7 @@
 namespace Smart.Data.Accessor.Engine
 {
+    using System.Data;
+    using System.Data.Common;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -69,7 +71,170 @@ namespace Smart.Data.Accessor.Engine
             }
         }
 
-        // TODO use sqlite, with con, without con
-        // TODO ref mapper
+        //--------------------------------------------------------------------------------
+        // Result is null
+        //--------------------------------------------------------------------------------
+
+        [Fact]
+        public void ExecuteScalarResultIsNull()
+        {
+            using (TestDatabase.Initialize())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseMemoryDatabase()
+                    .SetSql("SELECT NULL")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarSimpleDao>();
+
+                var count = dao.ExecuteScalar();
+
+                Assert.Equal(0, count);
+            }
+        }
+
+        [Fact]
+        public async Task ExecuteScalarResultIsNullAsync()
+        {
+            using (TestDatabase.Initialize())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseMemoryDatabase()
+                    .SetSql("SELECT NULL")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarSimpleAsyncDao>();
+
+                var count = await dao.ExecuteScalarAsync();
+
+                Assert.Equal(0, count);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Execute
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteScalarWithConvertDao
+        {
+            [ExecuteScalar]
+            string ExecuteScalarWithConvert();
+        }
+
+        [Fact]
+        public void ExecuteScalarWithConvert()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarWithConvertDao>();
+
+                var count = dao.ExecuteScalarWithConvert();
+
+                Assert.Equal("2", count);
+            }
+        }
+
+        [Dao]
+        public interface IExecuteScalarWithConvertAsyncDao
+        {
+            [ExecuteScalar]
+            Task<string> ExecuteScalarWithConvertAsync();
+        }
+
+        [Fact]
+        public async Task ExecuteScalarWithConvertAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarWithConvertAsyncDao>();
+
+                var count = await dao.ExecuteScalarWithConvertAsync();
+
+                Assert.Equal("2", count);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // With Connection
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteScalarWithConnectionDao
+        {
+            [ExecuteScalar]
+            long ExecuteScalar(DbConnection con);
+        }
+
+        [Fact]
+        public void ExecuteScalarWithConnection()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarWithConnectionDao>();
+
+                con.Open();
+
+                var count = dao.ExecuteScalar(con);
+
+                Assert.Equal(ConnectionState.Open, con.State);
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Dao]
+        public interface IExecuteScalarWithConnectionAsyncDao
+        {
+            [ExecuteScalar]
+            Task<long> ExecuteScalarAsync(DbConnection con);
+        }
+
+        [Fact]
+        public async Task ExecuteScalarWithConnectionAsync()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarWithConnectionAsyncDao>();
+
+                con.Open();
+
+                var count = await dao.ExecuteScalarAsync(con);
+
+                Assert.Equal(ConnectionState.Open, con.State);
+                Assert.Equal(2, count);
+            }
+        }
+
+        // TODO
     }
 }

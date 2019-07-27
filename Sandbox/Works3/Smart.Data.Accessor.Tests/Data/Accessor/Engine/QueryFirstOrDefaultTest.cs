@@ -1,5 +1,7 @@
 namespace Smart.Data.Accessor.Engine
 {
+    using System.Data;
+    using System.Data.Common;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -77,7 +79,78 @@ namespace Smart.Data.Accessor.Engine
             }
         }
 
-        // TODO use sqlite, with con, without con
-        // TODO ref mapper
+        //--------------------------------------------------------------------------------
+        // With Connection
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IQueryFirstOrDefaultWithConnectionDao
+        {
+            [QueryFirstOrDefault]
+            DataEntity QueryFirstOrDefault(DbConnection con, long id);
+        }
+
+        [Fact]
+        public void QueryFirstOrDefaultWithConnection()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .SetSql("SELECT * FROM Data WHERE Id = /*@ id */1")
+                    .Build();
+                var dao = generator.Create<IQueryFirstOrDefaultWithConnectionDao>();
+
+                con.Open();
+
+                var entity = dao.QueryFirstOrDefault(con, 1L);
+
+                Assert.Equal(ConnectionState.Open, con.State);
+                Assert.NotNull(entity);
+                Assert.Equal(1, entity.Id);
+                Assert.Equal("Data-1", entity.Name);
+
+                entity = dao.QueryFirstOrDefault(con, 2L);
+                Assert.Null(entity);
+            }
+        }
+
+        [Dao]
+        public interface IQueryFirstOrDefaultWithConnectionAsyncDao
+        {
+            [QueryFirstOrDefault]
+            Task<DataEntity> QueryFirstOrDefaultAsync(DbConnection con, long id);
+        }
+
+        [Fact]
+        public async Task QueryFirstOrDefaultWithConnectionAsync()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .SetSql("SELECT * FROM Data WHERE Id = /*@ id */1")
+                    .Build();
+                var dao = generator.Create<IQueryFirstOrDefaultWithConnectionAsyncDao>();
+
+                con.Open();
+
+                var entity = await dao.QueryFirstOrDefaultAsync(con, 1L);
+
+                Assert.Equal(ConnectionState.Open, con.State);
+                Assert.NotNull(entity);
+                Assert.Equal(1, entity.Id);
+                Assert.Equal("Data-1", entity.Name);
+
+                entity = await dao.QueryFirstOrDefaultAsync(con, 2L);
+                Assert.Null(entity);
+            }
+        }
+
+        // TODO
     }
 }
