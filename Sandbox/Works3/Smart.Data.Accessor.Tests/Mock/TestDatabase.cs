@@ -25,5 +25,10 @@ namespace Smart.Mock
         {
             return new SqliteConnection(ConnectionString);
         }
+
+        public static DbConnection CreateMemory()
+        {
+            return new SqliteConnection("Data Source=:memory:");
+        }
     }
 }

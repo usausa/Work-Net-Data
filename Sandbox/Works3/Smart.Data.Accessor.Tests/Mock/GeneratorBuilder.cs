@@ -34,7 +34,7 @@ namespace Smart.Mock
         {
             config.ConfigureComponents(c =>
             {
-                c.Add<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection("Data Source=:memory:")));
+                c.Add<IDbProvider>(new DelegateDbProvider(TestDatabase.CreateMemory));
             });
             return this;
         }

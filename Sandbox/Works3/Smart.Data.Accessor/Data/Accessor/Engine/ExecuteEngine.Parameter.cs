@@ -194,6 +194,7 @@ namespace Smart.Data.Accessor.Engine
             return cmd =>
             {
                 var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
                 parameter.Direction = ParameterDirection.ReturnValue;
                 return parameter;
             };
