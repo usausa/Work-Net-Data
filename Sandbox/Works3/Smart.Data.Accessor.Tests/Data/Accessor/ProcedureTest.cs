@@ -41,8 +41,7 @@ namespace Smart.Data.Accessor
         [Fact]
         public void CallByClassParameter()
         {
-            using (TestDatabase.Initialize()
-                .SetupDataTable())
+            using (TestDatabase.Initialize())
             {
                 var generator = new GeneratorBuilder()
                     .EnableDebug()
