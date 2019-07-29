@@ -210,7 +210,7 @@ namespace Smart.Data.Accessor.Engine
             {
                 sql.Append("(");
 
-                if (values.Length == 0)
+                if ((values is null) || (values.Length == 0))
                 {
                     sql.Append(emptyDialect.GetSql());
                 }
@@ -219,7 +219,6 @@ namespace Smart.Data.Accessor.Engine
                     for (var i = 0; i < values.Length; i++)
                     {
                         sql.Append(name);
-                        sql.Append("_");
                         sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
                     }
@@ -261,13 +260,18 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values == null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Length; i++)
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
                     action(parameter, value);
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -276,6 +280,11 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values == null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Length; i++)
                 {
                     var value = values[i];
@@ -294,7 +303,7 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -309,7 +318,7 @@ namespace Smart.Data.Accessor.Engine
             {
                 sql.Append("(");
 
-                if (values.Count == 0)
+                if ((values is null) || (values.Count == 0))
                 {
                     sql.Append(emptyDialect.GetSql());
                 }
@@ -318,7 +327,6 @@ namespace Smart.Data.Accessor.Engine
                     for (var i = 0; i < values.Count; i++)
                     {
                         sql.Append(name);
-                        sql.Append("_");
                         sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
                     }
@@ -360,13 +368,18 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values is null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Count; i++)
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
                     action(parameter, value);
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -375,6 +388,11 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values is null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Count; i++)
                 {
                     var value = values[i];
@@ -393,7 +411,7 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
