@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor.Engine
 {
     using System.Data;
     using System.Data.Common;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -148,6 +149,40 @@ namespace Smart.Data.Accessor.Engine
 
                 entity = await dao.QueryFirstOrDefaultAsync(con, 2L);
                 Assert.Null(entity);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Cancel
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IQueryFirstOrDefaultCancelAsyncDao
+        {
+            [QueryFirstOrDefault]
+            Task<DataEntity> QueryFirstOrDefaultAsync(long id, CancellationToken cancel);
+        }
+
+        [Fact]
+        public async Task QueryFirstOrDefaultCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data WHERE Id = /*@ id */1")
+                    .Build();
+                var dao = generator.Create<IQueryFirstOrDefaultCancelAsyncDao>();
+
+                var entity = await dao.QueryFirstOrDefaultAsync(1L, default);
+
+                Assert.NotNull(entity);
+
+                var cancel = new CancellationToken(true);
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await dao.QueryFirstOrDefaultAsync(1L, cancel));
             }
         }
 

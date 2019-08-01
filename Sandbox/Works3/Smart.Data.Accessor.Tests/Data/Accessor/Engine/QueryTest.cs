@@ -4,6 +4,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Data;
     using System.Data.Common;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -266,6 +267,68 @@ namespace Smart.Data.Accessor.Engine
                 Assert.Equal("Data-1", list[0].Name);
                 Assert.Equal(2, list[1].Id);
                 Assert.Equal("Data-2", list[1].Name);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Cancel
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IQueryCancelAsyncDao
+        {
+            [Query]
+            Task<IList<DataEntity>> QueryBufferdAsync(CancellationToken cancel);
+
+            [Query]
+            Task<IEnumerable<DataEntity>> QueryNonBufferdAsync(CancellationToken cancel);
+        }
+
+        [Fact]
+        public async Task QueryBufferdCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data ORDER BY Id")
+                    .Build();
+                var dao = generator.Create<IQueryCancelAsyncDao>();
+
+                var list = await dao.QueryBufferdAsync(default);
+
+                Assert.Equal(2, list.Count);
+
+                var cancel = new CancellationToken(true);
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await dao.QueryBufferdAsync(cancel));
+            }
+        }
+
+        [Fact]
+        public async Task QueryNonBufferdCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data ORDER BY Id")
+                    .Build();
+                var dao = generator.Create<IQueryCancelAsyncDao>();
+
+                var list = (await dao.QueryNonBufferdAsync(default)).ToList();
+
+                Assert.Equal(2, list.Count);
+
+                var cancel = new CancellationToken(true);
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await dao.QueryNonBufferdAsync(cancel));
             }
         }
 

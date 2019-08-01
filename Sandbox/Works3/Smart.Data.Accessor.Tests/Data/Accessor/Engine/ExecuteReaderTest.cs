@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor.Engine
 {
     using System.Data;
     using System.Data.Common;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -154,6 +155,47 @@ namespace Smart.Data.Accessor.Engine
                 }
 
                 Assert.Equal(ConnectionState.Open, con.State);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Cancel
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteReaderCancelAsyncDao
+        {
+            [ExecuteReader]
+            Task<IDataReader> ExecuteReaderAsync(CancellationToken cancel);
+        }
+
+        [Fact]
+        public async Task ExecuteReaderCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data ORDER BY Id")
+                    .Build();
+
+                var dao = generator.Create<IExecuteReaderCancelAsyncDao>();
+
+                using (await dao.ExecuteReaderAsync(default))
+                {
+                }
+
+                await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+                {
+                    var cancel = new CancellationToken(true);
+                    using (await dao.ExecuteReaderAsync(cancel))
+                    {
+                    }
+                });
             }
         }
 

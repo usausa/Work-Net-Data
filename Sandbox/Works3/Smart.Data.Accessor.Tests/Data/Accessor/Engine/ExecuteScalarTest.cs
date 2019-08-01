@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor.Engine
 {
     using System.Data;
     using System.Data.Common;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -232,6 +233,41 @@ namespace Smart.Data.Accessor.Engine
 
                 Assert.Equal(ConnectionState.Open, con.State);
                 Assert.Equal(2, count);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Cancel
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteScalarCancelAsyncDao
+        {
+            [ExecuteScalar]
+            Task<long> ExecuteScalarAsync(CancellationToken cancel);
+        }
+
+        [Fact]
+        public async Task ExecuteScalarCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarCancelAsyncDao>();
+
+                var count = await dao.ExecuteScalarAsync(default);
+
+                Assert.Equal(2, count);
+
+                var cancel = new CancellationToken(true);
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await dao.ExecuteScalarAsync(cancel));
             }
         }
 

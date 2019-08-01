@@ -1,5 +1,6 @@
 namespace Smart.Data.Accessor
 {
+    using System;
     using System.Collections.Generic;
 
     using Smart.Data.Accessor.Attributes;
@@ -41,7 +42,7 @@ namespace Smart.Data.Accessor
 
                 Assert.Equal(0, list.Count);
 
-                list = dao.QueryData(new int[0]);
+                list = dao.QueryData(Array.Empty<int>());
 
                 Assert.Equal(0, list.Count);
 

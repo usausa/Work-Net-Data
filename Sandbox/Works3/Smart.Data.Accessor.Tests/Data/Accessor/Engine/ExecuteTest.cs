@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor.Engine
 {
     using System.Data;
     using System.Data.Common;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
@@ -144,6 +145,39 @@ namespace Smart.Data.Accessor.Engine
                 Assert.NotNull(entity);
                 Assert.Equal(2, entity.Id);
                 Assert.Equal("xxx", entity.Name);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Cancel
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteCancelAsyncDao
+        {
+            [Execute]
+            Task<int> ExecuteAsync(long id, string name, CancellationToken cancel);
+        }
+
+        [Fact]
+        public async Task ExecuteCancelAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("INSERT INTO Data (Id, Name) VALUES (/*@ id */1, /*@ name */'test')")
+                    .Build();
+                var dao = generator.Create<IExecuteCancelAsyncDao>();
+
+                var effect = await dao.ExecuteAsync(2, "xxx", default);
+
+                Assert.Equal(1, effect);
+
+                var cancel = new CancellationToken(true);
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await dao.ExecuteAsync(2, "xxx", cancel));
             }
         }
 
