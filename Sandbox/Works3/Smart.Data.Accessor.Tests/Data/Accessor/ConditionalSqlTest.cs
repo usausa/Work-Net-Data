@@ -115,5 +115,47 @@ namespace Smart.Data.Accessor
                 Assert.Equal(2, list.Count);
             }
         }
+
+        //--------------------------------------------------------------------------------
+        // Etc
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IDynamicArrayDao
+        {
+            [Query]
+            IList<DataEntity> QueryData(int[] ids);
+        }
+
+        [Fact]
+        public void DynamicArray()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" })
+                .InsertData(new DataEntity { Id = 3, Name = "Data-3" })
+                .InsertData(new DataEntity { Id = 4, Name = "Data-4" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql(
+                        "SELECT * FROM Data" +
+                        "/*% if (ids != null) { */" +
+                        "WHERE Id IN /*@ ids */(2, 4)" +
+                        "/*% } */")
+                    .Build();
+                var dao = generator.Create<IDynamicArrayDao>();
+
+                var list = dao.QueryData(null);
+
+                Assert.Equal(4, list.Count);
+
+                list = dao.QueryData(new[] { 2, 4 });
+
+                Assert.Equal(2, list.Count);
+            }
+        }
     }
 }

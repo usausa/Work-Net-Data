@@ -52,6 +52,36 @@ namespace Smart.Data.Accessor
             }
         }
 
+        [Dao]
+        public interface IInArrayMixedDao
+        {
+            [Query]
+            IList<DataEntity> QueryData(int[] ids, string name);
+        }
+
+        [Fact]
+        public void InArrayMixed()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "AAA" })
+                .InsertData(new DataEntity { Id = 2, Name = "AAA" })
+                .InsertData(new DataEntity { Id = 3, Name = "BBB" })
+                .InsertData(new DataEntity { Id = 4, Name = "BBB" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data WHERE Id IN /*@ ids */(2, 4) AND Name = /*@ name */'AAA'")
+                    .Build();
+                var dao = generator.Create<IInArrayMixedDao>();
+
+                var list = dao.QueryData(new[] { 2, 4 }, "AAA");
+
+                Assert.Equal(1, list.Count);
+            }
+        }
+
         //--------------------------------------------------------------------------------
         // Array
         //--------------------------------------------------------------------------------
@@ -91,6 +121,36 @@ namespace Smart.Data.Accessor
                 list = dao.QueryData(new List<int> { 2, 4 });
 
                 Assert.Equal(2, list.Count);
+            }
+        }
+
+        [Dao]
+        public interface IInListMixedDao
+        {
+            [Query]
+            IList<DataEntity> QueryData(List<int> ids, string name);
+        }
+
+        [Fact]
+        public void InListMixed()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "AAA" })
+                .InsertData(new DataEntity { Id = 2, Name = "AAA" })
+                .InsertData(new DataEntity { Id = 3, Name = "BBB" })
+                .InsertData(new DataEntity { Id = 4, Name = "BBB" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT * FROM Data WHERE Id IN /*@ ids */(2, 4) AND Name = /*@ name */'AAA'")
+                    .Build();
+                var dao = generator.Create<IInListMixedDao>();
+
+                var list = dao.QueryData(new List<int> { 2, 4 }, "AAA");
+
+                Assert.Equal(1, list.Count);
             }
         }
     }
