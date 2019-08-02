@@ -489,11 +489,6 @@ namespace Smart.Data.Accessor.Generator
                 }
                 else
                 {
-                    if (!typeof(IDbProviderSelector).IsAssignableFrom(provider.SelectorType))
-                    {
-                        throw new AccessorGeneratorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}]");
-                    }
-
                     AppendLine($"{ProviderFieldRef} = {RuntimeHelperType}.GetDbProvider({CtorArg}, typeof({interfaceFullName}));");
                 }
             }
@@ -510,11 +505,6 @@ namespace Smart.Data.Accessor.Generator
 
                     if (hasProvider)
                     {
-                        if (!typeof(IDbProviderSelector).IsAssignableFrom(mm.Provider.SelectorType))
-                        {
-                            throw new AccessorGeneratorException($"Provider attribute parameter is invalid. type=[{targetType.FullName}], method=[{mm.MethodInfo.Name}]");
-                        }
-
                         AppendLine($"{GetProviderFieldRef(mm.No)} = {RuntimeHelperType}.GetDbProvider({CtorArg}, method{mm.No});");
                     }
 
@@ -1481,10 +1471,8 @@ namespace Smart.Data.Accessor.Generator
                     return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\");";
                 case ParameterDirection.InputOutput:
                     return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
-                case ParameterDirection.Input:
-                    return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(parameter), $"Invalid parameter direction. direction=[{parameter.Direction}]");
+                    return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
             }
         }
     }

@@ -1,7 +1,5 @@
 namespace Smart.Mock
 {
-    using Microsoft.Data.Sqlite;
-
     using Smart.Data;
     using Smart.Data.Accessor.Engine;
     using Smart.Data.Accessor.Generator;
@@ -26,6 +24,18 @@ namespace Smart.Mock
             config.ConfigureComponents(c =>
             {
                 c.Add<IDbProvider>(new DelegateDbProvider(TestDatabase.CreateConnection));
+            });
+            return this;
+        }
+
+        public GeneratorBuilder UseMultipleDatabase()
+        {
+            config.ConfigureComponents(c =>
+            {
+                var selector = new NamedDbProviderSelector();
+                selector.AddProvider(ProviderNames.Main, new DelegateDbProvider(TestDatabase.CreateConnection));
+                selector.AddProvider(ProviderNames.Sub, new DelegateDbProvider(TestDatabase.CreateConnection2));
+                c.Add<IDbProviderSelector>(selector);
             });
             return this;
         }

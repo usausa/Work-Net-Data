@@ -6,6 +6,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator;
     using Smart.Mock;
 
     using Xunit;
@@ -75,6 +76,64 @@ namespace Smart.Data.Accessor.Engine
                 Assert.NotNull(entity);
                 Assert.Equal(2, entity.Id);
                 Assert.Equal("xxx", entity.Name);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Result void
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteVoidDao
+        {
+            [Execute]
+            void Execute(long id, string name);
+        }
+
+        [Fact]
+        public void ExecuteVoid()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("INSERT INTO Data (Id, Name) VALUES (/*@ id */1, /*@ name */'test')")
+                    .Build();
+                var dao = generator.Create<IExecuteVoidDao>();
+
+                dao.Execute(2, "xxx");
+
+                var entity = con.QueryData(2);
+                Assert.NotNull(entity);
+            }
+        }
+
+        [Dao]
+        public interface IExecuteVoidAsyncDao
+        {
+            [Execute]
+            Task ExecuteAsync(long id, string name);
+        }
+
+        [Fact]
+        public async Task ExecuteVoidAsync()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("INSERT INTO Data (Id, Name) VALUES (/*@ id */1, /*@ name */'test')")
+                    .Build();
+                var dao = generator.Create<IExecuteVoidAsyncDao>();
+
+                await dao.ExecuteAsync(2, "xxx");
+
+                var entity = con.QueryData(2);
+                Assert.NotNull(entity);
             }
         }
 
@@ -181,6 +240,44 @@ namespace Smart.Data.Accessor.Engine
             }
         }
 
-        // TODO
+        //--------------------------------------------------------------------------------
+        // Invalid
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteInvalidDao
+        {
+            [Execute]
+            string Execute();
+        }
+
+        [Fact]
+        public void ExecuteInvalid()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IExecuteInvalidAsyncDao>());
+        }
+
+        [Dao]
+        public interface IExecuteInvalidAsyncDao
+        {
+            [Execute]
+            Task<string> ExecuteAsync();
+        }
+
+        [Fact]
+        public void ExecuteInvalidAsync()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IExecuteInvalidAsyncDao>());
+        }
     }
 }

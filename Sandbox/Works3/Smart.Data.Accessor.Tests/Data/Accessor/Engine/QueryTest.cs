@@ -8,6 +8,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator;
     using Smart.Mock;
 
     using Xunit;
@@ -332,6 +333,44 @@ namespace Smart.Data.Accessor.Engine
             }
         }
 
-        // TODO
+        //--------------------------------------------------------------------------------
+        // Invalid
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IQueryInvalidDao
+        {
+            [Query]
+            void Query();
+        }
+
+        [Fact]
+        public void QueryInvalid()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IQueryInvalidDao>());
+        }
+
+        [Dao]
+        public interface IQueryInvalidAsyncDao
+        {
+            [Query]
+            Task QueryAsync();
+        }
+
+        [Fact]
+        public void QueryInvalidAsync()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IQueryInvalidAsyncDao>());
+        }
     }
 }

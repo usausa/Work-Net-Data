@@ -6,6 +6,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Threading.Tasks;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator;
     using Smart.Mock;
 
     using Xunit;
@@ -109,6 +110,66 @@ namespace Smart.Data.Accessor.Engine
                 var count = await dao.ExecuteScalarAsync();
 
                 Assert.Equal(0, count);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Result as object
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteScalarObjectDao
+        {
+            [ExecuteScalar]
+            object ExecuteScalar();
+        }
+
+        [Fact]
+        public void ExecuteScalarObject()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarObjectDao>();
+
+                var count = dao.ExecuteScalar();
+
+                Assert.Equal(2L, count);
+            }
+        }
+
+        [Dao]
+        public interface IExecuteScalarObjectAsyncDao
+        {
+            [ExecuteScalar]
+            Task<object> ExecuteScalarAsync();
+        }
+
+        [Fact]
+        public async Task ExecuteScalarObjectAsync()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable()
+                .InsertData(new DataEntity { Id = 1, Name = "Data-1" })
+                .InsertData(new DataEntity { Id = 2, Name = "Data-2" }))
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .UseFileDatabase()
+                    .SetSql("SELECT COUNT(*) FROM Data")
+                    .Build();
+                var dao = generator.Create<IExecuteScalarObjectAsyncDao>();
+
+                var count = await dao.ExecuteScalarAsync();
+
+                Assert.Equal(2L, count);
             }
         }
 
@@ -271,6 +332,44 @@ namespace Smart.Data.Accessor.Engine
             }
         }
 
-        // TODO
+        //--------------------------------------------------------------------------------
+        // Invalid
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IExecuteScalarInvalidDao
+        {
+            [ExecuteScalar]
+            void ExecuteScalar();
+        }
+
+        [Fact]
+        public void ExecuteScalarInvalid()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IExecuteScalarInvalidDao>());
+        }
+
+        [Dao]
+        public interface IExecuteScalarInvalidAsyncDao
+        {
+            [ExecuteScalar]
+            Task ExecuteScalarAsync();
+        }
+
+        [Fact]
+        public void ExecuteScalarInvalidAsync()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            Assert.Throws<AccessorGeneratorException>(() => generator.Create<IExecuteScalarInvalidAsyncDao>());
+        }
     }
 }

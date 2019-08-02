@@ -1,7 +1,6 @@
-using System;
-
 namespace WorkPerformance
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Reflection;

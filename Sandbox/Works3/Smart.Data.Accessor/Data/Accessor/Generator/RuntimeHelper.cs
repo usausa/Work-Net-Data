@@ -33,29 +33,6 @@ namespace Smart.Data.Accessor.Generator
             return (T)converter(source);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Convert<T>(DbParameter parameter, Func<object, object> converter)
-        {
-            if (parameter is null)
-            {
-                return default;
-            }
-
-            var source = parameter.Value;
-
-            if (source is T value)
-            {
-                return value;
-            }
-
-            if (source is DBNull)
-            {
-                return default;
-            }
-
-            return (T)converter(source);
-        }
-
         //--------------------------------------------------------------------------------
         // Initialize
         //--------------------------------------------------------------------------------
@@ -70,14 +47,14 @@ namespace Smart.Data.Accessor.Generator
         public static IDbProvider GetDbProvider(ExecuteEngine engine, Type interfaceType)
         {
             var attribute = interfaceType.GetCustomAttribute<ProviderAttribute>();
-            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(attribute.SelectorType);
+            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(typeof(IDbProviderSelector));
             return selector.GetProvider(attribute.Parameter);
         }
 
         public static IDbProvider GetDbProvider(ExecuteEngine engine, MethodInfo method)
         {
             var attribute = method.GetCustomAttribute<ProviderAttribute>();
-            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(attribute.SelectorType);
+            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(typeof(IDbProviderSelector));
             return selector.GetProvider(attribute.Parameter);
         }
 
