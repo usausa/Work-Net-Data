@@ -49,9 +49,10 @@ namespace Smart.Data.Accessor
 
                 var dao = generator.Create<IProcedureDao>();
 
-                var cmd = new MockDbCommand
+                var con = new MockDbConnection();
+                con.SetupCommand(cmd =>
                 {
-                    Executing = c =>
+                    cmd.Executing = c =>
                     {
                         Assert.Equal("PROC", c.CommandText);
                         Assert.Equal("1", c.Parameters[nameof(Parameter.InParam)].Value);
@@ -60,11 +61,9 @@ namespace Smart.Data.Accessor
                         c.Parameters[nameof(Parameter.InOutParam)].Value = 3;
                         c.Parameters[nameof(Parameter.OutParam)].Value = 4;
                         c.Parameters.OfType<MockDbParameter>().First(x => x.Direction == ParameterDirection.ReturnValue).Value = 5;
-                    }
-                };
-                cmd.SetupResult(100);
-                var con = new MockDbConnection();
-                con.SetupCommand(cmd);
+                    };
+                    cmd.SetupResult(100);
+                });
 
                 var parameter = new Parameter
                 {
@@ -102,9 +101,10 @@ namespace Smart.Data.Accessor
 
                 var dao = generator.Create<IProcedure2Dao>();
 
-                var cmd = new MockDbCommand
+                var con = new MockDbConnection();
+                con.SetupCommand(cmd =>
                 {
-                    Executing = c =>
+                    cmd.Executing = c =>
                     {
                         Assert.Equal("PROC", c.CommandText);
                         Assert.Equal(1, c.Parameters["param1"].Value);
@@ -113,11 +113,9 @@ namespace Smart.Data.Accessor
                         c.Parameters["param2"].Value = 3;
                         c.Parameters["param3"].Value = 4;
                         c.Parameters.OfType<MockDbParameter>().First(x => x.Direction == ParameterDirection.ReturnValue).Value = 5;
-                    }
-                };
-                cmd.SetupResult(100);
-                var con = new MockDbConnection();
-                con.SetupCommand(cmd);
+                    };
+                    cmd.SetupResult(100);
+                });
 
                 var param2 = 2;
                 var ret = dao.Call(con, 1, ref param2, out var param3);

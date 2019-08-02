@@ -14,26 +14,6 @@ namespace Smart.Data.Accessor.Generator
     public static class RuntimeHelper
     {
         //--------------------------------------------------------------------------------
-        // Execute
-        //--------------------------------------------------------------------------------
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Convert<T>(object source, Func<object, object> converter)
-        {
-            if (source is T value)
-            {
-                return value;
-            }
-
-            if (source is DBNull)
-            {
-                return default;
-            }
-
-            return (T)converter(source);
-        }
-
-        //--------------------------------------------------------------------------------
         // Initialize
         //--------------------------------------------------------------------------------
 
@@ -100,10 +80,10 @@ namespace Smart.Data.Accessor.Generator
             return engine.CreateOutParameterSetup<T>(provider);
         }
 
-        public static Func<object, object> CreateConverter<T>(ExecuteEngine engine, MethodInfo method, string source)
+        public static Func<object, object> CreateHandler<T>(ExecuteEngine engine, MethodInfo method, string source)
         {
             var provider = GetCustomAttributeProvider(method, source);
-            return engine.CreateConverter<T>(provider);
+            return engine.CreateHandler<T>(provider);
         }
     }
 }

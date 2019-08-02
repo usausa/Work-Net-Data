@@ -11,7 +11,7 @@ namespace WorkGenerator
 
     public class MyAttribute : ResultParserAttribute
     {
-        public override Func<object, object> CreateConverter(IServiceProvider serviceProvider, Type type)
+        public override Func<object, object> CreateParser(IServiceProvider serviceProvider, Type type)
         {
             return x => x;
         }

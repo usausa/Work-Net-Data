@@ -1,5 +1,8 @@
 namespace Smart.Mock
 {
+    using System;
+    using System.Collections.Generic;
+
     using Smart.Data;
     using Smart.Data.Accessor.Engine;
     using Smart.Data.Accessor.Generator;
@@ -16,6 +19,12 @@ namespace Smart.Mock
         public GeneratorBuilder EnableDebug()
         {
             debug = true;
+            return this;
+        }
+
+        public GeneratorBuilder Config(Action<ExecuteEngineConfig> action)
+        {
+            action(config);
             return this;
         }
 
@@ -55,7 +64,13 @@ namespace Smart.Mock
             return this;
         }
 
-        // TODO simple loader
+        public GeneratorBuilder SetSql(Action<Dictionary<string, string>> action)
+        {
+            var map = new Dictionary<string, string>();
+            action(map);
+            loader = new MapLoader(map);
+            return this;
+        }
 
         public DaoGenerator Build()
         {

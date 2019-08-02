@@ -39,8 +39,8 @@ namespace Smart.Data.Accessor.Benchmark
         {
             Add(MarkdownExporter.Default, MarkdownExporter.GitHub);
             Add(MemoryDiagnoser.Default);
-            //Add(Job.LongRun);
             Add(Job.MediumRun);
+            //Add(Job.LongRun);
         }
     }
 

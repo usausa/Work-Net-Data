@@ -46,6 +46,7 @@ namespace Smart.Data.Accessor.Mappers
             Assert.Equal(Value.One, list[0].Column5);
             Assert.Equal(0, list[0].Column6);
             Assert.Equal(0, list[0].Column7);
+
             Assert.Equal(0, list[1].Column1);
             Assert.Null(list[1].Column2);
             Assert.Equal(0, list[1].Column3);

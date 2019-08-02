@@ -29,16 +29,15 @@ namespace Smart.Data.Accessor
 
             var dao = generator.Create<ITimeoutAttributeDao>();
 
-            var cmd = new MockDbCommand
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
             {
-                Executing = c =>
+                cmd.Executing = c =>
                 {
                     Assert.Equal(123, c.CommandTimeout);
-                }
-            };
-            cmd.SetupResult(1);
-            var con = new MockDbConnection();
-            con.SetupCommand(cmd);
+                };
+                cmd.SetupResult(1);
+            });
 
             dao.Execute(con);
         }
@@ -60,16 +59,15 @@ namespace Smart.Data.Accessor
 
             var dao = generator.Create<ITimeoutParameterDao>();
 
-            var cmd = new MockDbCommand
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
             {
-                Executing = c =>
+                cmd.Executing = c =>
                 {
                     Assert.Equal(123, c.CommandTimeout);
-                }
-            };
-            cmd.SetupResult(1);
-            var con = new MockDbConnection();
-            con.SetupCommand(cmd);
+                };
+                cmd.SetupResult(1);
+            });
 
             dao.Execute(con, 123);
         }

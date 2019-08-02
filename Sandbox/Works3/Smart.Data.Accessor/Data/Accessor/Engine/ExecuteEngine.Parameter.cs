@@ -48,7 +48,14 @@ namespace Smart.Data.Accessor.Engine
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                action(parameter, value);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else
+                {
+                    action(parameter, value);
+                }
                 parameter.ParameterName = name;
             };
         }
@@ -112,7 +119,14 @@ namespace Smart.Data.Accessor.Engine
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                action(parameter, value);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else
+                {
+                    action(parameter, value);
+                }
                 parameter.ParameterName = name;
                 parameter.Direction = ParameterDirection.InputOutput;
                 return parameter;
@@ -269,7 +283,14 @@ namespace Smart.Data.Accessor.Engine
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
+                    if (value == null)
+                    {
+                        parameter.Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        action(parameter, value);
+                    }
                     action(parameter, value);
                     parameter.ParameterName = name + GetParameterSubName(i);
                 }
@@ -378,7 +399,14 @@ namespace Smart.Data.Accessor.Engine
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
-                    action(parameter, value);
+                    if (value == null)
+                    {
+                        parameter.Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        action(parameter, value);
+                    }
                     parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
