@@ -23,11 +23,11 @@ namespace Smart.Data.Accessor.Engine
             cmd.SetupResult(new MockDataReader(columns, new List<object[]>()));
             cmd.SetupResult(new MockDataReader(columns, new List<object[]>()));
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(1, ((IEngineController)engine).CountResultMapperCache);
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(1, ((IEngineController)engine).CountResultMapperCache);
         }
@@ -56,15 +56,15 @@ namespace Smart.Data.Accessor.Engine
             cmd.SetupResult(new MockDataReader(columns2, new List<object[]>()));
             cmd.SetupResult(new MockDataReader(columns3, new List<object[]>()));
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(1, ((IEngineController)engine).CountResultMapperCache);
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(2, ((IEngineController)engine).CountResultMapperCache);
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(3, ((IEngineController)engine).CountResultMapperCache);
         }
@@ -84,11 +84,11 @@ namespace Smart.Data.Accessor.Engine
             cmd.SetupResult(new MockDataReader(columns, new List<object[]>()));
             cmd.SetupResult(new MockDataReader(columns, new List<object[]>()));
 
-            engine.QueryBuffer<DataEntity>(cmd);
+            engine.QueryBuffer<CacheEntity>(cmd);
 
             Assert.Equal(1, ((IEngineController)engine).CountResultMapperCache);
 
-            engine.QueryBuffer<Data2Entity>(cmd);
+            engine.QueryBuffer<Cache2Entity>(cmd);
 
             Assert.Equal(2, ((IEngineController)engine).CountResultMapperCache);
 
@@ -97,14 +97,14 @@ namespace Smart.Data.Accessor.Engine
             Assert.Equal(0, ((IEngineController)engine).CountResultMapperCache);
         }
 
-        public class DataEntity
+        public class CacheEntity
         {
             public long Id { get; set; }
 
             public string Name { get; set; }
         }
 
-        public class Data2Entity
+        public class Cache2Entity
         {
             public long Id { get; set; }
 

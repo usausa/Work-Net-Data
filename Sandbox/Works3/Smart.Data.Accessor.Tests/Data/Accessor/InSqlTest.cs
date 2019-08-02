@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     using Smart.Data.Accessor.Attributes;
     using Smart.Mock;
@@ -49,6 +50,10 @@ namespace Smart.Data.Accessor
                 list = dao.QueryData(new[] { 2, 4 });
 
                 Assert.Equal(2, list.Count);
+
+                list = dao.QueryData(Enumerable.Range(1, 257).ToArray());
+
+                Assert.Equal(4, list.Count);
             }
         }
 
@@ -121,6 +126,10 @@ namespace Smart.Data.Accessor
                 list = dao.QueryData(new List<int> { 2, 4 });
 
                 Assert.Equal(2, list.Count);
+
+                list = dao.QueryData(Enumerable.Range(1, 257).ToList());
+
+                Assert.Equal(4, list.Count);
             }
         }
 

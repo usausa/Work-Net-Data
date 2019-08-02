@@ -2,15 +2,45 @@ namespace Smart.Data.Accessor.Mappers
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
 
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Engine;
+    using Smart.Mock;
     using Smart.Mock.Data;
 
     using Xunit;
 
     public class ObjectResultMapperFactoryTest
     {
+        //--------------------------------------------------------------------------------
+        // Map
+        //--------------------------------------------------------------------------------
+
+        public enum Value
+        {
+            Zero = 0,
+            One = 1
+        }
+
+        public class MapEntity
+        {
+            public int Column1 { get; set; }
+
+            public int? Column2 { get; set; }
+
+            public long Column3 { get; set; }
+
+            public Value Column4 { get; set; }
+
+            public Value? Column5 { get; set; }
+
+            public int Column6 => Column7;
+
+            [Ignore]
+            public int Column7 { get; set; }
+        }
+
         [Fact]
         public void MapProperty()
         {
@@ -36,7 +66,7 @@ namespace Smart.Data.Accessor.Mappers
             var cmd = new MockDbCommand();
             cmd.SetupResult(new MockDataReader(columns, values));
 
-            var list = engine.QueryBuffer<DataEntity>(cmd);
+            var list = engine.QueryBuffer<MapEntity>(cmd);
 
             Assert.Equal(2, list.Count);
             Assert.Equal(1, list[0].Column1);
@@ -56,28 +86,64 @@ namespace Smart.Data.Accessor.Mappers
             Assert.Equal(0, list[1].Column7);
         }
 
-        public class DataEntity
+        //--------------------------------------------------------------------------------
+        // Parser
+        //--------------------------------------------------------------------------------
+
+        public sealed class CustomParserAttribute : ResultParserAttribute
         {
-            public int Column1 { get; set; }
-
-            public int? Column2 { get; set; }
-
-            public long Column3 { get; set; }
-
-            public Value Column4 { get; set; }
-
-            public Value? Column5 { get; set; }
-
-            public int Column6 => Column7;
-
-            [Ignore]
-            public int Column7 { get; set; }
+            public override Func<object, object> CreateParser(IServiceProvider serviceProvider, Type type)
+            {
+                return x => Convert.ChangeType(x, type, CultureInfo.InvariantCulture);
+            }
         }
 
-        public enum Value
+        public class ParserEntity
         {
-            Zero = 0,
-            One = 1
+            [CustomParser]
+            public long Id { get; set; }
+
+            [CustomParser]
+            public string Name { get; set; }
+        }
+
+        [Fact]
+        public void UseCustomParser()
+        {
+            var engine = new ExecuteEngineConfig().ToEngine();
+
+            var columns = new[]
+            {
+                new MockColumn(typeof(long), "Id"),
+                new MockColumn(typeof(string), "Name")
+            };
+            var values = new List<object[]>
+            {
+                new object[] { "1", 2 },
+            };
+
+            var cmd = new MockDbCommand();
+            cmd.SetupResult(new MockDataReader(columns, values));
+
+            var entity = engine.QueryFirstOrDefault<ParserEntity>(cmd);
+
+            Assert.NotNull(entity);
+            Assert.Equal(1, entity.Id);
+            Assert.Equal("2", entity.Name);
+        }
+
+        //--------------------------------------------------------------------------------
+        // Spec
+        //--------------------------------------------------------------------------------
+
+        public class NoConstructor
+        {
+            public int Id { get; set; }
+
+            public NoConstructor(int id)
+            {
+                Id = id;
+            }
         }
 
         [Fact]
@@ -100,14 +166,27 @@ namespace Smart.Data.Accessor.Mappers
             Assert.Throws<ArgumentException>(() => engine.QueryBuffer<NoConstructor>(cmd));
         }
 
-        public class NoConstructor
-        {
-            public int Id { get; set; }
+        //--------------------------------------------------------------------------------
+        // No factory
+        //--------------------------------------------------------------------------------
 
-            public NoConstructor(int id)
+        [Fact]
+        public void FactoryNotExists()
+        {
+            var engine = new ExecuteEngineConfig()
+                .ConfigureResultMapperFactories(mappers => mappers.Clear())
+                .ToEngine();
+
+            var columns = new[]
             {
-                Id = id;
-            }
+                new MockColumn(typeof(long), "Id"),
+                new MockColumn(typeof(string), "Name")
+            };
+
+            var cmd = new MockDbCommand();
+            cmd.SetupResult(new MockDataReader(columns, new List<object[]>()));
+
+            Assert.Throws<AccessorRuntimeException>(() => engine.QueryBuffer<DataEntity>(cmd));
         }
     }
 }

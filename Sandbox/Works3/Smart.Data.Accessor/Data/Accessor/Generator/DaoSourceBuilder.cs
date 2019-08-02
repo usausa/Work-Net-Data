@@ -1209,7 +1209,7 @@ namespace Smart.Data.Accessor.Generator
             public override void Visit(ParameterNode node)
             {
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
-                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
                 sql.Append("@");
                 sql.Append(parameterName);
             }
@@ -1220,7 +1220,7 @@ namespace Smart.Data.Accessor.Generator
 
                 foreach (var parameter in mm.Parameters)
                 {
-                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
                     builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
                 }
 
@@ -1262,7 +1262,7 @@ namespace Smart.Data.Accessor.Generator
             public override void Visit(ParameterNode node)
             {
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
-                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
 
                 if (parameter.ParameterType == ParameterType.Simple)
                 {
@@ -1295,7 +1295,7 @@ namespace Smart.Data.Accessor.Generator
 
                 foreach (var parameter in mm.Parameters)
                 {
-                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
                     builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
                 }
 
@@ -1361,7 +1361,7 @@ namespace Smart.Data.Accessor.Generator
             public override void Visit(ParameterNode node)
             {
                 var parameter = mm.Parameters.First(x => x.Source == node.Source);
-                var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
 
                 if (parameter.ParameterType == ParameterType.Simple)
                 {
@@ -1399,7 +1399,7 @@ namespace Smart.Data.Accessor.Generator
                     builder.AppendLine("{");
                     builder.indent++;
 
-                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
                     builder.AppendLine(MakeParameterSetup(mm, parameter, parameterName));
 
                     builder.indent--;

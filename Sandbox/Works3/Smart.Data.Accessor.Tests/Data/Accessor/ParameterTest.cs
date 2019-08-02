@@ -15,6 +15,92 @@ namespace Smart.Data.Accessor
     public class ParameterTest
     {
         //--------------------------------------------------------------------------------
+        // Enum
+        //--------------------------------------------------------------------------------
+
+        public enum Value
+        {
+            Zero,
+            One,
+            Two
+        }
+
+        public class ToStringTypeHandler : ITypeHandler
+        {
+            public void SetValue(DbParameter parameter, object value)
+            {
+                parameter.DbType = DbType.String;
+                parameter.Value = value.ToString();
+            }
+
+            public Func<object, object> CreateParse(Type type) => throw new NotSupportedException();
+        }
+
+        [Dao]
+        public interface IEnumDao
+        {
+            [Execute]
+            void Execute(DbConnection con, Value value);
+
+            [Execute]
+            void Execute2(DbConnection con, Value? value);
+        }
+
+        [Fact]
+        public void UseDbTypeForEnumUnderlyingType()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql("/*@ value */")
+                .Build();
+
+            var dao = generator.Create<IEnumDao>();
+
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(DbType.Int32, c.Parameters[0].DbType);
+                };
+                cmd.SetupResult(1);
+            });
+
+            dao.Execute(con, Value.One);
+        }
+
+        [Fact]
+        public void UseTypeHandlerForEnumUnderlyingType()
+        {
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql("/*@ value */")
+                .Config(config =>
+                {
+                    config.ConfigureTypeHandlers(handlers =>
+                    {
+                        handlers[typeof(int)] = new ToStringTypeHandler();
+                    });
+                })
+                .Build();
+
+            var dao = generator.Create<IEnumDao>();
+
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(DbType.String, c.Parameters[0].DbType);
+                    Assert.Equal(nameof(Value.One), c.Parameters[0].Value);
+                };
+                cmd.SetupResult(1);
+            });
+
+            dao.Execute(con, Value.One);
+        }
+
+        //--------------------------------------------------------------------------------
         // Attribute
         //--------------------------------------------------------------------------------
 

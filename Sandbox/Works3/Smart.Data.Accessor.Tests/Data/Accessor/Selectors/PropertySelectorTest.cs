@@ -11,7 +11,7 @@ namespace Smart.Data.Accessor.Selectors
         public interface IPropertySelectorDao
         {
             [QueryFirstOrDefault]
-            DataEntity QueryFirstOrDefault();
+            SelectEntity QueryFirstOrDefault();
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace Smart.Data.Accessor.Selectors
             }
         }
 
-        public class DataEntity
+        public class SelectEntity
         {
             public int ColumnName1 { get; set; }
 
