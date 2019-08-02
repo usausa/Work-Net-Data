@@ -91,6 +91,10 @@ namespace Smart.Data.Accessor.Engine
             engine.QueryBuffer<Data2Entity>(cmd);
 
             Assert.Equal(2, ((IEngineController)engine).CountResultMapperCache);
+
+            ((IEngineController)engine).ClearResultMapperCache();
+
+            Assert.Equal(0, ((IEngineController)engine).CountResultMapperCache);
         }
 
         public class DataEntity

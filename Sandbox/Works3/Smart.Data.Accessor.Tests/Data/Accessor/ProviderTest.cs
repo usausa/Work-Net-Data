@@ -10,10 +10,6 @@ namespace Smart.Data.Accessor
 
     public class ProviderTest
     {
-        //--------------------------------------------------------------------------------
-        // Provider
-        //--------------------------------------------------------------------------------
-
         [Dao]
         [Provider(ProviderNames.Main)]
         public interface IProviderForExecuteScalarDao

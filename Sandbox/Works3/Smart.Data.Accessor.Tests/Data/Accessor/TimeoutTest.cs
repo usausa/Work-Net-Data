@@ -22,28 +22,25 @@ namespace Smart.Data.Accessor
         [Fact]
         public void TimeoutAttribute()
         {
-            using (TestDatabase.Initialize())
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            var dao = generator.Create<ITimeoutAttributeDao>();
+
+            var cmd = new MockDbCommand
             {
-                var generator = new GeneratorBuilder()
-                    .EnableDebug()
-                    .SetSql(string.Empty)
-                    .Build();
-
-                var dao = generator.Create<ITimeoutAttributeDao>();
-
-                var cmd = new MockDbCommand
+                Executing = c =>
                 {
-                    Executing = c =>
-                    {
-                        Assert.Equal(123, c.CommandTimeout);
-                    }
-                };
-                cmd.SetupResult(1);
-                var con = new MockDbConnection();
-                con.SetupCommand(cmd);
+                    Assert.Equal(123, c.CommandTimeout);
+                }
+            };
+            cmd.SetupResult(1);
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd);
 
-                dao.Execute(con);
-            }
+            dao.Execute(con);
         }
 
         [Dao]
@@ -56,28 +53,25 @@ namespace Smart.Data.Accessor
         [Fact]
         public void TimeoutParameter()
         {
-            using (TestDatabase.Initialize())
+            var generator = new GeneratorBuilder()
+                .EnableDebug()
+                .SetSql(string.Empty)
+                .Build();
+
+            var dao = generator.Create<ITimeoutParameterDao>();
+
+            var cmd = new MockDbCommand
             {
-                var generator = new GeneratorBuilder()
-                    .EnableDebug()
-                    .SetSql(string.Empty)
-                    .Build();
-
-                var dao = generator.Create<ITimeoutParameterDao>();
-
-                var cmd = new MockDbCommand
+                Executing = c =>
                 {
-                    Executing = c =>
-                    {
-                        Assert.Equal(123, c.CommandTimeout);
-                    }
-                };
-                cmd.SetupResult(1);
-                var con = new MockDbConnection();
-                con.SetupCommand(cmd);
+                    Assert.Equal(123, c.CommandTimeout);
+                }
+            };
+            cmd.SetupResult(1);
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd);
 
-                dao.Execute(con, 123);
-            }
+            dao.Execute(con, 123);
         }
 
         [Dao]

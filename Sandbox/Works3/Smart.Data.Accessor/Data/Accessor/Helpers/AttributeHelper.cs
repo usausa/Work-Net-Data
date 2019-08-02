@@ -12,12 +12,6 @@ namespace Smart.Data.Accessor.Helpers
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods", Justification = "Ignore")]
         public static string GetTableName(MethodInfo mi)
         {
-            var attribute = mi.GetCustomAttribute<NameAttribute>();
-            if (attribute != null)
-            {
-                return attribute.Name;
-            }
-
             return mi.GetParameters()
                 .Select(x => x.ParameterType.GetCustomAttribute<NameAttribute>())
                 .FirstOrDefault(x => x != null)?.Name;
