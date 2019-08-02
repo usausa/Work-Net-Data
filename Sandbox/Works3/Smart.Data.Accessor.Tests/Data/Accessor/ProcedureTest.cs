@@ -90,7 +90,7 @@ namespace Smart.Data.Accessor
         }
 
         [Fact]
-        public void Call()
+        public void CallByParameter()
         {
             using (TestDatabase.Initialize()
                 .SetupDataTable())
@@ -118,6 +118,54 @@ namespace Smart.Data.Accessor
                 });
 
                 var param2 = 2;
+                var ret = dao.Call(con, 1, ref param2, out var param3);
+
+                Assert.Equal(3, param2);
+                Assert.Equal(4, param3);
+                Assert.Equal(5, ret);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // Parameter is object
+        //--------------------------------------------------------------------------------
+
+        [Dao]
+        public interface IObjectProcedureDao
+        {
+            [Procedure("PROC")]
+            object Call(DbConnection con, object param1, ref object param2, out object param3);
+        }
+
+        [Fact]
+        public void CallParameterIsObject()
+        {
+            using (TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                var generator = new GeneratorBuilder()
+                    .EnableDebug()
+                    .Build();
+
+                var dao = generator.Create<IObjectProcedureDao>();
+
+                var con = new MockDbConnection();
+                con.SetupCommand(cmd =>
+                {
+                    cmd.Executing = c =>
+                    {
+                        Assert.Equal("PROC", c.CommandText);
+                        Assert.Equal(1, c.Parameters["param1"].Value);
+                        Assert.Equal(2, c.Parameters["param2"].Value);
+
+                        c.Parameters["param2"].Value = 3;
+                        c.Parameters["param3"].Value = 4;
+                        c.Parameters.OfType<MockDbParameter>().First(x => x.Direction == ParameterDirection.ReturnValue).Value = 5;
+                    };
+                    cmd.SetupResult(100);
+                });
+
+                var param2 = (object)2;
                 var ret = dao.Call(con, 1, ref param2, out var param3);
 
                 Assert.Equal(3, param2);

@@ -403,10 +403,11 @@ namespace Smart.Data.Accessor.Generator
                 if (IsResultConverterRequired(mm))
                 {
                     AppendLine($"private readonly {HandlerType} {GetHandlerFieldName(mm.No)};");
-                    if (mm.ReturnValueAsResult)
-                    {
-                        AppendLine($"private readonly {ReturnSetupType} {GetSetupReturnFieldName()};");
-                    }
+                }
+
+                if (mm.ReturnValueAsResult)
+                {
+                    AppendLine($"private readonly {ReturnSetupType} {GetSetupReturnFieldName()};");
                 }
 
                 foreach (var parameter in mm.Parameters)
@@ -478,11 +479,11 @@ namespace Smart.Data.Accessor.Generator
         private void InitializeFields()
         {
             AppendLine($"{EngineFieldRef} = {CtorArg};");
-            NewLine();
 
             var useDefaultProvider = methods.Any(x => (x.ConnectionParameter == null) && (x.TransactionParameter == null));
             if (useDefaultProvider)
             {
+                NewLine();
                 if (provider == null)
                 {
                     AppendLine($"{ProviderFieldRef} = ({ProviderType}){CtorArg}.ServiceProvider.GetService(typeof({ProviderType}));");
@@ -498,7 +499,7 @@ namespace Smart.Data.Accessor.Generator
             {
                 var hasProvider = mm.Provider != null;
                 var hasConverter = IsResultConverterRequired(mm);
-                if (hasProvider || hasConverter || mm.Parameters.Count > 0)
+                if (hasProvider || hasConverter || mm.ReturnValueAsResult || mm.Parameters.Count > 0)
                 {
                     NewLine();
                     AppendLine($"var method{mm.No} = {RuntimeHelperType}.GetInterfaceMethodByNo(GetType(), typeof({interfaceFullName}), {mm.No});");
@@ -511,10 +512,11 @@ namespace Smart.Data.Accessor.Generator
                     if (hasConverter)
                     {
                         AppendLine($"{GetHandlerFieldRef(mm.No)} = {CtorArg}.CreateHandler<{GeneratorHelper.MakeGlobalName(mm.EngineResultType)}>(method{mm.No});");
-                        if (mm.ReturnValueAsResult)
-                        {
-                            AppendLine($"{GetSetupReturnFieldRef()} = {CtorArg}.CreateReturnParameterSetup();");
-                        }
+                    }
+
+                    if (mm.ReturnValueAsResult)
+                    {
+                        AppendLine($"{GetSetupReturnFieldRef()} = {CtorArg}.CreateReturnParameterSetup();");
                     }
 
                     foreach (var parameter in mm.Parameters)

@@ -283,6 +283,7 @@ namespace Smart.Data.Accessor.Engine
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
+                    cmd.Parameters.Add(parameter);
                     if (value == null)
                     {
                         parameter.Value = DBNull.Value;
@@ -291,7 +292,6 @@ namespace Smart.Data.Accessor.Engine
                     {
                         action(parameter, value);
                     }
-                    action(parameter, value);
                     parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
