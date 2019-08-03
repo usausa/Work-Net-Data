@@ -172,9 +172,9 @@ namespace Smart.Data.Accessor.Generator
 
         private static string GetHandlerFieldRef(int no, int index) => "this." + GetHandlerFieldName(no, index);
 
-        private static string GetSetupReturnFieldName() => SetupReturnField;
+        private static string GetSetupReturnFieldName(int no) => SetupReturnField + no;
 
-        private static string GetSetupReturnFieldRef() => "this." + GetSetupReturnFieldName();
+        private static string GetSetupReturnFieldRef(int no) => "this." + GetSetupReturnFieldName(no);
 
         private static string GetSetupParameterFieldName(int no, int index) => SetupParameterField + no + "_" + index;
 
@@ -407,7 +407,7 @@ namespace Smart.Data.Accessor.Generator
 
                 if (mm.ReturnValueAsResult)
                 {
-                    AppendLine($"private readonly {ReturnSetupType} {GetSetupReturnFieldName()};");
+                    AppendLine($"private readonly {ReturnSetupType} {GetSetupReturnFieldName(mm.No)};");
                 }
 
                 foreach (var parameter in mm.Parameters)
@@ -516,7 +516,7 @@ namespace Smart.Data.Accessor.Generator
 
                     if (mm.ReturnValueAsResult)
                     {
-                        AppendLine($"{GetSetupReturnFieldRef()} = {CtorArg}.CreateReturnParameterSetup();");
+                        AppendLine($"{GetSetupReturnFieldRef(mm.No)} = {CtorArg}.CreateReturnParameterSetup();");
                     }
 
                     foreach (var parameter in mm.Parameters)
@@ -600,7 +600,7 @@ namespace Smart.Data.Accessor.Generator
 
             if (mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
             {
-                AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef()}({CommandVar});");
+                AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef(mm.No)}({CommandVar});");
                 NewLine();
             }
 
