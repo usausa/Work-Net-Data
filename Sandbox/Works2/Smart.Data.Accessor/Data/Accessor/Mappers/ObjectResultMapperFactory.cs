@@ -8,7 +8,6 @@ namespace Smart.Data.Accessor.Mappers
     using System.Reflection.Emit;
     using System.Runtime.CompilerServices;
 
-    using Smart;
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Engine;
     using Smart.Data.Accessor.Selectors;
@@ -115,16 +114,7 @@ namespace Smart.Data.Accessor.Mappers
                     continue;
                 }
 
-                if ((pi.PropertyType == column.Type) ||
-                    (pi.PropertyType.IsNullableType() && (Nullable.GetUnderlyingType(pi.PropertyType) == column.Type)))
-                {
-                    list.Add(new MapEntry(i, pi, null));
-                }
-                else
-                {
-                    var converter = context.CreateConverter(column.Type, pi.PropertyType, pi);
-                    list.Add(new MapEntry(i, pi, converter));
-                }
+                list.Add(new MapEntry(i, pi, context.GetConverter(column.Type, pi.PropertyType, pi)));
             }
 
             return list.ToArray();

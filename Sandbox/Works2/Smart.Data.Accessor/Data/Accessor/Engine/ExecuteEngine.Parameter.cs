@@ -21,7 +21,7 @@ namespace Smart.Data.Accessor.Engine
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -48,7 +48,14 @@ namespace Smart.Data.Accessor.Engine
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                action(parameter, value);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else
+                {
+                    action(parameter, value);
+                }
                 parameter.ParameterName = name;
             };
         }
@@ -85,7 +92,7 @@ namespace Smart.Data.Accessor.Engine
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateInOutParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -112,7 +119,14 @@ namespace Smart.Data.Accessor.Engine
             {
                 var parameter = cmd.CreateParameter();
                 cmd.Parameters.Add(parameter);
-                action(parameter, value);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else
+                {
+                    action(parameter, value);
+                }
                 parameter.ParameterName = name;
                 parameter.Direction = ParameterDirection.InputOutput;
                 return parameter;
@@ -153,7 +167,7 @@ namespace Smart.Data.Accessor.Engine
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateOutParameterSetupByDbType(attribute.DbType, attribute.Size);
@@ -194,6 +208,7 @@ namespace Smart.Data.Accessor.Engine
             return cmd =>
             {
                 var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
                 parameter.Direction = ParameterDirection.ReturnValue;
                 return parameter;
             };
@@ -209,7 +224,7 @@ namespace Smart.Data.Accessor.Engine
             {
                 sql.Append("(");
 
-                if (values.Length == 0)
+                if ((values is null) || (values.Length == 0))
                 {
                     sql.Append(emptyDialect.GetSql());
                 }
@@ -218,7 +233,6 @@ namespace Smart.Data.Accessor.Engine
                     for (var i = 0; i < values.Length; i++)
                     {
                         sql.Append(name);
-                        sql.Append("_");
                         sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
                     }
@@ -235,7 +249,7 @@ namespace Smart.Data.Accessor.Engine
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateArrayParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -260,13 +274,25 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values == null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Length; i++)
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
-                    action(parameter, value);
-                    parameter.ParameterName = name;
+                    if (value == null)
+                    {
+                        parameter.Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        action(parameter, value);
+                    }
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -275,6 +301,11 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values == null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Length; i++)
                 {
                     var value = values[i];
@@ -293,7 +324,7 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -308,7 +339,7 @@ namespace Smart.Data.Accessor.Engine
             {
                 sql.Append("(");
 
-                if (values.Count == 0)
+                if ((values is null) || (values.Count == 0))
                 {
                     sql.Append(emptyDialect.GetSql());
                 }
@@ -317,7 +348,6 @@ namespace Smart.Data.Accessor.Engine
                     for (var i = 0; i < values.Count; i++)
                     {
                         sql.Append(name);
-                        sql.Append("_");
                         sql.Append(GetParameterSubName(i));
                         sql.Append(", ");
                     }
@@ -334,7 +364,7 @@ namespace Smart.Data.Accessor.Engine
             var type = typeof(T);
 
             // ParameterBuilderAttribute
-            var attribute = provider?.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
                 return CreateListParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
@@ -359,13 +389,25 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values is null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Count; i++)
                 {
                     var value = values[i];
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
-                    action(parameter, value);
-                    parameter.ParameterName = name;
+                    if (value == null)
+                    {
+                        parameter.Value = DBNull.Value;
+                    }
+                    else
+                    {
+                        action(parameter, value);
+                    }
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }
@@ -374,6 +416,11 @@ namespace Smart.Data.Accessor.Engine
         {
             return (cmd, name, values) =>
             {
+                if (values is null)
+                {
+                    return;
+                }
+
                 for (var i = 0; i < values.Count; i++)
                 {
                     var value = values[i];
@@ -392,7 +439,7 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name;
+                    parameter.ParameterName = name + GetParameterSubName(i);
                 }
             };
         }

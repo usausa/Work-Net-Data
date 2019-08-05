@@ -5,7 +5,6 @@ namespace Smart.Data.Accessor.Generator
     using System.Data.Common;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
 
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Engine;
@@ -13,49 +12,6 @@ namespace Smart.Data.Accessor.Generator
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods", Justification = "Ignore")]
     public static class RuntimeHelper
     {
-        //--------------------------------------------------------------------------------
-        // Execute
-        //--------------------------------------------------------------------------------
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Convert<T>(object source, Func<object, object> converter)
-        {
-            if (source is T value)
-            {
-                return value;
-            }
-
-            if (source is DBNull)
-            {
-                return default;
-            }
-
-            return (T)converter(source);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Convert<T>(DbParameter parameter, Func<object, object> converter)
-        {
-            if (parameter is null)
-            {
-                return default;
-            }
-
-            var source = parameter.Value;
-
-            if (source is T value)
-            {
-                return value;
-            }
-
-            if (source is DBNull)
-            {
-                return default;
-            }
-
-            return (T)converter(source);
-        }
-
         //--------------------------------------------------------------------------------
         // Initialize
         //--------------------------------------------------------------------------------
@@ -70,20 +26,19 @@ namespace Smart.Data.Accessor.Generator
         public static IDbProvider GetDbProvider(ExecuteEngine engine, Type interfaceType)
         {
             var attribute = interfaceType.GetCustomAttribute<ProviderAttribute>();
-            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(attribute.SelectorType);
+            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(typeof(IDbProviderSelector));
             return selector.GetProvider(attribute.Parameter);
         }
 
         public static IDbProvider GetDbProvider(ExecuteEngine engine, MethodInfo method)
         {
             var attribute = method.GetCustomAttribute<ProviderAttribute>();
-            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(attribute.SelectorType);
+            var selector = (IDbProviderSelector)engine.ServiceProvider.GetService(typeof(IDbProviderSelector));
             return selector.GetProvider(attribute.Parameter);
         }
 
         private static ICustomAttributeProvider GetCustomAttributeProvider(MethodInfo method, string source)
         {
-            // TODO ネストに対応して拡張？
             var path = source.Split('.');
             var parameter = method.GetParameters().First(x => x.Name == path[0]);
             if (path.Length == 1)
@@ -124,10 +79,10 @@ namespace Smart.Data.Accessor.Generator
             return engine.CreateOutParameterSetup<T>(provider);
         }
 
-        public static Func<object, object> CreateConverter<T>(ExecuteEngine engine, MethodInfo method, string source)
+        public static Func<object, object> CreateHandler<T>(ExecuteEngine engine, MethodInfo method, string source)
         {
             var provider = GetCustomAttributeProvider(method, source);
-            return engine.CreateConverter<T>(provider);
+            return engine.CreateHandler<T>(provider);
         }
     }
 }

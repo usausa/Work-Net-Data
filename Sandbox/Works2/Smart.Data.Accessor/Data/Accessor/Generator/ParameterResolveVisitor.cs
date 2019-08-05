@@ -36,12 +36,9 @@ namespace Smart.Data.Accessor.Generator
 
             processed.Add(node.Source);
 
-            // TODO ネストに対応して拡張？
-
             var path = node.Source.Split('.');
             if (path.Length == 1)
             {
-                // TODO
                 var pmi = GetParameterInfo(path[0]);
                 var type = pmi.ParameterType.IsByRef ? pmi.ParameterType.GetElementType() : pmi.ParameterType;
                 var direction = GetParameterDirection(pmi);
@@ -61,7 +58,6 @@ namespace Smart.Data.Accessor.Generator
             }
             else if (path.Length == 2)
             {
-                // TODO ネストに対応して拡張
                 var pi = GetParameterInfo(path[0], path[1]);
                 var type = pi.PropertyType;
                 var direction = GetParameterDirection(pi);
@@ -88,7 +84,6 @@ namespace Smart.Data.Accessor.Generator
 
         private ParameterInfo GetParameterInfo(string parameterName)
         {
-            // TODO dynamic 1
             var pmi = method.GetParameters().FirstOrDefault(x => x.Name == parameterName);
             if (pmi == null)
             {
