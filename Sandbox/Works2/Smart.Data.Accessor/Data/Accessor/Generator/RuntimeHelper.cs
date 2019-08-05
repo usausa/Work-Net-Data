@@ -39,6 +39,7 @@ namespace Smart.Data.Accessor.Generator
 
         private static ICustomAttributeProvider GetCustomAttributeProvider(MethodInfo method, string source)
         {
+            // TODO ネストに対応して拡張？
             var path = source.Split('.');
             var parameter = method.GetParameters().First(x => x.Name == path[0]);
             if (path.Length == 1)
