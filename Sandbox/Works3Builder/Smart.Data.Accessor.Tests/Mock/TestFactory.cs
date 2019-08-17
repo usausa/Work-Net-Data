@@ -1,8 +1,7 @@
-namespace WorkClient.Mock
+namespace Smart.Mock
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -36,10 +35,6 @@ namespace WorkClient.Mock
             {
                 throw new AccessorGeneratorException("Create dao instance failed.");
             }
-
-            Debug.WriteLine("----------");
-            Debug.WriteLine(writer.Source);
-            Debug.WriteLine("----------");
 
             var syntax = CSharpSyntaxTree.ParseText(writer.Source);
 

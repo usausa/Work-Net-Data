@@ -9,7 +9,7 @@ namespace WorkClient.Mock
     {
         private const string FileName = "test.db";
 
-        private const string ConnectionString = "Data Source=" + FileName;
+        private const string ConnectionString = "Data Name=" + FileName;
 
         public static DbConnection Initialize()
         {
@@ -28,7 +28,7 @@ namespace WorkClient.Mock
 
         public static DbConnection CreateMemory()
         {
-            return new SqliteConnection("Data Source=:memory:");
+            return new SqliteConnection("Data Name=:memory:");
         }
     }
 }

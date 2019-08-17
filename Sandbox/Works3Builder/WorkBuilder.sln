@@ -16,7 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor", "Smar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Generator.Core", "Smart.Data.Accessor.Generator.Core\Smart.Data.Accessor.Generator.Core.csproj", "{056E520B-35EF-4D9D-90DD-AA0D6DD587C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkClient", "WorkClient\WorkClient.csproj", "{B5D109D3-291A-404B-8F90-218FE3FF1516}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkClient", "WorkClient\WorkClient.csproj", "{B5D109D3-291A-404B-8F90-218FE3FF1516}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Data.Accessor.Tests", "Smart.Data.Accessor.Tests\Smart.Data.Accessor.Tests.csproj", "{130B78B6-A260-45A0-850F-AA0E1F452685}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{B5D109D3-291A-404B-8F90-218FE3FF1516}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5D109D3-291A-404B-8F90-218FE3FF1516}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5D109D3-291A-404B-8F90-218FE3FF1516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{130B78B6-A260-45A0-850F-AA0E1F452685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{130B78B6-A260-45A0-850F-AA0E1F452685}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{130B78B6-A260-45A0-850F-AA0E1F452685}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{130B78B6-A260-45A0-850F-AA0E1F452685}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
