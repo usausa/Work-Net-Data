@@ -36,9 +36,12 @@ namespace Smart.Data.Accessor.Generator.Visitors
 
             processed.Add(node.Source);
 
+            // TODO ネストに対応して拡張？
+
             var path = node.Source.Split('.');
             if (path.Length == 1)
             {
+                // TODO
                 var pmi = GetParameterInfo(path[0]);
                 var type = pmi.ParameterType.IsByRef ? pmi.ParameterType.GetElementType() : pmi.ParameterType;
                 var direction = GetParameterDirection(pmi);
@@ -58,6 +61,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             }
             else if (path.Length == 2)
             {
+                // TODO ネストに対応して拡張
                 var pi = GetParameterInfo(path[0], path[1]);
                 var type = pi.PropertyType;
                 var direction = GetParameterDirection(pi);
@@ -77,7 +81,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             }
             else
             {
-                // [MEMO] Extend ?
+                // TODO [MEMO] Extend ?
                 throw new AccessorGeneratorException($"DB parameter is not exist in argument. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Source}]");
             }
         }
@@ -95,6 +99,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
 
         private PropertyInfo GetParameterInfo(string parameterName, string propertyName)
         {
+            // TODO dynamic 1
             var pi = GetParameterInfo(parameterName).ParameterType.GetProperty(propertyName);
             if (pi == null)
             {
