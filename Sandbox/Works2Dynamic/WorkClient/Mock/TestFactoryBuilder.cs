@@ -1,0 +1,59 @@
+namespace WorkClient.Mock
+{
+    using System;
+    using System.Collections.Generic;
+
+    using Smart.Data;
+    using Smart.Data.Accessor.Engine;
+    using Smart.Data.Accessor.Generator;
+
+    public class TestFactoryBuilder
+    {
+        private readonly ExecuteEngineConfig config = new ExecuteEngineConfig();
+
+        private ISqlLoader loader;
+
+        public TestFactoryBuilder Config(Action<ExecuteEngineConfig> action)
+        {
+            action(config);
+            return this;
+        }
+
+        public TestFactoryBuilder UseFileDatabase()
+        {
+            config.ConfigureComponents(c =>
+            {
+                c.Add<IDbProvider>(new DelegateDbProvider(TestDatabase.CreateConnection));
+            });
+            return this;
+        }
+
+        public TestFactoryBuilder UseMemoryDatabase()
+        {
+            config.ConfigureComponents(c =>
+            {
+                c.Add<IDbProvider>(new DelegateDbProvider(TestDatabase.CreateMemory));
+            });
+            return this;
+        }
+
+        public TestFactoryBuilder SetSql(string sql)
+        {
+            loader = new ConstLoader(sql);
+            return this;
+        }
+
+        public TestFactoryBuilder SetSql(Action<Dictionary<string, string>> action)
+        {
+            var map = new Dictionary<string, string>();
+            action(map);
+            loader = new MapLoader(map);
+            return this;
+        }
+
+        public TestFactory Build()
+        {
+            return new TestFactory(loader, config.ToEngine());
+        }
+    }
+}
