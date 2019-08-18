@@ -13,7 +13,11 @@ namespace Smart.Data.Accessor.Generator.Visitors
     {
         private readonly List<ParameterEntry> parameters = new List<ParameterEntry>();
 
+        private readonly List<DynamicParameterEntry> dynamicParameters = new List<DynamicParameterEntry>();
+
         public IReadOnlyList<ParameterEntry> Parameters => parameters;
+
+        public IReadOnlyList<DynamicParameterEntry> DynamicParameters => dynamicParameters;
 
         private readonly MethodInfo method;
 
@@ -85,8 +89,8 @@ namespace Smart.Data.Accessor.Generator.Visitors
                 }
             }
 
-            // [MEMO] Dynamic
-            throw new AccessorGeneratorException($"DB parameter argument is not match. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Name}]");
+            // Dynamic
+            dynamicParameters.Add(new DynamicParameterEntry(node.Name, index++));
         }
 
         private bool ResolvePropertyParameter(Type targetType, string[] path, int position, ParameterNode node, string source)

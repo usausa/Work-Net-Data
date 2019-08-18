@@ -8,6 +8,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Reflection;
     using System.Runtime.CompilerServices;
 
+    using Smart.Collections.Concurrent;
     using Smart.Converter;
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Dialect;
@@ -27,6 +28,8 @@ namespace Smart.Data.Accessor.Engine
         private readonly IResultMapperFactory[] resultMapperFactories;
 
         private readonly ResultMapperCache resultMapperCache = new ResultMapperCache();
+
+        private readonly ThreadsafeTypeHashArrayMap<DynamicParameterSetup> dynamicSetupCache = new ThreadsafeTypeHashArrayMap<DynamicParameterSetup>();
 
         private readonly string[] parameterSubNames;
 
@@ -56,6 +59,10 @@ namespace Smart.Data.Accessor.Engine
         int IEngineController.CountResultMapperCache => resultMapperCache.Count;
 
         void IEngineController.ClearResultMapperCache() => resultMapperCache.Clear();
+
+        int IEngineController.CountDynamicSetupCache => dynamicSetupCache.Count;
+
+        void IEngineController.ClearDynamicSetupCache() => dynamicSetupCache.Clear();
 
         //--------------------------------------------------------------------------------
         // Lookup

@@ -27,6 +27,7 @@ namespace Smart.Data.Accessor.Generator
         private const string HandlerField = "_handler";
         private const string SetupReturnField = "_setupReturn";
         private const string SetupParameterField = "_setupParameter";
+        private const string SetupDynamicParameterField = "_setupDynamicParameter";
         private const string SetupSqlField = "_setupSql";
 
         private const string ConnectionVar = "_con";
@@ -53,6 +54,7 @@ namespace Smart.Data.Accessor.Generator
         private static readonly string HandlerType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
         private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, DbParameter>));
+        private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, StringBuilder, string, object>));
 
         private readonly Type targetType;
 
@@ -177,6 +179,10 @@ namespace Smart.Data.Accessor.Generator
         private static string GetSetupParameterFieldName(int no, int index) => SetupParameterField + no + "_" + index;
 
         private static string GetSetupParameterFieldRef(int no, int index) => "this." + GetSetupParameterFieldName(no, index);
+
+        private static string GetSetupDynamicParameterFieldName(int no, int index) => SetupDynamicParameterField + no + "_" + index;
+
+        private static string GetSetupDynamicParameterFieldRef(int no, int index) => "this." + GetSetupDynamicParameterFieldName(no, index);
 
         private static string GetSetupSqlFieldName(int no, int index) => SetupSqlField + no + "_" + index;
 
@@ -437,6 +443,11 @@ namespace Smart.Data.Accessor.Generator
                     }
                 }
 
+                foreach (var parameter in mm.DynamicParameters)
+                {
+                    AppendLine($"private readonly {DynamicSetupType} {GetSetupDynamicParameterFieldName(mm.No, parameter.Index)};");
+                }
+
                 foreach (var parameter in mm.Parameters)
                 {
                     switch (parameter.ParameterType)
@@ -553,6 +564,12 @@ namespace Smart.Data.Accessor.Generator
                         }
 
                         NewLine();
+                    }
+
+                    foreach (var parameter in mm.DynamicParameters)
+                    {
+                        Indent();
+                        AppendLine($"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)} = {CtorArg}.CreateDynamicParameterSetup();");
                     }
 
                     foreach (var parameter in mm.Parameters)
@@ -1133,7 +1150,7 @@ namespace Smart.Data.Accessor.Generator
                 var checkVisitor = new DynamicCheckVisitor();
                 checkVisitor.Visit(mm.Nodes);
 
-                if (checkVisitor.IsDynamic)
+                if (checkVisitor.IsDynamic || (mm.DynamicParameters.Count > 0))
                 {
                     var calc = new CalcSizeVisitor(mm);
                     calc.Visit(mm.Nodes);
@@ -1366,18 +1383,36 @@ namespace Smart.Data.Accessor.Generator
             public override void Visit(ParameterNode node)
             {
                 var parameter = mm.FindParameterByName(node.Name);
-                var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
-
-                if (parameter.ParameterType == ParameterType.Simple)
+                if (parameter != null)
                 {
-                    sql.Append($"@{parameterName}");
+                    var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
+
+                    if (parameter.ParameterType == ParameterType.Simple)
+                    {
+                        sql.Append($"@{parameterName}");
+                    }
+                    else
+                    {
+                        FlushSql();
+                        builder.AppendLine(MakeSqlSetup(mm, parameter, $"@{parameterName}"));
+                    }
+                    builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
                 }
                 else
                 {
                     FlushSql();
-                    builder.AppendLine(MakeSqlSetup(mm, parameter, $"@{parameterName}"));
+
+                    var dynamicParameter = mm.FindDynamicParameterByName(node.Name);
+                    if (dynamicParameter == null)
+                    {
+                        throw new AccessorGeneratorException($"Dynamic parameter not found. type=[{builder.targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{node.Name}]");
+                    }
+
+                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+
+                    FlushSql();
+                    builder.AppendLine(MakeDynamicParameterSetup(mm, dynamicParameter, parameterName));
                 }
-                builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
             }
 
             private void FlushSql()
@@ -1442,6 +1477,11 @@ namespace Smart.Data.Accessor.Generator
                 default:
                     return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
             }
+        }
+
+        private static string MakeDynamicParameterSetup(MethodMetadata mm, DynamicParameterEntry parameter, string name)
+        {
+            return $"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, {BuilderVar}, \"{name}\", {parameter.Name});";
         }
     }
 }

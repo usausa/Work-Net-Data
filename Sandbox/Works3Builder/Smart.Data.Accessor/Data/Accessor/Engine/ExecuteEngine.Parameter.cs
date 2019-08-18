@@ -443,5 +443,96 @@ namespace Smart.Data.Accessor.Engine
                 }
             };
         }
+
+        //--------------------------------------------------------------------------------
+        // Dynamic
+        //--------------------------------------------------------------------------------
+
+        public Action<DbCommand, StringBuilder, string, object> CreateDynamicParameterSetup()
+        {
+            var holder = new DynamicParameterSetupHolder { Setup = DynamicParameterSetup.Empty };
+            return (cmd, sql, name, value) =>
+            {
+                if (value == null)
+                {
+                    var parameter = cmd.CreateParameter();
+                    cmd.Parameters.Add(parameter);
+                    parameter.Value = DBNull.Value;
+                    parameter.ParameterName = name;
+                }
+                else
+                {
+                    var setup = holder.Setup;
+                    if (value.GetType() != setup.Type)
+                    {
+                        var type = value.GetType();
+                        if (!dynamicSetupCache.TryGetValue(type, out setup))
+                        {
+                            dynamicSetupCache.AddIfNotExist(type, CreateDynamicParameterSetup);
+                        }
+
+                        holder.Setup = setup;
+                    }
+
+                    setup.SqlSetup?.Invoke(name, sql, value);
+                    setup.ParameterSetup(cmd, name, value);
+                }
+            };
+        }
+
+        private DynamicParameterSetup CreateDynamicParameterSetup(Type type)
+        {
+            //if (TypeHelper.IsArrayParameter(type))
+            //{
+            //    // TODO
+            //    return null;
+            //}
+            //else if (TypeHelper.IsListParameter(type))
+            //{
+            //    // TODO
+            //    return null;
+            //}
+            //else
+            {
+                // [MEMO] Box if value type
+
+                // ITypeHandler
+                if (LookupTypeHandler(type, out var handler))
+                {
+                    return new DynamicParameterSetup(type, null, CreateInParameterSetupByHandler<object>(handler.SetValue));
+                }
+
+                // Type
+                if (LookupDbType(type, out var dbType))
+                {
+                    return new DynamicParameterSetup(type, null, CreateInParameterSetupByDbType<object>(dbType, null));
+                }
+
+                throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
+            }
+        }
+
+        private sealed class DynamicParameterSetup
+        {
+            public static DynamicParameterSetup Empty { get; } = new DynamicParameterSetup(null, null, null);
+
+            public Type Type { get; }
+
+            public Action<string, StringBuilder, object> SqlSetup { get; }
+
+            public Action<DbCommand, string, object> ParameterSetup { get; }
+
+            public DynamicParameterSetup(Type type, Action<string, StringBuilder, object> sqlSetup, Action<DbCommand, string, object> parameterSetup)
+            {
+                Type = type;
+                SqlSetup = sqlSetup;
+                ParameterSetup = parameterSetup;
+            }
+        }
+
+        private class DynamicParameterSetupHolder
+        {
+            public DynamicParameterSetup Setup { get; set; }
+        }
     }
 }

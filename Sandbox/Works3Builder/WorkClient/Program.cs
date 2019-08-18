@@ -11,6 +11,7 @@ namespace WorkClient
     {
         public static void Main()
         {
+            // TODO Dynamic
             var generator = new TestFactoryBuilder()
                 .UseFileDatabase()
                 .SetSql("INSERT INTO Data (Id, Name) VALUES (/*@ Id */1, /*@ Name */'test')")
