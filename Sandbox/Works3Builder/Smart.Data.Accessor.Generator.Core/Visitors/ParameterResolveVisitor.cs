@@ -128,9 +128,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
         {
             if (pmi.IsOut)
             {
-                return pmi.GetCustomAttribute<ReturnValueAttribute>() != null
-                    ? ParameterDirection.ReturnValue
-                    : ParameterDirection.Output;
+                return ParameterDirection.Output;
             }
 
             if (pmi.ParameterType.IsByRef)
