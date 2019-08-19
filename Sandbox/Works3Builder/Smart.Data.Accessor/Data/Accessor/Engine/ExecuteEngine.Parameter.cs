@@ -9,6 +9,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Text;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator;
 
     public sealed partial class ExecuteEngine
     {
@@ -487,17 +488,35 @@ namespace Smart.Data.Accessor.Engine
             };
         }
 
+        private void DynamicSimpleParameterSetup()
+        {
+
+        }
+
         private DynamicParameterSetup CreateDynamicParameterSetup(Type type)
         {
             //if (TypeHelper.IsArrayParameter(type))
             //{
-            //    // TODO
-            //    return null;
+            //    var createSqlMethod = GetType().GetMethod("CreateArraySqlSetup", BindingFlags.NonPublic).MakeGenericMethod(type);
+            //    var sqlSetup = createSqlMethod.Invoke(this, null);
+
+            //    // ITypeHandler
+            //    if (LookupTypeHandler(type, out var handler))
+            //    {
+            //        return CreateArrayParameterSetupByHandler<T>(handler.SetValue);
+            //    }
+
+            //    Type
+            //    if (LookupDbType(type, out var dbType))
+            //    {
+
+            //        return CreateArrayParameterSetupByDbType<T>(dbType, null);
+            //        return new DynamicParameterSetup(type, sqlSetup, CreateInParameterSetupByHandler<object>(handler.SetValue));
+            //    }
             //}
             //else if (TypeHelper.IsListParameter(type))
             //{
             //    // TODO
-            //    return null;
             //}
             //else
             {
@@ -514,11 +533,12 @@ namespace Smart.Data.Accessor.Engine
                 {
                     return new DynamicParameterSetup(type, null, CreateInParameterSetupByDbType<object>(dbType, null));
                 }
-
-                throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
             }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
+        // TODO これを<T>にする？
         private sealed class DynamicParameterSetup
         {
             public static DynamicParameterSetup Empty { get; } = new DynamicParameterSetup(null, null, null);
