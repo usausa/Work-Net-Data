@@ -468,7 +468,7 @@ namespace Smart.Data.Accessor.Engine
                         var type = value.GetType();
                         if (!dynamicSetupCache.TryGetValue(type, out setup))
                         {
-                            dynamicSetupCache.AddIfNotExist(type, CreateDynamicParameterSetup);
+                            setup = dynamicSetupCache.AddIfNotExist(type, CreateDynamicParameterSetup);
                         }
 
                         holder.Setup = setup;

@@ -507,7 +507,7 @@ namespace Smart.Data.Accessor.Generator
             {
                 var hasProvider = mm.Provider != null;
                 var hasConverter = IsResultConverterRequired(mm);
-                if (hasProvider || hasConverter || mm.ReturnValueAsResult || mm.Parameters.Count > 0)
+                if (hasProvider || hasConverter || mm.ReturnValueAsResult || (mm.Parameters.Count > 0) || (mm.DynamicParameters.Count > 0))
                 {
                     NewLine();
                     AppendLine($"var method{mm.No} = {RuntimeHelperType}.GetInterfaceMethodByNo(GetType(), typeof({interfaceFullName}), {mm.No});");
@@ -1400,15 +1400,13 @@ namespace Smart.Data.Accessor.Generator
                 }
                 else
                 {
-                    FlushSql();
-
                     var dynamicParameter = mm.FindDynamicParameterByName(node.Name);
                     if (dynamicParameter == null)
                     {
                         throw new AccessorGeneratorException($"Dynamic parameter not found. type=[{builder.targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{node.Name}]");
                     }
 
-                    var parameterName = ParameterNames.GetParameterName(parameter.Index);
+                    var parameterName = ParameterNames.GetParameterName(dynamicParameter.Index);
 
                     FlushSql();
                     builder.AppendLine(MakeDynamicParameterSetup(mm, dynamicParameter, parameterName));
