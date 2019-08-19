@@ -474,7 +474,14 @@ namespace Smart.Data.Accessor.Engine
                         holder.Setup = setup;
                     }
 
-                    setup.SqlSetup?.Invoke(name, sql, value);
+                    if (setup.SqlSetup is null)
+                    {
+                        sql.Append(name);
+                    }
+                    else
+                    {
+                        setup.SqlSetup?.Invoke(name, sql, value);
+                    }
                     setup.ParameterSetup(cmd, name, value);
                 }
             };

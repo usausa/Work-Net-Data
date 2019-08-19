@@ -135,24 +135,6 @@ namespace Smart.Data.Accessor.Generator.Visitors
         }
 
         //--------------------------------------------------------------------------------
-        // Resolve failed
-        //--------------------------------------------------------------------------------
-
-        [Fact]
-        public void TestArgumentResolveFailed()
-        {
-            var visitor = new ParameterResolveVisitor(typeof(IResolveTarget).GetMethod(nameof(IResolveTarget.Argument)));
-            Assert.Throws<AccessorGeneratorException>(() => visitor.Visit(new[] { new ParameterNode("x") }));
-        }
-
-        [Fact]
-        public void TestParameterResolveFailed()
-        {
-            var visitor = new ParameterResolveVisitor(typeof(IResolveTarget).GetMethod(nameof(IResolveTarget.Parameter)));
-            Assert.Throws<AccessorGeneratorException>(() => visitor.Visit(new[] { new ParameterNode("parameter.x") }));
-        }
-
-        //--------------------------------------------------------------------------------
         // Misc
         //--------------------------------------------------------------------------------
 

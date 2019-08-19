@@ -27,7 +27,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
 
         public override void Visit(ParameterNode node)
         {
-            var parameterSize = (int)Math.Log10(++args) + 2;
+            var parameterSize = (int)Math.Log10(++args) + 4;
 
             var parameter = mm.FindParameterByName(node.Name);
             if (parameter != null)

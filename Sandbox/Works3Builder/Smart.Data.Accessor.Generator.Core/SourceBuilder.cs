@@ -39,6 +39,7 @@ namespace Smart.Data.Accessor.Generator
         private const string ReturnOutParamVar = "_outParamReturn";
         private const string FlagVar = "_flag";
         private const string SqlVar = "_sql";
+        private const string DynamicIndexVar = "_dynamicIndex";
 
         private static readonly string EngineType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine));
         private static readonly string RuntimeHelperType = GeneratorHelper.MakeGlobalName(typeof(RuntimeHelper));
@@ -1361,6 +1362,12 @@ namespace Smart.Data.Accessor.Generator
 
                 builder.AppendLine($"var {SqlVar} = new {StringBuilderType}({size});");
                 builder.NewLine();
+
+                if (mm.DynamicParameters.Count > 0)
+                {
+                    builder.AppendLine($"var {DynamicIndexVar} = 0;");
+                    builder.NewLine();
+                }
             }
 
             public override void Visit(SqlNode node)
@@ -1406,10 +1413,8 @@ namespace Smart.Data.Accessor.Generator
                         throw new AccessorGeneratorException($"Dynamic parameter not found. type=[{builder.targetType.FullName}], method=[{mm.MethodInfo.Name}], parameter=[{node.Name}]");
                     }
 
-                    var parameterName = ParameterNames.GetParameterName(dynamicParameter.Index);
-
                     FlushSql();
-                    builder.AppendLine(MakeDynamicParameterSetup(mm, dynamicParameter, parameterName));
+                    builder.AppendLine(MakeDynamicParameterSetup(mm, dynamicParameter, $"@{ParameterNames.GetDynamicParameterName()}"));
                 }
             }
 
@@ -1479,7 +1484,7 @@ namespace Smart.Data.Accessor.Generator
 
         private static string MakeDynamicParameterSetup(MethodMetadata mm, DynamicParameterEntry parameter, string name)
         {
-            return $"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, {BuilderVar}, \"{name}\", {parameter.Name});";
+            return $"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, {BuilderVar}, $\"{name}{{{DynamicIndexVar}++}}\", {parameter.Name});";
         }
     }
 }
