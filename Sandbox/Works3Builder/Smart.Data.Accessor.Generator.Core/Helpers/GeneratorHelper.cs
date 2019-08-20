@@ -1,3 +1,5 @@
+using Smart.Data.Accessor.Engine;
+
 namespace Smart.Data.Accessor.Generator.Helpers
 {
     using System;
@@ -54,8 +56,8 @@ namespace Smart.Data.Accessor.Generator.Helpers
 
         public static Type MakeInParameterType(Type type)
         {
-            var openType = typeof(Action<,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), type);
+            var openType = typeof(InParameterSetup<>);
+            return openType.MakeGenericType(type);
         }
 
         public static Type MakeInOutParameterType(Type type)

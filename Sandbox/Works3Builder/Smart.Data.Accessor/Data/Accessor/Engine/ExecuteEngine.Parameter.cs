@@ -9,7 +9,6 @@ namespace Smart.Data.Accessor.Engine
     using System.Text;
 
     using Smart.Data.Accessor.Attributes;
-    using Smart.Data.Accessor.Generator;
 
     public sealed partial class ExecuteEngine
     {
@@ -17,7 +16,7 @@ namespace Smart.Data.Accessor.Engine
         // In
         //--------------------------------------------------------------------------------
 
-        public Action<DbCommand, string, T> CreateInParameterSetup<T>(ICustomAttributeProvider provider)
+        public InParameterSetup<T> CreateInParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
 
@@ -25,63 +24,22 @@ namespace Smart.Data.Accessor.Engine
             var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
             if (attribute != null)
             {
-                return CreateInParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
+                return new InParameterSetup<T>(null, attribute.DbType, attribute.Size);
             }
 
             // ITypeHandler
             if (LookupTypeHandler(type, out var handler))
             {
-                return CreateInParameterSetupByHandler<T>(handler.SetValue);
+                return new InParameterSetup<T>(handler.SetValue, DbType.Object, null);
             }
 
             // Type
             if (LookupDbType(type, out var dbType))
             {
-                return CreateInParameterSetupByDbType<T>(dbType, null);
+                return new InParameterSetup<T>(null, dbType, null);
             }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
-        }
-
-        private static Action<DbCommand, string, T> CreateInParameterSetupByHandler<T>(Action<DbParameter, object> action)
-        {
-            return (cmd, name, value) =>
-            {
-                var parameter = cmd.CreateParameter();
-                cmd.Parameters.Add(parameter);
-                if (value == null)
-                {
-                    parameter.Value = DBNull.Value;
-                }
-                else
-                {
-                    action(parameter, value);
-                }
-                parameter.ParameterName = name;
-            };
-        }
-
-        private static Action<DbCommand, string, T> CreateInParameterSetupByDbType<T>(DbType dbType, int? size)
-        {
-            return (cmd, name, value) =>
-            {
-                var parameter = cmd.CreateParameter();
-                cmd.Parameters.Add(parameter);
-                if (value == null)
-                {
-                    parameter.Value = DBNull.Value;
-                }
-                else
-                {
-                    parameter.Value = value;
-                    parameter.DbType = dbType;
-                    if (size.HasValue)
-                    {
-                        parameter.Size = size.Value;
-                    }
-                }
-                parameter.ParameterName = name;
-            };
         }
 
         //--------------------------------------------------------------------------------
@@ -488,11 +446,6 @@ namespace Smart.Data.Accessor.Engine
             };
         }
 
-        private void DynamicSimpleParameterSetup()
-        {
-
-        }
-
         private DynamicParameterSetup CreateDynamicParameterSetup(Type type)
         {
             //if (TypeHelper.IsArrayParameter(type))
@@ -519,21 +472,21 @@ namespace Smart.Data.Accessor.Engine
             //    // TODO
             //}
             //else
-            {
-                // [MEMO] Box if value type
+            //{
+            //    // [MEMO] Box if value type
 
-                // ITypeHandler
-                if (LookupTypeHandler(type, out var handler))
-                {
-                    return new DynamicParameterSetup(type, null, CreateInParameterSetupByHandler<object>(handler.SetValue));
-                }
+            //    // ITypeHandler
+            //    if (LookupTypeHandler(type, out var handler))
+            //    {
+            //        return new DynamicParameterSetup(type, null, CreateInParameterSetupByHandler<object>(handler.SetValue));
+            //    }
 
-                // Type
-                if (LookupDbType(type, out var dbType))
-                {
-                    return new DynamicParameterSetup(type, null, CreateInParameterSetupByDbType<object>(dbType, null));
-                }
-            }
+            //    // Type
+            //    if (LookupDbType(type, out var dbType))
+            //    {
+            //        return new DynamicParameterSetup(type, null, CreateInParameterSetupByDbType<object>(dbType, null));
+            //    }
+            //}
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }

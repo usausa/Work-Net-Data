@@ -59,7 +59,7 @@ namespace Smart.Data.Accessor.Runtime
             return engine.CreateListParameterSetup<T>(provider);
         }
 
-        public static Action<DbCommand, string, T> CreateInParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static InParameterSetup<T> CreateInParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateInParameterSetup<T>(provider);

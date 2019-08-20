@@ -1478,7 +1478,7 @@ namespace Smart.Data.Accessor.Generator
                 case ParameterDirection.InputOutput:
                     return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
                 default:
-                    return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
+                    return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar}, \"{name}\", {parameter.Source});";
             }
         }
 
