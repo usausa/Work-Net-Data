@@ -1,5 +1,3 @@
-using Smart.Data.Accessor.Engine;
-
 namespace Smart.Data.Accessor.Generator.Helpers
 {
     using System;
@@ -7,6 +5,8 @@ namespace Smart.Data.Accessor.Generator.Helpers
     using System.Data.Common;
     using System.Linq;
     using System.Text;
+
+    using Smart.Data.Accessor.Engine;
 
     internal static class GeneratorHelper
     {
@@ -62,22 +62,25 @@ namespace Smart.Data.Accessor.Generator.Helpers
 
         public static Type MakeInOutParameterType(Type type)
         {
-            var openType = typeof(Func<,,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), type, typeof(DbParameter));
+            var openType = typeof(InOutParameterSetup<>);
+            return openType.MakeGenericType(type);
         }
 
+        // TODO
         public static Type MakeArraySqlType(Type type)
         {
             var openType = typeof(Action<,,>);
             return openType.MakeGenericType(typeof(string), typeof(StringBuilder), type);
         }
 
+        // TODO
         public static Type MakeArrayParameterType(Type type)
         {
             var openType = typeof(Action<,,>);
             return openType.MakeGenericType(typeof(DbCommand), typeof(string), type);
         }
 
+        // TODO
         public static Type MakeListSqlType(Type type)
         {
             var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
@@ -85,6 +88,7 @@ namespace Smart.Data.Accessor.Generator.Helpers
             return openType.MakeGenericType(typeof(string), typeof(StringBuilder), listType);
         }
 
+        // TODO
         public static Type MakeListParameterType(Type type)
         {
             var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));

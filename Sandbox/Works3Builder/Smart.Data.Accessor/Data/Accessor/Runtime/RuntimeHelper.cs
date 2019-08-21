@@ -65,13 +65,13 @@ namespace Smart.Data.Accessor.Runtime
             return engine.CreateInParameterSetup<T>(provider);
         }
 
-        public static Func<DbCommand, string, T, DbParameter> CreateInOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static InOutParameterSetup<T> CreateInOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateInOutParameterSetup<T>(provider);
         }
 
-        public static Func<DbCommand, string, DbParameter> CreateOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static OutParameterSetup CreateOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateOutParameterSetup<T>(provider);

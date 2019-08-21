@@ -53,8 +53,8 @@ namespace Smart.Data.Accessor.Generator
         private static readonly string StringBuilderType = GeneratorHelper.MakeGlobalName(typeof(StringBuilder));
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
         private static readonly string HandlerType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
-        private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, string, DbParameter>));
-        private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(Func<DbCommand, DbParameter>));
+        private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(OutParameterSetup));
+        private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(ReturnParameterSetup));
         private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, StringBuilder, string, object>));
 
         private readonly Type targetType;
@@ -623,7 +623,7 @@ namespace Smart.Data.Accessor.Generator
 
             if (mm.ReturnValueAsResult && (mm.EngineResultType != typeof(void)))
             {
-                AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef(mm.No)}({CommandVar});");
+                AppendLine($"var {ReturnOutParamVar} = {GetSetupReturnFieldRef(mm.No)}.Setup({CommandVar});");
                 NewLine();
             }
 
@@ -1472,11 +1472,11 @@ namespace Smart.Data.Accessor.Generator
             switch (parameter.Direction)
             {
                 case ParameterDirection.ReturnValue:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar});";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar});";
                 case ParameterDirection.Output:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\");";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar}, \"{name}\");";
                 case ParameterDirection.InputOutput:
-                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, \"{name}\", {parameter.Source});";
+                    return $"{GetOutParamName(parameter.Index)} = {GetSetupParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar}, \"{name}\", {parameter.Source});";
                 default:
                     return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar}, \"{name}\", {parameter.Source});";
             }
