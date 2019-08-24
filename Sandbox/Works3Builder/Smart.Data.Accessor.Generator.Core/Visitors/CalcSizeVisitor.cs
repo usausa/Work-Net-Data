@@ -1,7 +1,6 @@
 namespace Smart.Data.Accessor.Generator.Visitors
 {
     using System;
-    using System.Linq;
 
     using Smart.Data.Accessor.Generator.Metadata;
     using Smart.Data.Accessor.Nodes;
