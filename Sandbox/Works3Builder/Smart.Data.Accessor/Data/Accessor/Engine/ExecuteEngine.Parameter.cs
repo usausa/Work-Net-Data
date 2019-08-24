@@ -442,16 +442,35 @@ namespace Smart.Data.Accessor.Engine
         // Dynamic
         //--------------------------------------------------------------------------------
 
-        //public sealed class DynamicParameterSetup
-        //{
-        //}
-
-        public Action<DbCommand, StringBuilder, string, object> CreateDynamicParameterSetup()
+        private sealed class DynamicParameterEntry
         {
-            var holder = new DynamicParameterSetupHolder { Setup = DynamicParameterSetup.Empty };
-            return (cmd, sql, name, value) =>
+            public static DynamicParameterEntry Empty { get; } = new DynamicParameterEntry(null, null);
+
+            public Type Type { get; }
+
+            public Action<DbCommand, StringBuilder, string, object> Handler { get; }
+
+            public DynamicParameterEntry(Type type, Action<DbCommand, StringBuilder, string, object> handler)
             {
-                if (value == null)
+                Type = type;
+                Handler = handler;
+            }
+        }
+
+        public sealed class DynamicParameterSetup
+        {
+            private readonly ExecuteEngine engine;
+
+            private DynamicParameterEntry entry = DynamicParameterEntry.Empty;
+
+            public DynamicParameterSetup(ExecuteEngine engine)
+            {
+                this.engine = engine;
+            }
+
+            public void Setup(DbCommand cmd, StringBuilder sql, string name, object value)
+            {
+                if (value is null)
                 {
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
@@ -460,98 +479,73 @@ namespace Smart.Data.Accessor.Engine
                 }
                 else
                 {
-                    var setup = holder.Setup;
-                    if (value.GetType() != setup.Type)
+                    var type = value.GetType();
+                    if (type != entry.Type)
                     {
-                        var type = value.GetType();
-                        if (!dynamicSetupCache.TryGetValue(type, out setup))
-                        {
-                            setup = dynamicSetupCache.AddIfNotExist(type, CreateDynamicParameterSetup);
-                        }
-
-                        holder.Setup = setup;
+                        entry = engine.LookupDynamicParameterEntry(type);
                     }
 
-                    if (setup.SqlSetup is null)
-                    {
-                        sql.Append(name);
-                    }
-                    else
-                    {
-                        setup.SqlSetup?.Invoke(name, sql, value);
-                    }
-                    setup.ParameterSetup(cmd, name, value);
+                    // [MEMO] Boxed if value type
+                    entry.Handler(cmd, sql, name, value);
                 }
-            };
+            }
         }
 
-        private DynamicParameterSetup CreateDynamicParameterSetup(Type type)
+        private DynamicParameterEntry LookupDynamicParameterEntry(Type type)
         {
-            //if (TypeHelper.IsArrayParameter(type))
-            //{
-            //    var createSqlMethod = GetType().GetMethod("CreateArraySqlSetup", BindingFlags.NonPublic).MakeGenericMethod(type);
-            //    var sqlSetup = createSqlMethod.Invoke(this, null);
+            if (!dynamicSetupCache.TryGetValue(type, out var entry))
+            {
+                entry = dynamicSetupCache.AddIfNotExist(type, CreateDynamicParameterEntry);
+            }
 
-            //    // ITypeHandler
-            //    if (LookupTypeHandler(type, out var handler))
-            //    {
-            //        return CreateArrayParameterSetupByHandler<T>(handler.SetValue);
-            //    }
+            return entry;
+        }
 
-            //    Type
-            //    if (LookupDbType(type, out var dbType))
-            //    {
+        private DynamicParameterEntry CreateDynamicParameterEntry(Type type)
+        {
+            // TODO
+            var method = GetType()
+                .GetMethod(nameof(CreateInParameterSetupWrapper), BindingFlags.Instance | BindingFlags.NonPublic)
+                .MakeGenericMethod(type);
+            return (DynamicParameterEntry)method.Invoke(this, null);
+        }
 
-            //        return CreateArrayParameterSetupByDbType<T>(dbType, null);
-            //        return new DynamicParameterSetup(type, sqlSetup, CreateInParameterSetupByHandler<object>(handler.SetValue));
-            //    }
-            //}
-            //else if (TypeHelper.IsListParameter(type))
-            //{
-            //    // TODO
-            //}
-            //else
-            //{
-            //    // [MEMO] Box if value type
+        // TODO
 
-            //    // ITypeHandler
-            //    if (LookupTypeHandler(type, out var handler))
-            //    {
-            //        return new DynamicParameterSetup(type, null, CreateInParameterSetupByHandler<object>(handler.SetValue));
-            //    }
+        // TODO
 
-            //    // Type
-            //    if (LookupDbType(type, out var dbType))
-            //    {
-            //        return new DynamicParameterSetup(type, null, CreateInParameterSetupByDbType<object>(dbType, null));
-            //    }
-            //}
+        private DynamicParameterEntry CreateInParameterSetupWrapper<T>()
+        {
+            var type = typeof(T);
+
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
+            {
+                var setup = new InParameterSetup<T>(handler.SetValue, DbType.Object, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (T)value);
+                });
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                var setup = new InParameterSetup<T>(null, dbType, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (T)value);
+                });
+            }
 
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        // TODO これを<T>にする？
-        private sealed class DynamicParameterSetup
+        public DynamicParameterSetup CreateDynamicParameterSetup()
         {
-            public static DynamicParameterSetup Empty { get; } = new DynamicParameterSetup(null, null, null);
-
-            public Type Type { get; }
-
-            public Action<string, StringBuilder, object> SqlSetup { get; }
-
-            public Action<DbCommand, string, object> ParameterSetup { get; }
-
-            public DynamicParameterSetup(Type type, Action<string, StringBuilder, object> sqlSetup, Action<DbCommand, string, object> parameterSetup)
-            {
-                Type = type;
-                SqlSetup = sqlSetup;
-                ParameterSetup = parameterSetup;
-            }
-        }
-
-        private class DynamicParameterSetupHolder
-        {
-            public DynamicParameterSetup Setup { get; set; }
+            return new DynamicParameterSetup(this);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Smart.Data.Accessor.Generator
         private static readonly string HandlerType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.OutParameterSetup));
         private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.ReturnParameterSetup));
-        private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, StringBuilder, string, object>));
+        private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.DynamicParameterSetup));
 
         private readonly Type targetType;
 
@@ -1445,7 +1445,7 @@ namespace Smart.Data.Accessor.Generator
 
         private static string MakeDynamicParameterSetup(MethodMetadata mm, DynamicParameterEntry parameter, string name)
         {
-            return $"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)}({CommandVar}, {BuilderVar}, $\"{name}{{{DynamicIndexVar}++}}\", {parameter.Name});";
+            return $"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)}.Setup({CommandVar}, {BuilderVar}, $\"{name}{{{DynamicIndexVar}++}}\", {parameter.Name});";
         }
     }
 }

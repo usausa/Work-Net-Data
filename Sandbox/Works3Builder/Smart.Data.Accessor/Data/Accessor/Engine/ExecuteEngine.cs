@@ -3,10 +3,12 @@ namespace Smart.Data.Accessor.Engine
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Data.Common;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
+    using System.Text;
 
     using Smart.Collections.Concurrent;
     using Smart.Converter;
@@ -29,7 +31,7 @@ namespace Smart.Data.Accessor.Engine
 
         private readonly ResultMapperCache resultMapperCache = new ResultMapperCache();
 
-        private readonly ThreadsafeTypeHashArrayMap<DynamicParameterSetup> dynamicSetupCache = new ThreadsafeTypeHashArrayMap<DynamicParameterSetup>();
+        private readonly ThreadsafeTypeHashArrayMap<DynamicParameterEntry> dynamicSetupCache = new ThreadsafeTypeHashArrayMap<DynamicParameterEntry>();
 
         private readonly string[] parameterSubNames;
 
