@@ -1,9 +1,6 @@
 namespace Smart.Data.Accessor.Generator.Helpers
 {
     using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Linq;
     using System.Text;
 
     using Smart.Data.Accessor.Engine;
@@ -56,44 +53,26 @@ namespace Smart.Data.Accessor.Generator.Helpers
 
         public static Type MakeInParameterType(Type type)
         {
-            var openType = typeof(InParameterSetup<>);
+            var openType = typeof(ExecuteEngine.InParameterSetup<>);
             return openType.MakeGenericType(type);
         }
 
         public static Type MakeInOutParameterType(Type type)
         {
-            var openType = typeof(InOutParameterSetup<>);
+            var openType = typeof(ExecuteEngine.InOutParameterSetup<>);
             return openType.MakeGenericType(type);
         }
 
-        // TODO
-        public static Type MakeArraySqlType(Type type)
-        {
-            var openType = typeof(Action<,,>);
-            return openType.MakeGenericType(typeof(string), typeof(StringBuilder), type);
-        }
-
-        // TODO
         public static Type MakeArrayParameterType(Type type)
         {
-            var openType = typeof(Action<,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), type);
+            var openType = typeof(ExecuteEngine.ArrayParameterSetup<>);
+            return openType.MakeGenericType(type);
         }
 
-        // TODO
-        public static Type MakeListSqlType(Type type)
-        {
-            var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-            var openType = typeof(Action<,,>);
-            return openType.MakeGenericType(typeof(string), typeof(StringBuilder), listType);
-        }
-
-        // TODO
         public static Type MakeListParameterType(Type type)
         {
-            var listType = type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
-            var openType = typeof(Action<,,>);
-            return openType.MakeGenericType(typeof(DbCommand), typeof(string), listType);
+            var openType = typeof(ExecuteEngine.ListParameterSetup<>);
+            return openType.MakeGenericType(type);
         }
     }
 }

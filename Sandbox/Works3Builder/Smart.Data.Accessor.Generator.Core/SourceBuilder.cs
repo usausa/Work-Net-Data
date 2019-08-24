@@ -28,7 +28,6 @@ namespace Smart.Data.Accessor.Generator
         private const string SetupReturnField = "_setupReturn";
         private const string SetupParameterField = "_setupParameter";
         private const string SetupDynamicParameterField = "_setupDynamicParameter";
-        private const string SetupSqlField = "_setupSql";
 
         private const string ConnectionVar = "_con";
         private const string CommandVar = "_cmd";
@@ -53,8 +52,8 @@ namespace Smart.Data.Accessor.Generator
         private static readonly string StringBuilderType = GeneratorHelper.MakeGlobalName(typeof(StringBuilder));
         private static readonly string ExceptionType = GeneratorHelper.MakeGlobalName(typeof(Exception));
         private static readonly string HandlerType = GeneratorHelper.MakeGlobalName(typeof(Func<object, object>));
-        private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(OutParameterSetup));
-        private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(ReturnParameterSetup));
+        private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.OutParameterSetup));
+        private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.ReturnParameterSetup));
         private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(Action<DbCommand, StringBuilder, string, object>));
 
         private readonly Type targetType;
@@ -184,10 +183,6 @@ namespace Smart.Data.Accessor.Generator
         private static string GetSetupDynamicParameterFieldName(int no, int index) => SetupDynamicParameterField + no + "_" + index;
 
         private static string GetSetupDynamicParameterFieldRef(int no, int index) => "this." + GetSetupDynamicParameterFieldName(no, index);
-
-        private static string GetSetupSqlFieldName(int no, int index) => SetupSqlField + no + "_" + index;
-
-        private static string GetSetupSqlFieldRef(int no, int index) => "this." + GetSetupSqlFieldName(no, index);
 
         private static string GetOutParamName(int index) => OutParamVar + index;
 
@@ -431,10 +426,10 @@ namespace Smart.Data.Accessor.Generator
                             switch (parameter.ParameterType)
                             {
                                 case ParameterType.Array:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type.GetElementType()))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                                     break;
                                 case ParameterType.List:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
+                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(TypeHelper.GetListElementType(parameter.Type)))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                                     break;
                                 default:
                                     AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeInParameterType(parameter.Type))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
@@ -447,19 +442,6 @@ namespace Smart.Data.Accessor.Generator
                 foreach (var parameter in mm.DynamicParameters)
                 {
                     AppendLine($"private readonly {DynamicSetupType} {GetSetupDynamicParameterFieldName(mm.No, parameter.Index)};");
-                }
-
-                foreach (var parameter in mm.Parameters)
-                {
-                    switch (parameter.ParameterType)
-                    {
-                        case ParameterType.Array:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArraySqlType(parameter.Type))} {GetSetupSqlFieldName(mm.No, parameter.Index)};");
-                            break;
-                        case ParameterType.List:
-                            AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListSqlType(parameter.Type))} {GetSetupSqlFieldName(mm.No, parameter.Index)};");
-                            break;
-                    }
                 }
 
                 foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
@@ -571,27 +553,6 @@ namespace Smart.Data.Accessor.Generator
                     {
                         Indent();
                         AppendLine($"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)} = {CtorArg}.CreateDynamicParameterSetup();");
-                    }
-
-                    foreach (var parameter in mm.Parameters)
-                    {
-                        if (parameter.ParameterType != ParameterType.Simple)
-                        {
-                            Indent();
-                            Append($"{GetSetupSqlFieldRef(mm.No, parameter.Index)} = ");
-
-                            switch (parameter.ParameterType)
-                            {
-                                case ParameterType.Array:
-                                    Append($"{CtorArg}.CreateArraySqlSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>();");
-                                    break;
-                                case ParameterType.List:
-                                    Append($"{CtorArg}.CreateListSqlSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}>();");
-                                    break;
-                            }
-
-                            NewLine();
-                        }
                     }
 
                     foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))
@@ -1464,7 +1425,7 @@ namespace Smart.Data.Accessor.Generator
 
         private static string MakeSqlSetup(MethodMetadata mm, ParameterEntry parameter, string name)
         {
-            return $"{GetSetupSqlFieldRef(mm.No, parameter.Index)}(\"{name}\", {BuilderVar}, {parameter.Source});";
+            return $"{GetSetupParameterFieldRef(mm.No, parameter.Index)}.AppendSql({BuilderVar}, \"{name}\", {parameter.Source});";
         }
 
         private static string MakeParameterSetup(MethodMetadata mm, ParameterEntry parameter, string name)

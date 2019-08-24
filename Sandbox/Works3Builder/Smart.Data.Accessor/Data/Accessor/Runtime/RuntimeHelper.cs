@@ -1,8 +1,6 @@
 namespace Smart.Data.Accessor.Runtime
 {
     using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
     using System.Linq;
     using System.Reflection;
 
@@ -47,31 +45,31 @@ namespace Smart.Data.Accessor.Runtime
             return method.GetParameters()[parameterIndex];
         }
 
-        public static Action<DbCommand, string, T[]> CreateArrayParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.ArrayParameterSetup<T> CreateArrayParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateArrayParameterSetup<T>(provider);
         }
 
-        public static Action<DbCommand, string, IList<T>> CreateListParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.ListParameterSetup<T> CreateListParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateListParameterSetup<T>(provider);
         }
 
-        public static InParameterSetup<T> CreateInParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.InParameterSetup<T> CreateInParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateInParameterSetup<T>(provider);
         }
 
-        public static InOutParameterSetup<T> CreateInOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.InOutParameterSetup<T> CreateInOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateInOutParameterSetup<T>(provider);
         }
 
-        public static OutParameterSetup CreateOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.OutParameterSetup CreateOutParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
             return engine.CreateOutParameterSetup<T>(provider);

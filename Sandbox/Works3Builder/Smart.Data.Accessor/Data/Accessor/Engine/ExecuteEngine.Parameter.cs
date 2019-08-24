@@ -16,6 +16,46 @@ namespace Smart.Data.Accessor.Engine
         // In
         //--------------------------------------------------------------------------------
 
+        public sealed class InParameterSetup<T>
+        {
+            private readonly Action<DbParameter, object> handler;
+
+            private readonly DbType dbType;
+
+            private readonly int? size;
+
+            public InParameterSetup(Action<DbParameter, object> handler, DbType dbType, int? size)
+            {
+                this.handler = handler;
+                this.dbType = dbType;
+                this.size = size;
+            }
+
+            public void Setup(DbCommand cmd, string name, T value)
+            {
+                var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else if (handler != null)
+                {
+                    handler(parameter, value);
+                }
+                else
+                {
+                    parameter.Value = value;
+                    parameter.DbType = dbType;
+                    if (size.HasValue)
+                    {
+                        parameter.Size = size.Value;
+                    }
+                }
+                parameter.ParameterName = name;
+            }
+        }
+
         public InParameterSetup<T> CreateInParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
@@ -45,6 +85,48 @@ namespace Smart.Data.Accessor.Engine
         //--------------------------------------------------------------------------------
         // In/Out
         //--------------------------------------------------------------------------------
+
+        public sealed class InOutParameterSetup<T>
+        {
+            private readonly Action<DbParameter, object> handler;
+
+            private readonly DbType dbType;
+
+            private readonly int? size;
+
+            public InOutParameterSetup(Action<DbParameter, object> handler, DbType dbType, int? size)
+            {
+                this.handler = handler;
+                this.dbType = dbType;
+                this.size = size;
+            }
+
+            public DbParameter Setup(DbCommand cmd, string name, T value)
+            {
+                var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else if (handler != null)
+                {
+                    handler(parameter, value);
+                }
+                else
+                {
+                    parameter.Value = value;
+                    parameter.DbType = dbType;
+                    if (size.HasValue)
+                    {
+                        parameter.Size = size.Value;
+                    }
+                }
+                parameter.ParameterName = name;
+                parameter.Direction = ParameterDirection.InputOutput;
+                return parameter;
+            }
+        }
 
         public InOutParameterSetup<T> CreateInOutParameterSetup<T>(ICustomAttributeProvider provider)
         {
@@ -76,6 +158,33 @@ namespace Smart.Data.Accessor.Engine
         // Out
         //--------------------------------------------------------------------------------
 
+        public sealed class OutParameterSetup
+        {
+            private readonly DbType dbType;
+
+            private readonly int? size;
+
+            public OutParameterSetup(DbType dbType, int? size)
+            {
+                this.dbType = dbType;
+                this.size = size;
+            }
+
+            public DbParameter Setup(DbCommand cmd, string name)
+            {
+                var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
+                parameter.DbType = dbType;
+                if (size.HasValue)
+                {
+                    parameter.Size = size.Value;
+                }
+                parameter.ParameterName = name;
+                parameter.Direction = ParameterDirection.Output;
+                return parameter;
+            }
+        }
+
         public OutParameterSetup CreateOutParameterSetup<T>(ICustomAttributeProvider provider)
         {
             var type = typeof(T);
@@ -100,29 +209,61 @@ namespace Smart.Data.Accessor.Engine
         // Return
         //--------------------------------------------------------------------------------
 
+        public sealed class ReturnParameterSetup
+        {
+            public static ReturnParameterSetup Instance { get; } = new ReturnParameterSetup();
+
+            private ReturnParameterSetup()
+            {
+            }
+
+            public DbParameter Setup(DbCommand cmd)
+            {
+                var parameter = cmd.CreateParameter();
+                cmd.Parameters.Add(parameter);
+                parameter.Direction = ParameterDirection.ReturnValue;
+                return parameter;
+            }
+        }
+
         public ReturnParameterSetup CreateReturnParameterSetup() => ReturnParameterSetup.Instance;
 
         //--------------------------------------------------------------------------------
         // Array
         //--------------------------------------------------------------------------------
 
-        // TODO
-        public Action<string, StringBuilder, T[]> CreateArraySqlSetup<T>()
+        public sealed class ArrayParameterSetup<T>
         {
-            return (name, sql, values) =>
+            private readonly ExecuteEngine engine;
+
+            private readonly Action<DbParameter, object> handler;
+
+            private readonly DbType dbType;
+
+            private readonly int? size;
+
+            public ArrayParameterSetup(ExecuteEngine engine, Action<DbParameter, object> handler, DbType dbType, int? size)
+            {
+                this.engine = engine;
+                this.handler = handler;
+                this.dbType = dbType;
+                this.size = size;
+            }
+
+            public void AppendSql(StringBuilder sql, string name, T[] values)
             {
                 sql.Append("(");
 
                 if ((values is null) || (values.Length == 0))
                 {
-                    sql.Append(emptyDialect.GetSql());
+                    sql.Append(engine.emptyDialect.GetSql());
                 }
                 else
                 {
                     for (var i = 0; i < values.Length; i++)
                     {
                         sql.Append(name);
-                        sql.Append(GetParameterSubName(i));
+                        sql.Append(engine.GetParameterSubName(i));
                         sql.Append(", ");
                     }
 
@@ -130,40 +271,9 @@ namespace Smart.Data.Accessor.Engine
                 }
 
                 sql.Append(") ");
-            };
-        }
-
-        // TODO
-        public Action<DbCommand, string, T[]> CreateArrayParameterSetup<T>(ICustomAttributeProvider provider)
-        {
-            var type = typeof(T);
-
-            // ParameterBuilderAttribute
-            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
-            if (attribute != null)
-            {
-                return CreateArrayParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
-            // ITypeHandler
-            if (LookupTypeHandler(type, out var handler))
-            {
-                return CreateArrayParameterSetupByHandler<T>(handler.SetValue);
-            }
-
-            // Type
-            if (LookupDbType(type, out var dbType))
-            {
-                return CreateArrayParameterSetupByDbType<T>(dbType, null);
-            }
-
-            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
-        }
-
-        // TODO
-        private Action<DbCommand, string, T[]> CreateArrayParameterSetupByHandler<T>(Action<DbParameter, object> action)
-        {
-            return (cmd, name, values) =>
+            public void Setup(DbCommand cmd, string name, T[] values)
             {
                 if (values == null)
                 {
@@ -179,33 +289,9 @@ namespace Smart.Data.Accessor.Engine
                     {
                         parameter.Value = DBNull.Value;
                     }
-                    else
+                    else if (handler != null)
                     {
-                        action(parameter, value);
-                    }
-                    parameter.ParameterName = name + GetParameterSubName(i);
-                }
-            };
-        }
-
-        // TODO
-        private Action<DbCommand, string, T[]> CreateArrayParameterSetupByDbType<T>(DbType dbType, int? size)
-        {
-            return (cmd, name, values) =>
-            {
-                if (values == null)
-                {
-                    return;
-                }
-
-                for (var i = 0; i < values.Length; i++)
-                {
-                    var value = values[i];
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    if (value == null)
-                    {
-                        parameter.Value = DBNull.Value;
+                        handler(parameter, value);
                     }
                     else
                     {
@@ -216,32 +302,73 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name + GetParameterSubName(i);
+                    parameter.ParameterName = name + engine.GetParameterSubName(i);
                 }
-            };
+            }
+        }
+
+        public ArrayParameterSetup<T> CreateArrayParameterSetup<T>(ICustomAttributeProvider provider)
+        {
+            var type = typeof(T);
+
+            // ParameterBuilderAttribute
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return new ArrayParameterSetup<T>(this, null, attribute.DbType, attribute.Size);
+            }
+
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
+            {
+                return new ArrayParameterSetup<T>(this, handler.SetValue, DbType.Object, null);
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                return new ArrayParameterSetup<T>(this, null, dbType, null);
+            }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         //--------------------------------------------------------------------------------
         // IList
         //--------------------------------------------------------------------------------
 
-        // TODO
-        public Action<string, StringBuilder, IList<T>> CreateListSqlSetup<T>()
+        public sealed class ListParameterSetup<T>
         {
-            return (name, sql, values) =>
+            private readonly ExecuteEngine engine;
+
+            private readonly Action<DbParameter, object> handler;
+
+            private readonly DbType dbType;
+
+            private readonly int? size;
+
+            public ListParameterSetup(ExecuteEngine engine, Action<DbParameter, object> handler, DbType dbType, int? size)
+            {
+                this.engine = engine;
+                this.handler = handler;
+                this.dbType = dbType;
+                this.size = size;
+            }
+
+            public void AppendSql(StringBuilder sql, string name, IList<T> values)
             {
                 sql.Append("(");
 
                 if ((values is null) || (values.Count == 0))
                 {
-                    sql.Append(emptyDialect.GetSql());
+                    sql.Append(engine.emptyDialect.GetSql());
                 }
                 else
                 {
                     for (var i = 0; i < values.Count; i++)
                     {
                         sql.Append(name);
-                        sql.Append(GetParameterSubName(i));
+                        sql.Append(engine.GetParameterSubName(i));
                         sql.Append(", ");
                     }
 
@@ -249,40 +376,9 @@ namespace Smart.Data.Accessor.Engine
                 }
 
                 sql.Append(") ");
-            };
-        }
-
-        // TODO
-        public Action<DbCommand, string, IList<T>> CreateListParameterSetup<T>(ICustomAttributeProvider provider)
-        {
-            var type = typeof(T);
-
-            // ParameterBuilderAttribute
-            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
-            if (attribute != null)
-            {
-                return CreateListParameterSetupByDbType<T>(attribute.DbType, attribute.Size);
             }
 
-            // ITypeHandler
-            if (LookupTypeHandler(type, out var handler))
-            {
-                return CreateListParameterSetupByHandler<T>(handler.SetValue);
-            }
-
-            // Type
-            if (LookupDbType(type, out var dbType))
-            {
-                return CreateListParameterSetupByDbType<T>(dbType, null);
-            }
-
-            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
-        }
-
-        // TODO
-        private Action<DbCommand, string, IList<T>> CreateListParameterSetupByHandler<T>(Action<DbParameter, object> action)
-        {
-            return (cmd, name, values) =>
+            public void Setup(DbCommand cmd, string name, IList<T> values)
             {
                 if (values is null)
                 {
@@ -298,33 +394,9 @@ namespace Smart.Data.Accessor.Engine
                     {
                         parameter.Value = DBNull.Value;
                     }
-                    else
+                    else if (handler != null)
                     {
-                        action(parameter, value);
-                    }
-                    parameter.ParameterName = name + GetParameterSubName(i);
-                }
-            };
-        }
-
-        // TODO
-        private Action<DbCommand, string, IList<T>> CreateListParameterSetupByDbType<T>(DbType dbType, int? size)
-        {
-            return (cmd, name, values) =>
-            {
-                if (values is null)
-                {
-                    return;
-                }
-
-                for (var i = 0; i < values.Count; i++)
-                {
-                    var value = values[i];
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    if (value == null)
-                    {
-                        parameter.Value = DBNull.Value;
+                        handler(parameter, value);
                     }
                     else
                     {
@@ -335,14 +407,44 @@ namespace Smart.Data.Accessor.Engine
                             parameter.Size = size.Value;
                         }
                     }
-                    parameter.ParameterName = name + GetParameterSubName(i);
+                    parameter.ParameterName = name + engine.GetParameterSubName(i);
                 }
-            };
+            }
+        }
+
+        public ListParameterSetup<T> CreateListParameterSetup<T>(ICustomAttributeProvider provider)
+        {
+            var type = typeof(T);
+
+            // ParameterBuilderAttribute
+            var attribute = provider.GetCustomAttributes(true).OfType<ParameterBuilderAttribute>().FirstOrDefault();
+            if (attribute != null)
+            {
+                return new ListParameterSetup<T>(this, null, attribute.DbType, attribute.Size);
+            }
+
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
+            {
+                return new ListParameterSetup<T>(this, handler.SetValue, DbType.Object, null);
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                return new ListParameterSetup<T>(this, null, dbType, null);
+            }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
         //--------------------------------------------------------------------------------
         // Dynamic
         //--------------------------------------------------------------------------------
+
+        //public sealed class DynamicParameterSetup
+        //{
+        //}
 
         public Action<DbCommand, StringBuilder, string, object> CreateDynamicParameterSetup()
         {
