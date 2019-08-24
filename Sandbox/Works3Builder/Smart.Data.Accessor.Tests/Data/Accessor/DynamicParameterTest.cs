@@ -1,6 +1,7 @@
 namespace Smart.Data.Accessor
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
 
@@ -107,6 +108,100 @@ namespace Smart.Data.Accessor
             dao.Execute(con, "a");
             dao.Execute(con, null);
             dao.Execute(con, "b");
+        }
+
+        //--------------------------------------------------------------------------------
+        // Array
+        //--------------------------------------------------------------------------------
+
+        [DataAccessor]
+        public interface IArrayDao
+        {
+            [Execute]
+            void Execute(DbConnection con, int[] values);
+        }
+
+        [Fact]
+        public void TestArray()
+        {
+            var generator = new TestFactoryBuilder()
+                .SetSql("/*% var ids = values; */ WHERE Id IN /*@ ids */(1)")
+                .Build();
+
+            var dao = generator.Create<IArrayDao>();
+
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(0, c.Parameters.Count);
+                };
+                cmd.SetupResult(1);
+            });
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(2, c.Parameters.Count);
+                    Assert.Equal(DbType.Int32, c.Parameters[0].DbType);
+                    Assert.Equal(1, c.Parameters[0].Value);
+                    Assert.Equal(DbType.Int32, c.Parameters[1].DbType);
+                    Assert.Equal(2, c.Parameters[1].Value);
+                };
+                cmd.SetupResult(1);
+            });
+
+            dao.Execute(con, Array.Empty<int>());
+            dao.Execute(con, new[] { 1, 2 });
+            //dao.Execute(con, null); // Not supported
+        }
+
+        //--------------------------------------------------------------------------------
+        // List
+        //--------------------------------------------------------------------------------
+
+        [DataAccessor]
+        public interface IListDao
+        {
+            [Execute]
+            void Execute(DbConnection con, List<int> values);
+        }
+
+        [Fact]
+        public void TestList()
+        {
+            var generator = new TestFactoryBuilder()
+                .SetSql("/*% var ids = values; */ WHERE Id IN /*@ ids */(1)")
+                .Build();
+
+            var dao = generator.Create<IListDao>();
+
+            var con = new MockDbConnection();
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(0, c.Parameters.Count);
+                };
+                cmd.SetupResult(1);
+            });
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
+                    Assert.Equal(2, c.Parameters.Count);
+                    Assert.Equal(DbType.Int32, c.Parameters[0].DbType);
+                    Assert.Equal(1, c.Parameters[0].Value);
+                    Assert.Equal(DbType.Int32, c.Parameters[1].DbType);
+                    Assert.Equal(2, c.Parameters[1].Value);
+                };
+                cmd.SetupResult(1);
+            });
+
+            dao.Execute(con, new List<int>());
+            dao.Execute(con, new List<int>(new[] { 1, 2 }));
+            //dao.Execute(con, null); // Not supported
         }
 
         //--------------------------------------------------------------------------------

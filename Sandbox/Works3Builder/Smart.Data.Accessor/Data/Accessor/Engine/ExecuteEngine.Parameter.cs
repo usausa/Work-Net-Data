@@ -9,6 +9,7 @@ namespace Smart.Data.Accessor.Engine
     using System.Text;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator;
 
     public sealed partial class ExecuteEngine
     {
@@ -472,6 +473,8 @@ namespace Smart.Data.Accessor.Engine
             {
                 if (value is null)
                 {
+                    sql.Append(name);
+
                     var parameter = cmd.CreateParameter();
                     cmd.Parameters.Add(parameter);
                     parameter.Value = DBNull.Value;
@@ -503,16 +506,86 @@ namespace Smart.Data.Accessor.Engine
 
         private DynamicParameterEntry CreateDynamicParameterEntry(Type type)
         {
-            // TODO
-            var method = GetType()
-                .GetMethod(nameof(CreateInParameterSetupWrapper), BindingFlags.Instance | BindingFlags.NonPublic)
-                .MakeGenericMethod(type);
+            MethodInfo method;
+            if (TypeHelper.IsArrayParameter(type))
+            {
+                method = GetType()
+                    .GetMethod(nameof(CreateArrayParameterSetupWrapper), BindingFlags.Instance | BindingFlags.NonPublic)
+                    .MakeGenericMethod(type.GetElementType());
+            }
+            else if (TypeHelper.IsListParameter(type))
+            {
+                method = GetType()
+                    .GetMethod(nameof(CreateListParameterSetupWrapper), BindingFlags.Instance | BindingFlags.NonPublic)
+                    .MakeGenericMethod(TypeHelper.GetListElementType(type));
+            }
+            else
+            {
+                method = GetType()
+                    .GetMethod(nameof(CreateInParameterSetupWrapper), BindingFlags.Instance | BindingFlags.NonPublic)
+                    .MakeGenericMethod(type);
+            }
+
             return (DynamicParameterEntry)method.Invoke(this, null);
         }
 
-        // TODO
+        private DynamicParameterEntry CreateArrayParameterSetupWrapper<T>()
+        {
+            var type = typeof(T);
 
-        // TODO
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
+            {
+                var setup = new ArrayParameterSetup<T>(this, handler.SetValue, DbType.Object, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (T[])value);
+                });
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                var setup = new ArrayParameterSetup<T>(this, null, dbType, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (T[])value);
+                });
+            }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
+        }
+
+        private DynamicParameterEntry CreateListParameterSetupWrapper<T>()
+        {
+            var type = typeof(T);
+
+            // ITypeHandler
+            if (LookupTypeHandler(type, out var handler))
+            {
+                var setup = new ListParameterSetup<T>(this, handler.SetValue, DbType.Object, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (IList<T>)value);
+                });
+            }
+
+            // Type
+            if (LookupDbType(type, out var dbType))
+            {
+                var setup = new ListParameterSetup<T>(this, null, dbType, null);
+                return new DynamicParameterEntry(type, (cmd, sql, name, value) =>
+                {
+                    sql.Append(name);
+                    setup.Setup(cmd, name, (IList<T>)value);
+                });
+            }
+
+            throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
+        }
 
         private DynamicParameterEntry CreateInParameterSetupWrapper<T>()
         {
