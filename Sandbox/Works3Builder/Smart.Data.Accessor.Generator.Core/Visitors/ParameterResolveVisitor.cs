@@ -3,9 +3,11 @@ namespace Smart.Data.Accessor.Generator.Visitors
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Linq;
     using System.Reflection;
 
     using Smart.Data.Accessor.Attributes;
+    using Smart.Data.Accessor.Generator.Helpers;
     using Smart.Data.Accessor.Generator.Metadata;
     using Smart.Data.Accessor.Nodes;
 
@@ -40,7 +42,9 @@ namespace Smart.Data.Accessor.Generator.Visitors
             processed.Add(node.Name);
 
             // [MEMO] Simple property only
-            var path = node.Name.Split('.');
+            var parser = new PathElementParser(node.Name);
+            var elements = parser.Parse();
+
             for (var i = 0; i < method.GetParameters().Length; i++)
             {
                 var pmi = method.GetParameters()[i];
@@ -51,9 +55,14 @@ namespace Smart.Data.Accessor.Generator.Visitors
 
                 var type = pmi.ParameterType.IsByRef ? pmi.ParameterType.GetElementType() : pmi.ParameterType;
 
-                if (pmi.Name == path[0])
+                if (pmi.Name == elements[0].Name)
                 {
-                    if (path.Length == 1)
+                    for (var j = 0; j < elements[0].Indexed; j++)
+                    {
+                        type = GetNestedValueType(type);
+                    }
+
+                    if (elements.Length == 1)
                     {
                         var direction = GetParameterDirection(pmi);
                         var isMultiple = TypeHelper.IsMultipleParameter(type);
@@ -65,7 +74,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
                         parameters.Add(new ParameterEntry(
                             node.Name,
                             index++,
-                            pmi.Name,
+                            node.Name,
                             i,
                             null,
                             null,
@@ -76,14 +85,14 @@ namespace Smart.Data.Accessor.Generator.Visitors
                         return;
                     }
 
-                    if (ResolvePropertyParameter(type, path, 1, node, node.Name))
+                    if (ResolvePropertyParameter(type, elements, 1, node, node.Name))
                     {
                         return;
                     }
                 }
 
                 if (ParameterHelper.IsNestedParameter(pmi) &&
-                    ResolvePropertyParameter(type, path, 0, node, $"{pmi.Name}.{node.Name}"))
+                    ResolvePropertyParameter(type, elements, 0, node, $"{pmi.Name}.{node.Name}"))
                 {
                     return;
                 }
@@ -93,20 +102,25 @@ namespace Smart.Data.Accessor.Generator.Visitors
             dynamicParameters.Add(new DynamicParameterEntry(node.Name, index++, node.IsMultiple));
         }
 
-        private bool ResolvePropertyParameter(Type targetType, string[] path, int position, ParameterNode node, string source)
+        private bool ResolvePropertyParameter(Type targetType, PathElement[] elements, int position, ParameterNode node, string source)
         {
-            var pi = targetType.GetProperty(path[position]);
+            var pi = targetType.GetProperty(elements[position].Name);
             if (pi == null)
             {
                 return false;
             }
 
-            if (position < path.Length - 1)
+            var type = pi.PropertyType;
+            for (var i = 0; i < elements[position].Indexed; i++)
             {
-                return ResolvePropertyParameter(pi.PropertyType, path, position + 1, node, source);
+                type = GetNestedValueType(type);
             }
 
-            var type = pi.PropertyType;
+            if (position < elements.Length - 1)
+            {
+                return ResolvePropertyParameter(type, elements, position + 1, node, source);
+            }
+
             var direction = GetParameterDirection(pi);
             var isMultiple = TypeHelper.IsMultipleParameter(type);
             if (isMultiple && (direction != ParameterDirection.Input))
@@ -126,6 +140,38 @@ namespace Smart.Data.Accessor.Generator.Visitors
                 node.ParameterName,
                 isMultiple));
             return true;
+        }
+
+        private static Type GetNestedValueType(Type type)
+        {
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+            {
+                return type.GenericTypeArguments[1];
+            }
+
+            var dictionaryType = type.GetInterfaces().FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+            if (dictionaryType != null)
+            {
+                return dictionaryType.GenericTypeArguments[1];
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return type.GenericTypeArguments[0];
+            }
+
+            var enumerableType = type.GetInterfaces().FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            if (enumerableType != null)
+            {
+                return enumerableType.GenericTypeArguments[0];
+            }
+
+            return typeof(object);
         }
 
         private static ParameterDirection GetParameterDirection(ParameterInfo pmi)
