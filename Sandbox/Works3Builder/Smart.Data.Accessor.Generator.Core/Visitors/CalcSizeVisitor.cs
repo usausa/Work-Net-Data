@@ -31,13 +31,13 @@ namespace Smart.Data.Accessor.Generator.Visitors
             var parameter = mm.FindParameterByName(node.Name);
             if (parameter != null)
             {
-                if (parameter.ParameterType == ParameterType.Simple)
+                if (parameter.IsMultiple)
                 {
-                    size += parameterSize;
+                    size += (parameterSize + 4) * 8;
                 }
                 else
                 {
-                    size += (parameterSize + 4) * 8;
+                    size += parameterSize;
                 }
             }
             else

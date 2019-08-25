@@ -55,7 +55,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Null(parameter.PropertyName);
             Assert.Equal(typeof(string), parameter.Type);
             Assert.Equal(ParameterDirection.Input, parameter.Direction);
-            Assert.Equal(ParameterType.Simple, parameter.ParameterType);
+            Assert.False(parameter.IsMultiple);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(nameof(Parameter.Id), parameter.PropertyName);
             Assert.Equal(typeof(int), parameter.Type);
             Assert.Equal(ParameterDirection.Input, parameter.Direction);
-            Assert.Equal(ParameterType.Simple, parameter.ParameterType);
+            Assert.False(parameter.IsMultiple);
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(nameof(ChildParameter.Id), parameter.PropertyName);
             Assert.Equal(typeof(int), parameter.Type);
             Assert.Equal(ParameterDirection.Input, parameter.Direction);
-            Assert.Equal(ParameterType.Simple, parameter.ParameterType);
+            Assert.False(parameter.IsMultiple);
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(nameof(Parameter.Id), parameter.PropertyName);
             Assert.Equal(typeof(int), parameter.Type);
             Assert.Equal(ParameterDirection.Input, parameter.Direction);
-            Assert.Equal(ParameterType.Simple, parameter.ParameterType);
+            Assert.False(parameter.IsMultiple);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(nameof(ChildParameter.Id), parameter.PropertyName);
             Assert.Equal(typeof(int), parameter.Type);
             Assert.Equal(ParameterDirection.Input, parameter.Direction);
-            Assert.Equal(ParameterType.Simple, parameter.ParameterType);
+            Assert.False(parameter.IsMultiple);
         }
 
         //--------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(1, visitor.Parameters.Count);
 
             var parameter = visitor.Parameters[0];
-            Assert.Equal(ParameterType.Array, parameter.ParameterType);
+            Assert.True(parameter.IsMultiple);
         }
 
         [Fact]
@@ -242,7 +242,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             Assert.Equal(1, visitor.Parameters.Count);
 
             var parameter = visitor.Parameters[0];
-            Assert.Equal(ParameterType.List, parameter.ParameterType);
+            Assert.True(parameter.IsMultiple);
         }
     }
 }

@@ -40,14 +40,19 @@ namespace Smart.Data.Accessor.Generator
             return (type != typeof(string)) && (type != typeof(byte[])) && type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         }
 
-        public static bool IsArrayParameter(Type type)
+        public static bool IsMultipleParameter(Type type)
         {
-            return (type != typeof(byte[])) && type.IsArray;
+            return (type != typeof(byte[])) && (type.IsArray || type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IList<>))));
         }
 
-        public static bool IsListParameter(Type type)
+        public static Type GetMultipleParameterElementType(Type type)
         {
-            return type.GetInterfaces().Prepend(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            return type.GetInterfaces().Prepend(type).First(t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IList<>))).GetGenericArguments()[0];
         }
 
         //--------------------------------------------------------------------------------

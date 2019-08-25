@@ -56,8 +56,8 @@ namespace Smart.Data.Accessor.Generator.Visitors
                     if (path.Length == 1)
                     {
                         var direction = GetParameterDirection(pmi);
-                        var parameterType = GetParameterType(type);
-                        if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
+                        var isMultiple = TypeHelper.IsMultipleParameter(type);
+                        if (isMultiple && (direction != ParameterDirection.Input))
                         {
                             throw new AccessorGeneratorException($"DB parameter argument is not valid. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Name}]");
                         }
@@ -72,7 +72,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
                             type,
                             direction,
                             node.ParameterName,
-                            parameterType));
+                            isMultiple));
                         return;
                     }
 
@@ -108,8 +108,8 @@ namespace Smart.Data.Accessor.Generator.Visitors
 
             var type = pi.PropertyType;
             var direction = GetParameterDirection(pi);
-            var parameterType = GetParameterType(type);
-            if ((parameterType != ParameterType.Simple) && (direction != ParameterDirection.Input))
+            var isMultiple = TypeHelper.IsMultipleParameter(type);
+            if (isMultiple && (direction != ParameterDirection.Input))
             {
                 throw new AccessorGeneratorException($"DB parameter argument is not valid. type=[{method.DeclaringType.FullName}], method=[{method.Name}], source=[{node.Name}]");
             }
@@ -124,7 +124,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
                 type,
                 direction,
                 node.ParameterName,
-                parameterType));
+                isMultiple));
             return true;
         }
 
@@ -147,21 +147,6 @@ namespace Smart.Data.Accessor.Generator.Visitors
         {
             var attribute = pi.GetCustomAttribute<DirectionAttribute>();
             return attribute?.Direction ?? ParameterDirection.Input;
-        }
-
-        private static ParameterType GetParameterType(Type type)
-        {
-            if (TypeHelper.IsArrayParameter(type))
-            {
-                return ParameterType.Array;
-            }
-
-            if (TypeHelper.IsListParameter(type))
-            {
-                return ParameterType.List;
-            }
-
-            return ParameterType.Simple;
         }
     }
 }

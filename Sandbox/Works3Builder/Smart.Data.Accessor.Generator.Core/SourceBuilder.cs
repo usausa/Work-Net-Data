@@ -56,6 +56,7 @@ namespace Smart.Data.Accessor.Generator
         private static readonly string InOutSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.InOutParameterSetup));
         private static readonly string OutSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.OutParameterSetup));
         private static readonly string ReturnSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.ReturnParameterSetup));
+        private static readonly string ListParameterSetup = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.ListParameterSetup));
         private static readonly string DynamicSetupType = GeneratorHelper.MakeGlobalName(typeof(ExecuteEngine.DynamicParameterSetup));
 
         private readonly Type targetType;
@@ -425,17 +426,13 @@ namespace Smart.Data.Accessor.Generator
                             AppendLine($"private readonly {InOutSetupType} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                             break;
                         case ParameterDirection.Input:
-                            switch (parameter.ParameterType)
+                            if (parameter.IsMultiple)
                             {
-                                case ParameterType.Array:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeArrayParameterType(parameter.Type.GetElementType()))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
-                                    break;
-                                case ParameterType.List:
-                                    AppendLine($"private readonly {GeneratorHelper.MakeGlobalName(GeneratorHelper.MakeListParameterType(TypeHelper.GetListElementType(parameter.Type)))} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
-                                    break;
-                                default:
-                                    AppendLine($"private readonly {InSetupType} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
-                                    break;
+                                AppendLine($"private readonly {ListParameterSetup} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
+                            }
+                            else
+                            {
+                                AppendLine($"private readonly {InSetupType} {GetSetupParameterFieldName(mm.No, parameter.Index)};");
                             }
                             break;
                     }
@@ -533,17 +530,13 @@ namespace Smart.Data.Accessor.Generator
                                 Append($"{RuntimeHelperType}.CreateInOutParameterSetup({CtorArg}, typeof({GeneratorHelper.MakeGlobalName(parameter.Type)}), method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
                                 break;
                             case ParameterDirection.Input:
-                                switch (parameter.ParameterType)
+                                if (parameter.IsMultiple)
                                 {
-                                    case ParameterType.Array:
-                                        Append($"{RuntimeHelperType}.CreateArrayParameterSetup<{GeneratorHelper.MakeGlobalName(parameter.Type.GetElementType())}>({CtorArg}, method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
-                                        break;
-                                    case ParameterType.List:
-                                        Append($"{RuntimeHelperType}.CreateListParameterSetup<{GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}>({CtorArg}, method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
-                                        break;
-                                    default:
-                                        Append($"{RuntimeHelperType}.CreateInParameterSetup({CtorArg}, typeof({GeneratorHelper.MakeGlobalName(parameter.Type)}), method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
-                                        break;
+                                    Append($"{RuntimeHelperType}.CreateListParameterSetup({CtorArg}, typeof({GeneratorHelper.MakeGlobalName(TypeHelper.GetListElementType(parameter.Type))}), method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
+                                }
+                                else
+                                {
+                                    Append($"{RuntimeHelperType}.CreateInParameterSetup({CtorArg}, typeof({GeneratorHelper.MakeGlobalName(parameter.Type)}), method{mm.No}, {parameter.ParameterIndex}, {declaringType}, \"{parameter.PropertyName}\");");
                                 }
                                 break;
                         }
@@ -1121,12 +1114,12 @@ namespace Smart.Data.Accessor.Generator
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
                 }
-                else if (mm.Parameters.Any(x => x.ParameterType != ParameterType.Simple))
+                else if (mm.Parameters.Any(x => x.IsMultiple))
                 {
                     var calc = new CalcSizeVisitor(mm);
                     calc.Visit(mm.Nodes);
 
-                    var visitor = new HasArrayBuildVisitor(this, mm, CalculateSqlSize(mm));
+                    var visitor = new HasMultipleBuildVisitor(this, mm, CalculateSqlSize(mm));
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
                 }
@@ -1233,7 +1226,7 @@ namespace Smart.Data.Accessor.Generator
         // Array
         //--------------------------------------------------------------------------------
 
-        private sealed class HasArrayBuildVisitor : NodeVisitorBase
+        private sealed class HasMultipleBuildVisitor : NodeVisitorBase
         {
             private readonly SourceBuilder builder;
 
@@ -1241,7 +1234,7 @@ namespace Smart.Data.Accessor.Generator
 
             private readonly StringBuilder sql = new StringBuilder();
 
-            public HasArrayBuildVisitor(SourceBuilder builder, MethodMetadata mm, int size)
+            public HasMultipleBuildVisitor(SourceBuilder builder, MethodMetadata mm, int size)
             {
                 this.builder = builder;
                 this.mm = mm;
@@ -1260,14 +1253,14 @@ namespace Smart.Data.Accessor.Generator
                 var parameter = mm.FindParameterByName(node.Name);
                 var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
 
-                if (parameter.ParameterType == ParameterType.Simple)
-                {
-                    sql.Append($"@{parameterName}");
-                }
-                else
+                if (parameter.IsMultiple)
                 {
                     FlushSql();
                     builder.AppendLine(MakeSqlSetup(mm, parameter, $"@{parameterName}"));
+                }
+                else
+                {
+                    sql.Append($"@{parameterName}");
                 }
             }
 
@@ -1367,14 +1360,14 @@ namespace Smart.Data.Accessor.Generator
                 {
                     var parameterName = parameter.ParameterName ?? ParameterNames.GetParameterName(parameter.Index);
 
-                    if (parameter.ParameterType == ParameterType.Simple)
-                    {
-                        sql.Append($"@{parameterName}");
-                    }
-                    else
+                    if (parameter.IsMultiple)
                     {
                         FlushSql();
                         builder.AppendLine(MakeSqlSetup(mm, parameter, $"@{parameterName}"));
+                    }
+                    else
+                    {
+                        sql.Append($"@{parameterName}");
                     }
                     builder.AppendLine($"{FlagVar}{parameter.Index} = true;");
                 }

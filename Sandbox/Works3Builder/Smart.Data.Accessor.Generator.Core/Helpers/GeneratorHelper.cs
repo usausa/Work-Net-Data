@@ -50,17 +50,5 @@ namespace Smart.Data.Accessor.Generator.Helpers
                 sb.Append("global::").Append(type.FullName.Replace('+', '.'));
             }
         }
-
-        public static Type MakeArrayParameterType(Type type)
-        {
-            var openType = typeof(ExecuteEngine.ArrayParameterSetup<>);
-            return openType.MakeGenericType(type);
-        }
-
-        public static Type MakeListParameterType(Type type)
-        {
-            var openType = typeof(ExecuteEngine.ListParameterSetup<>);
-            return openType.MakeGenericType(type);
-        }
     }
 }

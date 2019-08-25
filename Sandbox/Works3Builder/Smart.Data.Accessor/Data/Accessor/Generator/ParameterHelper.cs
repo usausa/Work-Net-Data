@@ -55,9 +55,7 @@ namespace Smart.Data.Accessor.Generator
                 return false;
             }
 
-            if (TypeHelper.IsArrayParameter(type) ||
-                TypeHelper.IsListParameter(type) ||
-                TypeHelper.IsEnumerableParameter(type))
+            if (TypeHelper.IsEnumerableParameter(type))
             {
                 return false;
             }

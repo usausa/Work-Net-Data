@@ -45,18 +45,10 @@ namespace Smart.Data.Accessor.Runtime
             return method.GetParameters()[parameterIndex];
         }
 
-        // TODO
-        public static ExecuteEngine.ArrayParameterSetup<T> CreateArrayParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
+        public static ExecuteEngine.ListParameterSetup CreateListParameterSetup(ExecuteEngine engine, Type type, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
         {
             var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
-            return engine.CreateArrayParameterSetup<T>(provider);
-        }
-
-        // TODO
-        public static ExecuteEngine.ListParameterSetup<T> CreateListParameterSetup<T>(ExecuteEngine engine, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
-        {
-            var provider = GetCustomAttributeProvider(method, parameterIndex, declaringType, propertyName);
-            return engine.CreateListParameterSetup<T>(provider);
+            return engine.CreateListParameterSetup(type, provider);
         }
 
         public static ExecuteEngine.InParameterSetup CreateInParameterSetup(ExecuteEngine engine, Type type, MethodInfo method, int parameterIndex, Type declaringType, string propertyName)
