@@ -1115,10 +1115,7 @@ namespace Smart.Data.Accessor.Generator
 
                 if (checkVisitor.IsDynamic || (mm.DynamicParameters.Count > 0))
                 {
-                    var calc = new CalcSizeVisitor(mm);
-                    calc.Visit(mm.Nodes);
-
-                    var visitor = new DynamicBuildVisitor(this, mm, calc.InitialSize);
+                    var visitor = new DynamicBuildVisitor(this, mm, CalculateSqlSize(mm));
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
                 }
@@ -1127,7 +1124,7 @@ namespace Smart.Data.Accessor.Generator
                     var calc = new CalcSizeVisitor(mm);
                     calc.Visit(mm.Nodes);
 
-                    var visitor = new HasArrayBuildVisitor(this, mm, calc.InitialSize);
+                    var visitor = new HasArrayBuildVisitor(this, mm, CalculateSqlSize(mm));
                     visitor.Visit(mm.Nodes);
                     visitor.Flush();
                 }
@@ -1140,6 +1137,18 @@ namespace Smart.Data.Accessor.Generator
             }
 
             NewLine();
+        }
+
+        private int CalculateSqlSize(MethodMetadata mm)
+        {
+            if (mm.SqlSize != null)
+            {
+                return mm.SqlSize.Size;
+            }
+
+            var calc = new CalcSizeVisitor(mm);
+            calc.Visit(mm.Nodes);
+            return calc.InitialSize;
         }
 
         //--------------------------------------------------------------------------------

@@ -41,6 +41,8 @@ namespace Smart.Data.Accessor.Generator.Metadata
 
         public TimeoutAttribute Timeout { get; }
 
+        public SqlSizeAttribute SqlSize { get; }
+
         // Parameter
 
         public ParameterInfo TimeoutParameter { get; }
@@ -83,6 +85,7 @@ namespace Smart.Data.Accessor.Generator.Metadata
 
             Provider = mi.GetCustomAttribute<ProviderAttribute>();
             Timeout = mi.GetCustomAttribute<TimeoutAttribute>();
+            SqlSize = mi.GetCustomAttribute<SqlSizeAttribute>();
 
             foreach (var pmi in mi.GetParameters())
             {
