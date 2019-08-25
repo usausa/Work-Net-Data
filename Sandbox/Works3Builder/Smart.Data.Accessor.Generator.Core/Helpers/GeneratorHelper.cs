@@ -51,18 +51,6 @@ namespace Smart.Data.Accessor.Generator.Helpers
             }
         }
 
-        public static Type MakeInParameterType(Type type)
-        {
-            var openType = typeof(ExecuteEngine.InParameterSetup<>);
-            return openType.MakeGenericType(type);
-        }
-
-        public static Type MakeInOutParameterType(Type type)
-        {
-            var openType = typeof(ExecuteEngine.InOutParameterSetup<>);
-            return openType.MakeGenericType(type);
-        }
-
         public static Type MakeArrayParameterType(Type type)
         {
             var openType = typeof(ExecuteEngine.ArrayParameterSetup<>);

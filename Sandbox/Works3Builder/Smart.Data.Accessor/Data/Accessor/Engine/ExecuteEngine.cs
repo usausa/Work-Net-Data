@@ -108,7 +108,7 @@ namespace Smart.Data.Accessor.Engine
 
         Func<object, object> IResultMapperCreateContext.GetConverter(Type sourceType, Type destinationType, ICustomAttributeProvider provider)
         {
-            var converter = GetHandler(destinationType, provider);
+            var converter = CreateHandler(destinationType, provider);
             if (converter != null)
             {
                 return converter;
@@ -123,13 +123,7 @@ namespace Smart.Data.Accessor.Engine
             return objectConverter.CreateConverter(sourceType, destinationType);
         }
 
-        public Func<object, object> CreateHandler<T>(ICustomAttributeProvider provider)
-        {
-            var type = typeof(T);
-            return GetHandler(type, provider);
-        }
-
-        private Func<object, object> GetHandler(Type type, ICustomAttributeProvider provider)
+        public Func<object, object> CreateHandler(Type type, ICustomAttributeProvider provider)
         {
             // ResultAttribute
             var attribute = provider.GetCustomAttributes(true).OfType<ResultParserAttribute>().FirstOrDefault();
