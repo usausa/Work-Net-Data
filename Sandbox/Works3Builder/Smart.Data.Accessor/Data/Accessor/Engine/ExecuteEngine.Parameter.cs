@@ -462,23 +462,33 @@ namespace Smart.Data.Accessor.Engine
         {
             private readonly ExecuteEngine engine;
 
+            private readonly bool isMultiple;
+
             private DynamicParameterEntry entry = DynamicParameterEntry.Empty;
 
-            public DynamicParameterSetup(ExecuteEngine engine)
+            public DynamicParameterSetup(ExecuteEngine engine, bool isMultiple)
             {
                 this.engine = engine;
+                this.isMultiple = isMultiple;
             }
 
             public void Setup(DbCommand cmd, StringBuilder sql, string name, object value)
             {
                 if (value is null)
                 {
-                    sql.Append(name);
+                    if (isMultiple)
+                    {
+                        sql.Append(engine.emptyDialect.GetSql());
+                    }
+                    else
+                    {
+                        sql.Append(name);
 
-                    var parameter = cmd.CreateParameter();
-                    cmd.Parameters.Add(parameter);
-                    parameter.Value = DBNull.Value;
-                    parameter.ParameterName = name;
+                        var parameter = cmd.CreateParameter();
+                        cmd.Parameters.Add(parameter);
+                        parameter.Value = DBNull.Value;
+                        parameter.ParameterName = name;
+                    }
                 }
                 else
                 {
@@ -616,9 +626,9 @@ namespace Smart.Data.Accessor.Engine
             throw new AccessorRuntimeException($"Parameter type is not supported. type=[{type.FullName}]");
         }
 
-        public DynamicParameterSetup CreateDynamicParameterSetup()
+        public DynamicParameterSetup CreateDynamicParameterSetup(bool isMultiple)
         {
-            return new DynamicParameterSetup(this);
+            return new DynamicParameterSetup(this, isMultiple);
         }
     }
 }

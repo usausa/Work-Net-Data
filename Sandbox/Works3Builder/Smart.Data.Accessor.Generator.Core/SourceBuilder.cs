@@ -552,7 +552,8 @@ namespace Smart.Data.Accessor.Generator
                     foreach (var parameter in mm.DynamicParameters)
                     {
                         Indent();
-                        AppendLine($"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)} = {CtorArg}.CreateDynamicParameterSetup();");
+                        var multiple = parameter.IsMultiple ? "true" : "false";
+                        AppendLine($"{GetSetupDynamicParameterFieldRef(mm.No, parameter.Index)} = {CtorArg}.CreateDynamicParameterSetup({multiple});");
                     }
 
                     foreach (var parameter in mm.Parameters.Where(x => x.Direction != ParameterDirection.Input && x.Type != typeof(object)))

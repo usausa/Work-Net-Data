@@ -90,7 +90,7 @@ namespace Smart.Data.Accessor.Generator.Visitors
             }
 
             // Dynamic
-            dynamicParameters.Add(new DynamicParameterEntry(node.Name, index++));
+            dynamicParameters.Add(new DynamicParameterEntry(node.Name, index++, node.IsMultiple));
         }
 
         private bool ResolvePropertyParameter(Type targetType, string[] path, int position, ParameterNode node, string source)

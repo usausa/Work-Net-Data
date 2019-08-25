@@ -143,6 +143,14 @@ namespace Smart.Data.Accessor
             {
                 cmd.Executing = c =>
                 {
+                    Assert.Equal(0, c.Parameters.Count);
+                };
+                cmd.SetupResult(1);
+            });
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
                     Assert.Equal(2, c.Parameters.Count);
                     Assert.Equal(DbType.Int32, c.Parameters[0].DbType);
                     Assert.Equal(1, c.Parameters[0].Value);
@@ -152,9 +160,9 @@ namespace Smart.Data.Accessor
                 cmd.SetupResult(1);
             });
 
+            dao.Execute(con, null);
             dao.Execute(con, Array.Empty<int>());
             dao.Execute(con, new[] { 1, 2 });
-            //dao.Execute(con, null); // Not supported
         }
 
         //--------------------------------------------------------------------------------
@@ -190,6 +198,14 @@ namespace Smart.Data.Accessor
             {
                 cmd.Executing = c =>
                 {
+                    Assert.Equal(0, c.Parameters.Count);
+                };
+                cmd.SetupResult(1);
+            });
+            con.SetupCommand(cmd =>
+            {
+                cmd.Executing = c =>
+                {
                     Assert.Equal(2, c.Parameters.Count);
                     Assert.Equal(DbType.Int32, c.Parameters[0].DbType);
                     Assert.Equal(1, c.Parameters[0].Value);
@@ -199,9 +215,9 @@ namespace Smart.Data.Accessor
                 cmd.SetupResult(1);
             });
 
+            dao.Execute(con, null);
             dao.Execute(con, new List<int>());
             dao.Execute(con, new List<int>(new[] { 1, 2 }));
-            //dao.Execute(con, null); // Not supported
         }
 
         //--------------------------------------------------------------------------------
