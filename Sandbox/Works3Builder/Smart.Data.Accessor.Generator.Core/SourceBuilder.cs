@@ -1134,7 +1134,7 @@ namespace Smart.Data.Accessor.Generator
             NewLine();
         }
 
-        private int CalculateSqlSize(MethodMetadata mm)
+        private static int CalculateSqlSize(MethodMetadata mm)
         {
             if (mm.SqlSize != null)
             {

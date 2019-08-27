@@ -88,6 +88,6 @@ namespace Smart.Data.Accessor.Generator.Helpers
             }
         }
 
-        private bool IsToken(char c) => !Char.IsWhiteSpace(c) && (c != '?') && (c != '[') && (c != '.');
+        private static bool IsToken(char c) => !Char.IsWhiteSpace(c) && (c != '?') && (c != '[') && (c != '.');
     }
 }
