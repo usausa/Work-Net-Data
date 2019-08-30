@@ -29,12 +29,24 @@ namespace WorkTreeWalker
                     {
                         Debug.WriteLine("");
                         Debug.WriteLine($"----{invocation.ToFullString().Trim()}");
-                        Tree(invocation.ArgumentList.Arguments[0].Expression, model);
 
-                        var type = model.GetTypeInfo(invocation.ArgumentList.Arguments[0].Expression);
+                        var expression = invocation.ArgumentList.Arguments[0].Expression;
+                        Tree(expression, model);
+
+                        var type = model.GetTypeInfo(expression);
                         Debug.WriteLine($"Type = {type.Type}");
 
                         // TODO get attribute : parameter, property, property has element, method
+                        if (expression is MemberAccessExpressionSyntax member)
+                        {
+                            var ps = (IPropertySymbol)model.GetSymbolInfo(member.Name).Symbol;
+                            Debug.WriteLine(ps.ContainingType.Name + " " + ps.Name);
+                        }
+
+                        if (expression is IdentifierNameSyntax variable)
+                        {
+                            //
+                        }
                     }
                 }
             }

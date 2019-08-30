@@ -13,6 +13,8 @@ namespace WorkClient.Mock
 
         private ISqlLoader loader;
 
+        private IGeneratorOption option;
+
         public TestFactoryBuilder Config(Action<ExecuteEngineConfig> action)
         {
             action(config);
@@ -51,9 +53,17 @@ namespace WorkClient.Mock
             return this;
         }
 
+        public TestFactoryBuilder ConfigureOptions(Action<Dictionary<string, string>> action)
+        {
+            var map = new Dictionary<string, string>();
+            action(map);
+            option = new TestGeneratorOption(map);
+            return this;
+        }
+
         public TestFactory Build()
         {
-            return new TestFactory(loader, config.ToEngine());
+            return new TestFactory(loader, option, config.ToEngine());
         }
     }
 }
