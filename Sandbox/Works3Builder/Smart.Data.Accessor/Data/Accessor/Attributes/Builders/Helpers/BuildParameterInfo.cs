@@ -1,5 +1,6 @@
-namespace Smart.Data.Accessor.Builders
+namespace Smart.Data.Accessor.Attributes.Builders.Helpers
 {
+    using System;
     using System.Reflection;
 
     public sealed class BuildParameterInfo
@@ -11,6 +12,8 @@ namespace Smart.Data.Accessor.Builders
         public string Name { get; }
 
         public string ParameterName { get; }
+
+        public Type ParameterType => parameter != null ? parameter.ParameterType : property.PropertyType;
 
         public BuildParameterInfo(ParameterInfo parameter, string name, string parameterName)
         {
@@ -26,6 +29,19 @@ namespace Smart.Data.Accessor.Builders
             this.property = property;
             Name = name;
             ParameterName = parameterName;
+        }
+
+        public T GetCustomAttribute<T>()
+            where T : Attribute
+        {
+            if (parameter != null)
+            {
+                return parameter.GetCustomAttribute<T>();
+            }
+            else
+            {
+                return property.GetCustomAttribute<T>();
+            }
         }
     }
 }

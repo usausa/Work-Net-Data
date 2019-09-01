@@ -10,17 +10,17 @@ namespace Smart.Data.Accessor.Attributes.Builders
     using Smart.Data.Accessor.Nodes;
     using Smart.Data.Accessor.Tokenizer;
 
-    public sealed class DeleteAttribute : MethodAttribute
+    public sealed class CountAttribute : MethodAttribute
     {
         private readonly string table;
 
-        public DeleteAttribute()
+        public CountAttribute()
             : this(null)
         {
         }
 
-        public DeleteAttribute(string table)
-            : base(CommandType.Text, MethodType.Execute)
+        public CountAttribute(string table)
+            : base(CommandType.Text, MethodType.ExecuteScalar)
         {
             this.table = table;
         }
@@ -28,7 +28,7 @@ namespace Smart.Data.Accessor.Attributes.Builders
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)
         {
             var sql = new StringBuilder();
-            sql.Append("DELETE FROM ");
+            sql.Append("SELECT COUNT(*) FROM ");
             sql.Append(table ?? BuildHelper.GetTableName(option, mi));
             sql.Append(" WHERE ");
             BuildHelper.AddConditionNode(sql, BuildHelper.GetParameters(option, mi));

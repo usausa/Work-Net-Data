@@ -23,10 +23,6 @@ namespace Smart.Data.Accessor.Builders
             {
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
-                    .ConfigureOptions(x =>
-                    {
-                        x["EntityClassSuffix"] = "Model,Entity";
-                    })
                     .Build();
                 var dao = generator.Create<IInsertDao>();
 
