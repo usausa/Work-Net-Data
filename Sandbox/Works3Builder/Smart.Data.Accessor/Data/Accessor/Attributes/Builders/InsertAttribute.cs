@@ -1,5 +1,6 @@
 namespace Smart.Data.Accessor.Attributes.Builders
 {
+    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Reflection;
@@ -12,21 +13,35 @@ namespace Smart.Data.Accessor.Attributes.Builders
     {
         private readonly string table;
 
+        private readonly Type type;
+
         public InsertAttribute()
-            : this(null)
+            : this(null, null)
         {
         }
 
         public InsertAttribute(string table)
-            : base(CommandType.Text, MethodType.Execute)
+            : this(table, null)
+        {
+        }
+
+        public InsertAttribute(Type type)
+            : this(null, type)
+        {
+        }
+
+        private InsertAttribute(string table, Type type)
+            : base(CommandType.Text, MethodType.ExecuteScalar)
         {
             this.table = table;
+            this.type = type;
         }
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)
         {
             var parameters = BuildHelper.GetParameters(option, mi);
 
+            // TODO sql based
             var nodes = new List<INode>
             {
                 new SqlNode("INSERT INTO "),

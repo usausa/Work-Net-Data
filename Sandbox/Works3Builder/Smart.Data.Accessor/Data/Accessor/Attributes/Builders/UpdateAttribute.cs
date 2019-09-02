@@ -1,5 +1,6 @@
 namespace Smart.Data.Accessor.Attributes.Builders
 {
+    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Reflection;
@@ -11,15 +12,28 @@ namespace Smart.Data.Accessor.Attributes.Builders
     {
         private readonly string table;
 
+        private readonly Type type;
+
         public UpdateAttribute()
-            : this(null)
+            : this(null, null)
         {
         }
 
         public UpdateAttribute(string table)
-            : base(CommandType.Text, MethodType.Execute)
+            : this(table, null)
+        {
+        }
+
+        public UpdateAttribute(Type type)
+            : this(null, type)
+        {
+        }
+
+        private UpdateAttribute(string table, Type type)
+            : base(CommandType.Text, MethodType.Query)
         {
             this.table = table;
+            this.type = type;
         }
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)

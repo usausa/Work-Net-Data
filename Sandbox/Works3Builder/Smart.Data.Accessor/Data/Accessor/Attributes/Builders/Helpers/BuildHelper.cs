@@ -1,5 +1,6 @@
 namespace Smart.Data.Accessor.Attributes.Builders.Helpers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -10,13 +11,13 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
     using Smart.Data.Accessor.Helpers;
     using Smart.Text;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods", Justification = "Ignore")]
     public static class BuildHelper
     {
         //--------------------------------------------------------------------------------
         // Table
         //--------------------------------------------------------------------------------
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods", Justification = "Ignore")]
         public static string GetTableName(IGeneratorOption option, MethodInfo mi)
         {
             var parameter = mi.GetParameters()
@@ -32,18 +33,22 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
                 return attr.Name;
             }
 
+            return GetTableNameOfType(option, parameter.ParameterType);
+        }
+
+        public static string GetTableNameOfType(IGeneratorOption option, Type type)
+        {
             var suffix = option.GetValueAsStringArray("EntityClassSuffix");
-            var match = suffix.FirstOrDefault(x => parameter.ParameterType.Name.EndsWith(x));
+            var match = suffix.FirstOrDefault(x => type.Name.EndsWith(x));
             return match == null
-                ? parameter.ParameterType.Name
-                : parameter.ParameterType.Name.Substring(0, parameter.ParameterType.Name.Length - match.Length);
+                ? type.Name
+                : type.Name.Substring(0, type.Name.Length - match.Length);
         }
 
         //--------------------------------------------------------------------------------
         // Parameter
         //--------------------------------------------------------------------------------
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods", Justification = "Ignore")]
         public static IReadOnlyList<BuildParameterInfo> GetParameters(IGeneratorOption option, MethodInfo mi)
         {
             var naming = option.GetValue("FieldNaming");

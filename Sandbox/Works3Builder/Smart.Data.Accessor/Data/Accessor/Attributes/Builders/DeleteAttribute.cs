@@ -1,5 +1,6 @@
 namespace Smart.Data.Accessor.Attributes.Builders
 {
+    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Reflection;
@@ -14,22 +15,35 @@ namespace Smart.Data.Accessor.Attributes.Builders
     {
         private readonly string table;
 
+        private readonly Type type;
+
         public DeleteAttribute()
-            : this(null)
+            : this(null, null)
         {
         }
 
         public DeleteAttribute(string table)
-            : base(CommandType.Text, MethodType.Execute)
+            : this(table, null)
+        {
+        }
+
+        public DeleteAttribute(Type type)
+            : this(null, type)
+        {
+        }
+
+        private DeleteAttribute(string table, Type type)
+            : base(CommandType.Text, MethodType.ExecuteScalar)
         {
             this.table = table;
+            this.type = type;
         }
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)
         {
             var sql = new StringBuilder();
             sql.Append("DELETE FROM ");
-            sql.Append(table ?? BuildHelper.GetTableName(option, mi));
+            sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
             sql.Append(" WHERE ");
             BuildHelper.AddConditionNode(sql, BuildHelper.GetParameters(option, mi));
 

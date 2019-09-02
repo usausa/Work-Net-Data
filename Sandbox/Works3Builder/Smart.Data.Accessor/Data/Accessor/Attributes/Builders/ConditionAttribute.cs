@@ -7,6 +7,10 @@ namespace Smart.Data.Accessor.Attributes.Builders
     {
         public string Operand { get; }
 
+        public bool ExcludeNull { get; set; }
+
+        public bool EmptyStringAsNull { get; set; } = true;
+
         public ConditionAttribute()
             : this(Builders.Operand.Equal)
         {
