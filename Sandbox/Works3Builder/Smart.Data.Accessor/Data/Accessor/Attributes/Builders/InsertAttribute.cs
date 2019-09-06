@@ -31,7 +31,7 @@ namespace Smart.Data.Accessor.Attributes.Builders
         }
 
         private InsertAttribute(string table, Type type)
-            : base(CommandType.Text, MethodType.ExecuteScalar)
+            : base(CommandType.Text, MethodType.Execute)
         {
             this.table = table;
             this.type = type;

@@ -30,7 +30,7 @@ namespace Smart.Data.Accessor.Attributes.Builders
         }
 
         private UpdateAttribute(string table, Type type)
-            : base(CommandType.Text, MethodType.Query)
+            : base(CommandType.Text, MethodType.Execute)
         {
             this.table = table;
             this.type = type;
