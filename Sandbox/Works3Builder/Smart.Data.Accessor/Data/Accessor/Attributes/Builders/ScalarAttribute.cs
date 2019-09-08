@@ -11,38 +11,28 @@ namespace Smart.Data.Accessor.Attributes.Builders
     using Smart.Data.Accessor.Nodes;
     using Smart.Data.Accessor.Tokenizer;
 
-    public sealed class CountAttribute : MethodAttribute
+    public abstract class BaseScalarAttribute : MethodAttribute
     {
         private readonly string table;
 
         private readonly Type type;
 
-        public CountAttribute()
-            : this(null, null)
-        {
-        }
+        private readonly string field;
 
-        public CountAttribute(string table)
-            : this(table, null)
-        {
-        }
-
-        public CountAttribute(Type type)
-            : this(null, type)
-        {
-        }
-
-        private CountAttribute(string table, Type type)
+        protected BaseScalarAttribute(string table, Type type, string field)
             : base(CommandType.Text, MethodType.ExecuteScalar)
         {
             this.table = table;
             this.type = type;
+            this.field = field;
         }
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)
         {
             var sql = new StringBuilder();
-            sql.Append("SELECT COUNT(*) FROM ");
+            sql.Append("SELECT ");
+            sql.Append(field);
+            sql.Append(" FROM ");
             sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
             sql.Append(" WHERE ");
             BuildHelper.AddConditionNode(sql, BuildHelper.GetParameters(option, mi));
@@ -50,6 +40,26 @@ namespace Smart.Data.Accessor.Attributes.Builders
             var tokenizer = new SqlTokenizer(sql.ToString());
             var builder = new NodeBuilder(tokenizer.Tokenize());
             return builder.Build();
+        }
+    }
+
+    public sealed class CountAttribute : BaseScalarAttribute
+    {
+        private const string Field = "COUNT(*)";
+
+        public CountAttribute()
+            : base(null, null, Field)
+        {
+        }
+
+        public CountAttribute(string table)
+            : base(table, null, Field)
+        {
+        }
+
+        public CountAttribute(Type type)
+            : base(null, type, Field)
+        {
         }
     }
 }

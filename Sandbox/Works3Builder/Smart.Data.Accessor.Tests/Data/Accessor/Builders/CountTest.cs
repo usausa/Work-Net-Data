@@ -3,55 +3,23 @@ namespace Smart.Data.Accessor.Builders
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Attributes.Builders;
     using Smart.Mock;
-
     using Xunit;
 
-    public class DeleteTest
+    public class CountTest
     {
-        //--------------------------------------------------------------------------------
-        // Key
-        //--------------------------------------------------------------------------------
-
-        [DataAccessor]
-        public interface IDeleteByKeyDao
-        {
-            [Delete]
-            int Delete(MultiKeyEntity entity);
-        }
-
-        [Fact]
-        public void TestDeleteByKey()
-        {
-            using (var con = TestDatabase.Initialize()
-                .SetupMultiKeyTable()
-                .InsertMultiKey(new MultiKeyEntity { Key1 = 1, Key2 = 2, Type = "A", Name = "Data-1" }))
-            {
-                var generator = new TestFactoryBuilder()
-                    .UseFileDatabase()
-                    .Build();
-                var dao = generator.Create<IDeleteByKeyDao>();
-
-                var effect = dao.Delete(new MultiKeyEntity { Key1 = 1L, Key2 = 2L });
-
-                Assert.Equal(1, effect);
-
-                Assert.Null(con.QueryMultiKey(1L, 2L));
-            }
-        }
-
         //--------------------------------------------------------------------------------
         // Argument
         //--------------------------------------------------------------------------------
 
         [DataAccessor]
-        public interface IDeleteByArgumentDao
+        public interface ICountByArgumentDao
         {
             [Count(typeof(MultiKeyEntity))]
-            int Delete(long key1, [Condition(Operand.GreaterEqualThan)] long key2);
+            long Count(long key1, [Condition(Operand.GreaterEqualThan)] long key2);
         }
 
         [Fact]
-        public void TestDeleteByArgument()
+        public void TestCountByArgument()
         {
             using (TestDatabase.Initialize()
                 .SetupMultiKeyTable()
@@ -62,11 +30,11 @@ namespace Smart.Data.Accessor.Builders
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
                     .Build();
-                var dao = generator.Create<IDeleteByArgumentDao>();
+                var dao = generator.Create<ICountByArgumentDao>();
 
-                var effect = dao.Delete(1L, 2L);
+                var count = dao.Count(1L, 2L);
 
-                Assert.Equal(2, effect);
+                Assert.Equal(2, count);
             }
         }
 
@@ -83,14 +51,14 @@ namespace Smart.Data.Accessor.Builders
         }
 
         [DataAccessor]
-        public interface IDeleteByParameterDao
+        public interface ICountByParameterDao
         {
             [Count(typeof(MultiKeyEntity))]
-            int Delete(Parameter parameter);
+            long Count(Parameter parameter);
         }
 
         [Fact]
-        public void TestDeleteByParameter()
+        public void TestCountByParameter()
         {
             using (TestDatabase.Initialize()
                 .SetupMultiKeyTable()
@@ -101,11 +69,11 @@ namespace Smart.Data.Accessor.Builders
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
                     .Build();
-                var dao = generator.Create<IDeleteByParameterDao>();
+                var dao = generator.Create<ICountByParameterDao>();
 
-                var effect = dao.Delete(new Parameter { Key1 = 1L, Key2 = 2L });
+                var count = dao.Count(new Parameter { Key1 = 1L, Key2 = 2L });
 
-                Assert.Equal(2, effect);
+                Assert.Equal(2, count);
             }
         }
     }

@@ -36,6 +36,19 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
             return GetTableNameOfType(option, parameter.ParameterType);
         }
 
+        public static string GetReturnTableName(IGeneratorOption option, MethodInfo mi)
+        {
+            var elementType = ParameterHelper.IsMultipleParameter(mi.ReturnType)
+                ? ParameterHelper.GetMultipleParameterElementType(mi.ReturnType)
+                : mi.ReturnType;
+            if (!ParameterHelper.IsNestedType(elementType))
+            {
+                return null;
+            }
+
+            return GetTableNameOfType(option, elementType);
+        }
+
         public static string GetTableNameOfType(IGeneratorOption option, Type type)
         {
             var suffix = option.GetValueAsStringArray("EntityClassSuffix");

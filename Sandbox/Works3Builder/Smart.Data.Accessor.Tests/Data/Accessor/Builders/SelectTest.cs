@@ -1,41 +1,41 @@
 namespace Smart.Data.Accessor.Builders
 {
+    using System.Collections.Generic;
+
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Attributes.Builders;
     using Smart.Mock;
 
     using Xunit;
 
-    public class DeleteTest
+    public class SelectTest
     {
         //--------------------------------------------------------------------------------
         // Key
         //--------------------------------------------------------------------------------
 
         [DataAccessor]
-        public interface IDeleteByKeyDao
+        public interface ISelectByKeyDao
         {
-            [Delete]
-            int Delete(MultiKeyEntity entity);
+            [SelectSingle]
+            MultiKeyEntity SelectSingle(MultiKeyEntity entity);
         }
 
         [Fact]
-        public void TestDeleteByKey()
+        public void TestSelectByKey()
         {
-            using (var con = TestDatabase.Initialize()
+            using (TestDatabase.Initialize()
                 .SetupMultiKeyTable()
                 .InsertMultiKey(new MultiKeyEntity { Key1 = 1, Key2 = 2, Type = "A", Name = "Data-1" }))
             {
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
                     .Build();
-                var dao = generator.Create<IDeleteByKeyDao>();
+                var dao = generator.Create<ISelectByKeyDao>();
 
-                var effect = dao.Delete(new MultiKeyEntity { Key1 = 1L, Key2 = 2L });
+                var entity = dao.SelectSingle(new MultiKeyEntity { Key1 = 1L, Key2 = 2L });
 
-                Assert.Equal(1, effect);
-
-                Assert.Null(con.QueryMultiKey(1L, 2L));
+                Assert.NotNull(entity);
             }
         }
 
@@ -44,14 +44,14 @@ namespace Smart.Data.Accessor.Builders
         //--------------------------------------------------------------------------------
 
         [DataAccessor]
-        public interface IDeleteByArgumentDao
+        public interface ISelectByArgumentDao
         {
-            [Count(typeof(MultiKeyEntity))]
-            int Delete(long key1, [Condition(Operand.GreaterEqualThan)] long key2);
+            [Select]
+            List<MultiKeyEntity> Select(long key1, [Condition(Operand.GreaterEqualThan)] long key2);
         }
 
         [Fact]
-        public void TestDeleteByArgument()
+        public void TestSelectByArgument()
         {
             using (TestDatabase.Initialize()
                 .SetupMultiKeyTable()
@@ -62,11 +62,11 @@ namespace Smart.Data.Accessor.Builders
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
                     .Build();
-                var dao = generator.Create<IDeleteByArgumentDao>();
+                var dao = generator.Create<ISelectByArgumentDao>();
 
-                var effect = dao.Delete(1L, 2L);
+                var list = dao.Select(1L, 2L);
 
-                Assert.Equal(2, effect);
+                Assert.Equal(2, list.Count);
             }
         }
 
@@ -83,14 +83,14 @@ namespace Smart.Data.Accessor.Builders
         }
 
         [DataAccessor]
-        public interface IDeleteByParameterDao
+        public interface ISelectByParameterDao
         {
-            [Count(typeof(MultiKeyEntity))]
-            int Delete(Parameter parameter);
+            [Select]
+            List<MultiKeyEntity> Select(Parameter parameter);
         }
 
         [Fact]
-        public void TestDeleteByParameter()
+        public void TestSelectByParameter()
         {
             using (TestDatabase.Initialize()
                 .SetupMultiKeyTable()
@@ -101,11 +101,11 @@ namespace Smart.Data.Accessor.Builders
                 var generator = new TestFactoryBuilder()
                     .UseFileDatabase()
                     .Build();
-                var dao = generator.Create<IDeleteByParameterDao>();
+                var dao = generator.Create<ISelectByParameterDao>();
 
-                var effect = dao.Delete(new Parameter { Key1 = 1L, Key2 = 2L });
+                var list = dao.Select(new Parameter { Key1 = 1L, Key2 = 2L });
 
-                Assert.Equal(2, effect);
+                Assert.Equal(2, list.Count);
             }
         }
     }
