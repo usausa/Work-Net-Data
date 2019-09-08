@@ -29,8 +29,7 @@ namespace Smart.Data.Accessor.Attributes.Builders
             var sql = new StringBuilder();
             sql.Append("SELECT * FROM ");
             sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetReturnTableName(option, mi));
-            sql.Append(" WHERE ");
-            BuildHelper.AddConditionNode(sql, BuildHelper.GetParameters(option, mi));
+            BuildHelper.AddCondition(sql, BuildHelper.GetParameters(option, mi));
 
             var tokenizer = new SqlTokenizer(sql.ToString());
             var builder = new NodeBuilder(tokenizer.Tokenize());

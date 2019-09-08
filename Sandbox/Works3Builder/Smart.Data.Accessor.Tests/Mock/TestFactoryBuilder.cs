@@ -1,3 +1,5 @@
+using Smart.ComponentModel;
+
 namespace Smart.Mock
 {
     using System;
@@ -53,6 +55,12 @@ namespace Smart.Mock
             {
                 c.Add<IDbProvider>(new DelegateDbProvider(TestDatabase.CreateMemory));
             });
+            return this;
+        }
+
+        public TestFactoryBuilder ConfigureComponents(Action<ComponentConfig> action)
+        {
+            config.ConfigureComponents(action);
             return this;
         }
 

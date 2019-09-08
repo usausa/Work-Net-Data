@@ -4,10 +4,12 @@ namespace Smart.Data.Accessor.Attributes.Builders
     using System.Collections.Generic;
     using System.Data;
     using System.Reflection;
+    using System.Text;
 
     using Smart.Data.Accessor.Attributes.Builders.Helpers;
     using Smart.Data.Accessor.Generator;
     using Smart.Data.Accessor.Nodes;
+    using Smart.Data.Accessor.Tokenizer;
 
     public sealed class InsertAttribute : MethodAttribute
     {
@@ -41,49 +43,40 @@ namespace Smart.Data.Accessor.Attributes.Builders
         {
             var parameters = BuildHelper.GetParameters(option, mi);
 
-            // TODO sql based
-            var nodes = new List<INode>
-            {
-                new SqlNode("INSERT INTO "),
-                new SqlNode(table ?? BuildHelper.GetTableName(option, mi)),
-                new SqlNode(" (")
-            };
+            var sql = new StringBuilder();
+            sql.Append("INSERT INTO ");
+            sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
+            sql.Append(" (");
 
-            var first = true;
-            foreach (var parameter in parameters)
+            for (var i = 0; i < parameters.Count; i++)
             {
-                if (first)
+                if (i != 0)
                 {
-                    first = false;
-                }
-                else
-                {
-                    nodes.Add(new SqlNode(", "));
+                    sql.Append(", ");
                 }
 
-                nodes.Add(new SqlNode(parameter.ParameterName));
+                sql.Append(parameters[i].ParameterName);
             }
 
-            nodes.Add(new SqlNode(") VALUES ("));
+            sql.Append(") VALUES (");
 
-            first = true;
-            foreach (var parameter in parameters)
+            for (var i = 0; i < parameters.Count; i++)
             {
-                if (first)
+                var parameter = parameters[i];
+
+                if (i != 0)
                 {
-                    first = false;
-                }
-                else
-                {
-                    nodes.Add(new SqlNode(", "));
+                    sql.Append(", ");
                 }
 
-                nodes.Add(new ParameterNode(parameter.Name, parameter.ParameterName));
+                BuildHelper.AddParameter(sql, parameter, Operation.Insert);
             }
 
-            nodes.Add(new SqlNode(")"));
+            sql.Append(")");
 
-            return nodes;
+            var tokenizer = new SqlTokenizer(sql.ToString());
+            var builder = new NodeBuilder(tokenizer.Tokenize());
+            return builder.Build();
         }
     }
 }

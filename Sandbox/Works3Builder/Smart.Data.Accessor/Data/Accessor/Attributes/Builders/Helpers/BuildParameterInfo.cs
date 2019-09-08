@@ -1,6 +1,7 @@
 namespace Smart.Data.Accessor.Attributes.Builders.Helpers
 {
     using System;
+    using System.Collections.Generic;
     using System.Reflection;
 
     public sealed class BuildParameterInfo
@@ -34,14 +35,17 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
         public T GetCustomAttribute<T>()
             where T : Attribute
         {
-            if (parameter != null)
-            {
-                return parameter.GetCustomAttribute<T>();
-            }
-            else
-            {
-                return property.GetCustomAttribute<T>();
-            }
+            return parameter != null
+                ? parameter.GetCustomAttribute<T>()
+                : property.GetCustomAttribute<T>();
+        }
+
+        public IEnumerable<T> GetCustomAttributes<T>()
+            where T : Attribute
+        {
+            return parameter != null
+                ? parameter.GetCustomAttributes<T>()
+                : property.GetCustomAttributes<T>();
         }
     }
 }

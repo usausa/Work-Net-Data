@@ -108,7 +108,7 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
         // Helper
         //--------------------------------------------------------------------------------
 
-        public static void AddConditionNode(StringBuilder sql, IReadOnlyList<BuildParameterInfo> parameters)
+        public static void AddCondition(StringBuilder sql, IReadOnlyList<BuildParameterInfo> parameters)
         {
             var keys = parameters
                 .Select(x => new { Parameter = x, Key = x.GetCustomAttribute<KeyAttribute>() })
@@ -117,23 +117,57 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
                 .ToArray();
             var target = keys.Length > 0 ? keys.Select(x => x.Parameter).ToArray() : parameters;
 
-            for (var i = 0; i < target.Count; i++)
+            var addAnd = parameters
+                .Select(x => x.GetCustomAttribute<ConditionAttribute>())
+                .Any(x => (x?.ExcludeNull ?? false) || (x?.ExcludeEmpty ?? false));
+
+            sql.Append(" WHERE");
+            if (addAnd)
             {
-                var parameter = target[i];
+                sql.Append(" 1 = 1");
+            }
+            else
+            {
+                sql.Append(" ");
+            }
 
-                if (i != 0)
-                {
-                    sql.Append(" AND ");
-                }
-
-                sql.Append(parameter.ParameterName);
+            foreach (var parameter in target)
+            {
                 if (ParameterHelper.IsMultipleParameter(parameter.ParameterType))
                 {
+                    if (addAnd)
+                    {
+                        sql.Append(" AND ");
+                    }
+
+                    sql.Append(parameter.ParameterName);
                     sql.Append(" IN ");
+                    sql.Append($"/*@ {parameter.Name} */dummy");
                 }
                 else
                 {
                     var condition = parameter.GetCustomAttribute<ConditionAttribute>();
+                    var excludeNull = (condition?.ExcludeNull ?? false) || (condition?.ExcludeEmpty ?? false);
+
+                    if (excludeNull)
+                    {
+                        if (condition.ExcludeEmpty)
+                        {
+                            sql.Append($"/*% if (IsNotEmpty({parameter.Name})) {{ */");
+                        }
+                        else
+                        {
+                            sql.Append($"/*% if (IsNotNull({parameter.Name})) {{ */");
+                        }
+                    }
+
+                    if (addAnd)
+                    {
+                        sql.Append(" AND ");
+                    }
+
+                    sql.Append(parameter.ParameterName);
+
                     if (condition != null)
                     {
                         sql.Append($" {condition.Operand} ");
@@ -142,9 +176,38 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
                     {
                         sql.Append(" = ");
                     }
+
+                    sql.Append($"/*@ {parameter.Name} */dummy");
+
+                    if (excludeNull)
+                    {
+                        sql.Append("/*% } */");
+                    }
                 }
-                sql.Append($"/*@ {parameter.Name} */dummy");
+
+                addAnd = true;
             }
+        }
+
+        public static void AddParameter(StringBuilder sql, BuildParameterInfo parameter, string operation)
+        {
+            var dbValue = parameter.GetCustomAttributes<DbValueAttribute>()
+                .FirstOrDefault(x => x.When == null || x.When == operation);
+            if (dbValue != null)
+            {
+                sql.Append(dbValue.Value);
+                return;
+            }
+
+            var codeValue = parameter.GetCustomAttributes<CodeValueAttribute>()
+                .FirstOrDefault(x => x.When == null || x.When == operation);
+            if (codeValue != null)
+            {
+                sql.Append($"/*# {codeValue.Value} */");
+                return;
+            }
+
+            sql.Append($"/*@ {parameter.Name} */dummy");
         }
     }
 }
