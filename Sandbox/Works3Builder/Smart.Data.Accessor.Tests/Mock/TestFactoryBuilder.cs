@@ -1,10 +1,9 @@
-using Smart.ComponentModel;
-
 namespace Smart.Mock
 {
     using System;
     using System.Collections.Generic;
 
+    using Smart.ComponentModel;
     using Smart.Data;
     using Smart.Data.Accessor.Engine;
     using Smart.Data.Accessor.Generator;

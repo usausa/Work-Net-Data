@@ -41,10 +41,13 @@ namespace Smart.Data.Accessor.Attributes.Builders
 
         public override IReadOnlyList<INode> GetNodes(ISqlLoader loader, IGeneratorOption option, MethodInfo mi)
         {
+            var parameters = BuildHelper.GetParameters(option, mi);
+            var keys = BuildHelper.GetKeyParameters(parameters);
+
             var sql = new StringBuilder();
             sql.Append("DELETE FROM ");
             sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
-            BuildHelper.AddCondition(sql, BuildHelper.GetParameters(option, mi));
+            BuildHelper.AddCondition(sql, keys.Count > 0 ? keys : parameters);
 
             var tokenizer = new SqlTokenizer(sql.ToString());
             var builder = new NodeBuilder(tokenizer.Tokenize());

@@ -16,36 +16,30 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
 
         public Type ParameterType => parameter != null ? parameter.ParameterType : property.PropertyType;
 
-        public BuildParameterInfo(ParameterInfo parameter, string name, string parameterName)
+        public BuildParameterInfo(ParameterInfo parameter, PropertyInfo property, string name, string parameterName)
         {
             this.parameter = parameter;
-            this.property = null;
-            Name = name;
-            ParameterName = parameterName;
-        }
-
-        public BuildParameterInfo(PropertyInfo property, string name, string parameterName)
-        {
-            this.parameter = null;
             this.property = property;
             Name = name;
             ParameterName = parameterName;
         }
 
-        public T GetCustomAttribute<T>()
+        public T GetParameterAttribute<T>()
             where T : Attribute
         {
-            return parameter != null
-                ? parameter.GetCustomAttribute<T>()
-                : property.GetCustomAttribute<T>();
+            return parameter.GetCustomAttribute<T>();
         }
 
-        public IEnumerable<T> GetCustomAttributes<T>()
+        public T GetAttribute<T>()
             where T : Attribute
         {
-            return parameter != null
-                ? parameter.GetCustomAttributes<T>()
-                : property.GetCustomAttributes<T>();
+            return property != null ? property.GetCustomAttribute<T>() : parameter.GetCustomAttribute<T>();
+        }
+
+        public IEnumerable<T> GetAttributes<T>()
+            where T : Attribute
+        {
+            return property != null ? property.GetCustomAttributes<T>() : parameter.GetCustomAttributes<T>();
         }
     }
 }
