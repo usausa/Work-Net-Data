@@ -11,6 +11,37 @@ namespace Smart.Data.Accessor.Builders
     public class SelectTest
     {
         //--------------------------------------------------------------------------------
+        // All
+        //--------------------------------------------------------------------------------
+
+        [DataAccessor]
+        public interface ISelectAllDao
+        {
+            [Select]
+            List<MultiKeyEntity> SelectAll();
+        }
+
+        [Fact]
+        public void TestSelectAll()
+        {
+            using (TestDatabase.Initialize()
+                .SetupMultiKeyTable()
+                .InsertMultiKey(new MultiKeyEntity { Key1 = 1, Key2 = 1, Type = "A", Name = "Data-1" })
+                .InsertMultiKey(new MultiKeyEntity { Key1 = 1, Key2 = 2, Type = "B", Name = "Data-2" })
+                .InsertMultiKey(new MultiKeyEntity { Key1 = 1, Key2 = 3, Type = "A", Name = "Data-3" }))
+            {
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .Build();
+                var dao = generator.Create<ISelectAllDao>();
+
+                var list = dao.SelectAll();
+
+                Assert.Equal(3, list.Count);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
         // Key
         //--------------------------------------------------------------------------------
 

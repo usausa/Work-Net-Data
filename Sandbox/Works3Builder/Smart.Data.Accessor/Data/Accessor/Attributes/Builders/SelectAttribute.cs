@@ -17,6 +17,8 @@ namespace Smart.Data.Accessor.Attributes.Builders
 
         private readonly Type type;
 
+        public string Order { get; set; }
+
         protected BaseSelectAttribute(string table, Type type, MethodType methodType)
             : base(CommandType.Text, methodType)
         {
@@ -41,6 +43,26 @@ namespace Smart.Data.Accessor.Attributes.Builders
             sql.Append("SELECT * FROM ");
             sql.Append(tableName);
             BuildHelper.AddCondition(sql, keys.Count > 0 ? keys : parameters);
+
+            if (MethodType == MethodType.Query)
+            {
+                if (!String.IsNullOrEmpty(Order))
+                {
+                    sql.Append(" ORDER BY ");
+                    sql.Append(Order);
+                }
+                else if (keys.Count > 0)
+                {
+                    sql.Append(" ORDER BY ");
+                    foreach (var key in keys)
+                    {
+                        sql.Append(key.Name);
+                        sql.Append(", ");
+                    }
+
+                    sql.Length -= 2;
+                }
+            }
 
             var tokenizer = new SqlTokenizer(sql.ToString());
             var builder = new NodeBuilder(tokenizer.Tokenize());
