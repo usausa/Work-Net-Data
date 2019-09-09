@@ -48,6 +48,7 @@ namespace Smart.Data.Accessor.Builders
 
         public class DbValueEntity
         {
+            [Key]
             public long Id { get; set; }
 
             [DbValue("CURRENT_TIMESTAMP")]
@@ -86,6 +87,39 @@ namespace Smart.Data.Accessor.Builders
             }
         }
 
+        [DataAccessor]
+        public interface IInsertAdditionalDbValueDao
+        {
+            [Insert("DbValue")]
+            [AdditionalDbValue("DateTime", "CURRENT_TIMESTAMP")]
+            void Insert(long id);
+
+            [SelectSingle]
+            DbValueEntity QueryEntity(long id);
+        }
+
+        [Fact]
+        public void TestInsertAdditionalDbValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS DbValue (Id int PRIMARY KEY, DateTime text)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .Build();
+                var dao = generator.Create<IInsertAdditionalDbValueDao>();
+
+                dao.Insert(1);
+
+                var entity = dao.QueryEntity(1);
+
+                Assert.NotNull(entity);
+                Assert.NotEmpty(entity.DateTime);
+            }
+        }
+
         //--------------------------------------------------------------------------------
         // CodeValue
         //--------------------------------------------------------------------------------
@@ -99,6 +133,7 @@ namespace Smart.Data.Accessor.Builders
 
         public class CodeValueEntity
         {
+            [Key]
             public string Key { get; set; }
 
             [CodeValue("counter.Next()")]
@@ -132,6 +167,46 @@ namespace Smart.Data.Accessor.Builders
 
                 dao.Insert(new CodeValueEntity { Key = "A" });
                 dao.Insert(new CodeValueEntity { Key = "B" });
+
+                var entityA = dao.QueryEntity("A");
+                var entityB = dao.QueryEntity("B");
+
+                Assert.NotNull(entityA);
+                Assert.Equal(1, entityA.Value);
+
+                Assert.NotNull(entityB);
+                Assert.Equal(2, entityB.Value);
+            }
+        }
+
+        [DataAccessor]
+        [Inject(typeof(Counter), "counter")]
+        public interface IInsertAdditionalCodeValueDao
+        {
+            [Insert("CodeValue")]
+            [AdditionalCodeValue("Value", "counter.Next()")]
+            void Insert(string key);
+
+            [SelectSingle]
+            CodeValueEntity QueryEntity(string key);
+        }
+
+        [Fact]
+        public void TestInsertAdditionalCodeValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS CodeValue (Key text PRIMARY KEY, Value int)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .ConfigureComponents(c => c.Add(new Counter()))
+                    .Build();
+                var dao = generator.Create<IInsertAdditionalCodeValueDao>();
+
+                dao.Insert("A");
+                dao.Insert("B");
 
                 var entityA = dao.QueryEntity("A");
                 var entityB = dao.QueryEntity("B");

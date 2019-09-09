@@ -157,6 +157,11 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
 
         public static void AddCondition(StringBuilder sql, IReadOnlyList<BuildParameterInfo> parameters)
         {
+            if (parameters.Count == 0)
+            {
+                return;
+            }
+
             var addAnd = parameters
                 .Select(x => x.GetAttribute<ConditionAttribute>())
                 .Any(x => (x?.ExcludeNull ?? false) || (x?.ExcludeEmpty ?? false));
@@ -248,6 +253,24 @@ namespace Smart.Data.Accessor.Attributes.Builders.Helpers
             }
 
             sql.Append($"/*@ {parameter.Name} */dummy");
+        }
+
+        public static void AddDbParameter(StringBuilder sql, string value)
+        {
+            sql.Append(value);
+        }
+
+        public static void AddCodeParameter(StringBuilder sql, string value)
+        {
+            sql.Append($"/*# {value} */");
+        }
+
+        public static void AddSplitter(StringBuilder sql, bool add)
+        {
+            if (add)
+            {
+                sql.Append(", ");
+            }
         }
     }
 }

@@ -28,10 +28,18 @@ namespace Smart.Data.Accessor.Attributes.Builders
         {
             var parameters = BuildHelper.GetParameters(option, mi);
             var keys = BuildHelper.GetKeyParameters(parameters);
+            var tableName = table ??
+                            (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ??
+                            BuildHelper.GetReturnTableName(option, mi);
+
+            if (String.IsNullOrEmpty(tableName))
+            {
+                throw new BuilderException($"Table name resolve failed. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+            }
 
             var sql = new StringBuilder();
             sql.Append("SELECT * FROM ");
-            sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetReturnTableName(option, mi));
+            sql.Append(tableName);
             BuildHelper.AddCondition(sql, keys.Count > 0 ? keys : parameters);
 
             var tokenizer = new SqlTokenizer(sql.ToString());

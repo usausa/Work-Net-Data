@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Smart.Data.Accessor.Attributes.Builders
 {
     using System;
@@ -16,6 +18,8 @@ namespace Smart.Data.Accessor.Attributes.Builders
         private readonly string table;
 
         private readonly Type type;
+
+        public bool Force { get; set; }
 
         public UpdateAttribute()
             : this(null, null)
@@ -43,29 +47,51 @@ namespace Smart.Data.Accessor.Attributes.Builders
         {
             var parameters = BuildHelper.GetParameters(option, mi);
             var values = BuildHelper.GetValueParameters(parameters);
+            var tableName = table ??
+                            (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ??
+                            BuildHelper.GetTableName(option, mi);
+
+            if (String.IsNullOrEmpty(tableName))
+            {
+                throw new BuilderException($"Table name resolve failed. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+            }
 
             var sql = new StringBuilder();
             sql.Append("UPDATE ");
-            sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
+            sql.Append(tableName);
             sql.Append(" SET");
 
             if (values.Count > 0)
             {
-                AddSetValues(sql, values);
-                BuildHelper.AddCondition(sql, BuildHelper.GetNonValueParameters(parameters));
+                var conditions = BuildHelper.GetNonValueParameters(parameters);
+
+                if (!Force && (conditions.Count == 0))
+                {
+                    throw new BuilderException($"Delete all is required force option. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+                }
+
+                AddSetValues(sql, values, mi);
+                BuildHelper.AddCondition(sql, conditions);
             }
             else
             {
                 var keys = BuildHelper.GetKeyParameters(parameters);
                 if (keys.Count > 0)
                 {
-                    AddSetValues(sql, BuildHelper.GetNonKeyParameters(parameters));
+                    AddSetValues(sql, BuildHelper.GetNonKeyParameters(parameters), mi);
                     BuildHelper.AddCondition(sql, keys);
                 }
                 else
                 {
-                    AddSetValues(sql, BuildHelper.GetNonConditionParameters(parameters));
-                    BuildHelper.AddCondition(sql, BuildHelper.GetConditionParameters(parameters));
+                    var conditions = BuildHelper.GetConditionParameters(parameters);
+
+                    if (!Force && (conditions.Count == 0))
+                    {
+                        throw new BuilderException($"Delete all is required force option. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+                    }
+
+                    AddSetValues(sql, BuildHelper.GetNonConditionParameters(parameters), mi);
+                    BuildHelper.AddCondition(sql, conditions);
                 }
             }
 
@@ -74,19 +100,34 @@ namespace Smart.Data.Accessor.Attributes.Builders
             return builder.Build();
         }
 
-        private static void AddSetValues(StringBuilder sql, IReadOnlyList<BuildParameterInfo> parameters)
+        private static void AddSetValues(StringBuilder sql, IReadOnlyList<BuildParameterInfo> parameters, MethodInfo mi)
         {
-            for (var i = 0; i < parameters.Count; i++)
+            var add = false;
+            foreach (var parameter in parameters)
             {
-                var parameter = parameters[i];
-
-                if (i > 0)
-                {
-                    sql.Append(",");
-                }
+                BuildHelper.AddSplitter(sql, add);
+                add = true;
 
                 sql.Append($" {parameter.ParameterName} = ");
                 BuildHelper.AddParameter(sql, parameter, Operation.Update);
+            }
+
+            foreach (var attribute in mi.GetCustomAttributes<AdditionalDbValueAttribute>())
+            {
+                BuildHelper.AddSplitter(sql, add);
+                add = true;
+
+                sql.Append($" {attribute.Column} = ");
+                BuildHelper.AddDbParameter(sql, attribute.Value);
+            }
+
+            foreach (var attribute in mi.GetCustomAttributes<AdditionalCodeValueAttribute>())
+            {
+                BuildHelper.AddSplitter(sql, add);
+                add = true;
+
+                sql.Append($" {attribute.Column} = ");
+                BuildHelper.AddCodeParameter(sql, attribute.Value);
             }
         }
     }

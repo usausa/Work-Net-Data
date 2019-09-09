@@ -17,6 +17,8 @@ namespace Smart.Data.Accessor.Attributes.Builders
 
         private readonly Type type;
 
+        public bool Force { get; set; }
+
         public DeleteAttribute()
             : this(null, null)
         {
@@ -43,11 +45,25 @@ namespace Smart.Data.Accessor.Attributes.Builders
         {
             var parameters = BuildHelper.GetParameters(option, mi);
             var keys = BuildHelper.GetKeyParameters(parameters);
+            var tableName = table ??
+                            (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ??
+                            BuildHelper.GetTableName(option, mi);
+            var conditions = keys.Count > 0 ? keys : parameters;
+
+            if (String.IsNullOrEmpty(tableName))
+            {
+                throw new BuilderException($"Table name resolve failed. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+            }
+
+            if (!Force && (conditions.Count == 0))
+            {
+                throw new BuilderException($"Delete all is required force option. type=[{mi.DeclaringType.FullName}], method=[{mi.Name}]");
+            }
 
             var sql = new StringBuilder();
             sql.Append("DELETE FROM ");
-            sql.Append(table ?? (type != null ? BuildHelper.GetTableNameOfType(option, type) : null) ?? BuildHelper.GetTableName(option, mi));
-            BuildHelper.AddCondition(sql, keys.Count > 0 ? keys : parameters);
+            sql.Append(tableName);
+            BuildHelper.AddCondition(sql, conditions);
 
             var tokenizer = new SqlTokenizer(sql.ToString());
             var builder = new NodeBuilder(tokenizer.Tokenize());

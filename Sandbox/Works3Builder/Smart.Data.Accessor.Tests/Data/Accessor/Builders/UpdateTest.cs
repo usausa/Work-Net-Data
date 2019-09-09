@@ -2,6 +2,7 @@ namespace Smart.Data.Accessor.Builders
 {
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Attributes.Builders;
+    using Smart.Data.Mapper;
     using Smart.Mock;
 
     using Xunit;
@@ -128,6 +129,189 @@ namespace Smart.Data.Accessor.Builders
                 Assert.NotNull(entity);
                 Assert.Equal("B", entity.Type);
                 Assert.Equal("Xxx", entity.Name);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // DbValue
+        //--------------------------------------------------------------------------------
+
+        public class DbValueEntity
+        {
+            [Key]
+            public long Id { get; set; }
+
+            [DbValue("CURRENT_TIMESTAMP")]
+            public string DateTime { get; set; }
+        }
+
+        [DataAccessor]
+        public interface IUpdateDbValueDao
+        {
+            [Update]
+            void Update(DbValueEntity entity);
+
+            [SelectSingle]
+            DbValueEntity QueryEntity(long id);
+        }
+
+        [Fact]
+        public void TestUpdateDbValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS DbValue (Id int PRIMARY KEY, DateTime text)");
+                con.Execute("INSERT INTO DbValue (Id) VALUES (1)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .Build();
+                var dao = generator.Create<IUpdateDbValueDao>();
+
+                dao.Update(new DbValueEntity { Id = 1 });
+
+                var entity = dao.QueryEntity(1);
+
+                Assert.NotNull(entity);
+                Assert.NotEmpty(entity.DateTime);
+            }
+        }
+
+        [DataAccessor]
+        public interface IUpdateAdditionalDbValueDao
+        {
+            [Update("DbValue")]
+            [AdditionalDbValue("DateTime", "CURRENT_TIMESTAMP")]
+            void Update([Condition] long id);
+
+            [SelectSingle]
+            DbValueEntity QueryEntity(long id);
+        }
+
+        [Fact]
+        public void TestUpdateAdditionalDbValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS DbValue (Id int PRIMARY KEY, DateTime text)");
+                con.Execute("INSERT INTO DbValue (Id) VALUES (1)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .Build();
+                var dao = generator.Create<IUpdateAdditionalDbValueDao>();
+
+                dao.Update(1);
+
+                var entity = dao.QueryEntity(1);
+
+                Assert.NotNull(entity);
+                Assert.NotEmpty(entity.DateTime);
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        // CodeValue
+        //--------------------------------------------------------------------------------
+
+        public class Counter
+        {
+            private long counter;
+
+            public long Next() => ++counter;
+        }
+
+        public class CodeValueEntity
+        {
+            [Key]
+            public string Key { get; set; }
+
+            [CodeValue("counter.Next()")]
+            public long Value { get; set; }
+        }
+
+        [DataAccessor]
+        [Inject(typeof(Counter), "counter")]
+        public interface IUpdateCodeValueDao
+        {
+            [Update]
+            void Update(CodeValueEntity entity);
+
+            [SelectSingle]
+            CodeValueEntity QueryEntity(string key);
+        }
+
+        [Fact]
+        public void TestUpdateCodeValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS CodeValue (Key text PRIMARY KEY, Value int)");
+                con.Execute("INSERT INTO CodeValue (Key, Value) VALUES ('A', 0)");
+                con.Execute("INSERT INTO CodeValue (Key, Value) VALUES ('B', 0)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .ConfigureComponents(c => c.Add(new Counter()))
+                    .Build();
+                var dao = generator.Create<IUpdateCodeValueDao>();
+
+                dao.Update(new CodeValueEntity { Key = "A" });
+                dao.Update(new CodeValueEntity { Key = "B" });
+
+                var entityA = dao.QueryEntity("A");
+                var entityB = dao.QueryEntity("B");
+
+                Assert.NotNull(entityA);
+                Assert.Equal(1, entityA.Value);
+
+                Assert.NotNull(entityB);
+                Assert.Equal(2, entityB.Value);
+            }
+        }
+
+        [DataAccessor]
+        [Inject(typeof(Counter), "counter")]
+        public interface IUpdateAdditionalCodeValueDao
+        {
+            [Update("CodeValue")]
+            [AdditionalCodeValue("Value", "counter.Next()")]
+            void Update([Condition] string key);
+
+            [SelectSingle]
+            CodeValueEntity QueryEntity(string key);
+        }
+
+        [Fact]
+        public void TestUpdateAdditionalCodeValue()
+        {
+            using (var con = TestDatabase.Initialize()
+                .SetupDataTable())
+            {
+                con.Execute("CREATE TABLE IF NOT EXISTS CodeValue (Key text PRIMARY KEY, Value int)");
+                con.Execute("INSERT INTO CodeValue (Key, Value) VALUES ('A', 0)");
+                con.Execute("INSERT INTO CodeValue (Key, Value) VALUES ('B', 0)");
+
+                var generator = new TestFactoryBuilder()
+                    .UseFileDatabase()
+                    .ConfigureComponents(c => c.Add(new Counter()))
+                    .Build();
+                var dao = generator.Create<IUpdateAdditionalCodeValueDao>();
+
+                dao.Update("A");
+                dao.Update("B");
+
+                var entityA = dao.QueryEntity("A");
+                var entityB = dao.QueryEntity("B");
+
+                Assert.NotNull(entityA);
+                Assert.Equal(1, entityA.Value);
+
+                Assert.NotNull(entityB);
+                Assert.Equal(2, entityB.Value);
             }
         }
     }
