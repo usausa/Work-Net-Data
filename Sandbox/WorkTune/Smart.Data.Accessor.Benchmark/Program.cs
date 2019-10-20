@@ -1,6 +1,6 @@
 namespace Smart.Data.Accessor.Benchmark
 {
-    using System.Collections.Generic;
+    using System.Data;
     using System.Data.Common;
     using System.Linq;
 
@@ -41,10 +41,16 @@ namespace Smart.Data.Accessor.Benchmark
     [Config(typeof(BenchmarkConfig))]
     public class AccessorBenchmark
     {
-        private MockRepeatDbConnection mockExecute;
-        private MockRepeatDbConnection mockExecuteScalar;
-        private MockRepeatDbConnection mockQuery;
-        private MockRepeatDbConnection mockQueryFirst;
+        private MockRepeatDbConnection mockQueryFirst2A;
+        private MockRepeatDbConnection mockQueryFirst2B;
+        private MockRepeatDbConnection mockQueryFirst4A;
+        private MockRepeatDbConnection mockQueryFirst4B;
+        private MockRepeatDbConnection mockQueryFirst8A;
+        private MockRepeatDbConnection mockQueryFirst8B;
+        private MockRepeatDbConnection mockQueryFirst16A;
+        private MockRepeatDbConnection mockQueryFirst16B;
+        private MockRepeatDbConnection mockQueryFirst32A;
+        private MockRepeatDbConnection mockQueryFirst32B;
 
         private IBenchmarkAccessorForDapper dapperExecuteAccessor;
         private IBenchmarkAccessor smartExecuteAccessor;
@@ -52,33 +58,16 @@ namespace Smart.Data.Accessor.Benchmark
         [GlobalSetup]
         public void Setup()
         {
-            mockExecute = new MockRepeatDbConnection(1);
-
-            mockExecuteScalar = new MockRepeatDbConnection(1L);
-
-            mockQuery = new MockRepeatDbConnection(new MockDataReader(
-                new[]
-                {
-                    new MockColumn(typeof(long), "Id"),
-                    new MockColumn(typeof(string), "Name")
-                },
-                Enumerable.Range(1, 100).Select(x => new object[]
-                {
-                    (long)x,
-                    "test"
-                })));
-
-            mockQueryFirst = new MockRepeatDbConnection(new MockDataReader(
-                new[]
-                {
-                    new MockColumn(typeof(long), "Id"),
-                    new MockColumn(typeof(string), "Name"),
-                },
-                Enumerable.Range(1, 1).Select(x => new object[]
-                {
-                    (long)x,
-                    "test"
-                })));
+            mockQueryFirst2A = CreateA(2);
+            mockQueryFirst2B = CreateB(2);
+            mockQueryFirst4A = CreateA(4);
+            mockQueryFirst4B = CreateB(4);
+            mockQueryFirst8A = CreateA(8);
+            mockQueryFirst8B = CreateB(8);
+            mockQueryFirst16A = CreateA(16);
+            mockQueryFirst16B = CreateB(16);
+            mockQueryFirst32A = CreateA(32);
+            mockQueryFirst32B = CreateB(32);
 
             // DAO
             dapperExecuteAccessor = new DapperAccessor();
@@ -92,10 +81,21 @@ namespace Smart.Data.Accessor.Benchmark
         [GlobalCleanup]
         public void Cleanup()
         {
-            mockExecute.Dispose();
-            mockExecuteScalar.Dispose();
-            mockQuery.Dispose();
-            mockQueryFirst.Dispose();
+            // 省略
+        }
+
+        private static MockRepeatDbConnection CreateA(int n)
+        {
+            var columns = Enumerable.Range(1, n).Select(x => new MockColumn(typeof(long), $"Id{x}")).ToArray();
+            var values = Enumerable.Range(1, n).Select(x => (object)(long)x).ToArray();
+            return new MockRepeatDbConnection(new MockDataReader(columns, new[] { values }));
+        }
+
+        private static MockRepeatDbConnection CreateB(int n)
+        {
+            var columns = Enumerable.Range(1, n).Select(x => new MockColumn(typeof(string), $"Name{x}")).ToArray();
+            var values = Enumerable.Range(1, n).Select(x => (object)"test").ToArray();
+            return new MockRepeatDbConnection(new MockDataReader(columns, new[] { values }));
         }
 
         //--------------------------------------------------------------------------------
@@ -103,84 +103,225 @@ namespace Smart.Data.Accessor.Benchmark
         //--------------------------------------------------------------------------------
 
         [Benchmark]
-        public int DapperExecute() => dapperExecuteAccessor.Execute(mockExecute, new DataEntity { Id = 1, Name = "xxx" });
+        public LongDataEntity DapperQueryFirstOrDefault2A() => dapperExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
 
         [Benchmark]
-        public int SmartExecute() => smartExecuteAccessor.Execute(mockExecute, new DataEntity { Id = 1, Name = "xxx" });
+        public LongDataEntity SmartQueryFirstOrDefault2A() => smartExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
 
         [Benchmark]
-        public long DapperExecuteScalar() => dapperExecuteAccessor.ExecuteScalar(mockExecuteScalar);
+        public StringDataEntity DapperQueryFirstOrDefault2B() => dapperExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
 
         [Benchmark]
-        public long SmartExecuteScalar() => smartExecuteAccessor.ExecuteScalar(mockExecuteScalar);
+        public StringDataEntity SmartQueryFirstOrDefault2B() => smartExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
 
         [Benchmark]
-        public long DapperQueryBufferd100() => dapperExecuteAccessor.QueryBufferd(mockQuery).Count();
+        public LongDataEntity DapperQueryFirstOrDefault4A() => dapperExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
 
         [Benchmark]
-        public long SmartQueryBufferd100() => smartExecuteAccessor.QueryBufferd(mockQuery).Count;
+        public LongDataEntity SmartQueryFirstOrDefault4A() => smartExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
 
         [Benchmark]
-        public DataEntity DapperQueryFirstOrDefault() => dapperExecuteAccessor.QueryFirstOrDefault(mockQueryFirst, 1);
+        public StringDataEntity DapperQueryFirstOrDefault4B() => dapperExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
 
         [Benchmark]
-        public DataEntity SmartQueryFirstOrDefault() => smartExecuteAccessor.QueryFirstOrDefault(mockQueryFirst, 1);
+        public StringDataEntity SmartQueryFirstOrDefault4B() => smartExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
+
+        [Benchmark]
+        public LongDataEntity DapperQueryFirstOrDefault8A() => dapperExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
+
+        [Benchmark]
+        public LongDataEntity SmartQueryFirstOrDefault8A() => smartExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
+
+        [Benchmark]
+        public StringDataEntity DapperQueryFirstOrDefault8B() => dapperExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
+
+        [Benchmark]
+        public StringDataEntity SmartQueryFirstOrDefault8B() => smartExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
+
+        [Benchmark]
+        public LongDataEntity DapperQueryFirstOrDefault16A() => dapperExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
+
+        [Benchmark]
+        public LongDataEntity SmartQueryFirstOrDefault16A() => smartExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
+
+        [Benchmark]
+        public StringDataEntity DapperQueryFirstOrDefault16B() => dapperExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
+
+        [Benchmark]
+        public StringDataEntity SmartQueryFirstOrDefault16B() => smartExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
+
+        [Benchmark]
+        public LongDataEntity DapperQueryFirstOrDefault32A() => dapperExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
+
+        [Benchmark]
+        public LongDataEntity SmartQueryFirstOrDefault32A() => smartExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
+
+        [Benchmark]
+        public StringDataEntity DapperQueryFirstOrDefault32B() => dapperExecuteAccessor.QueryFirstOrDefault32B(mockQueryFirst32B, 1);
+
+        [Benchmark]
+        public StringDataEntity SmartQueryFirstOrDefault32B() => smartExecuteAccessor.QueryFirstOrDefault32B(mockQueryFirst32B, 1);
     }
 
     [DataAccessor]
     public interface IBenchmarkAccessor
     {
-        [Execute]
-        int Execute(DbConnection con, DataEntity entity);
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        LongDataEntity QueryFirstOrDefault2A(DbConnection con, long id);
 
-        [ExecuteScalar]
-        long ExecuteScalar(DbConnection con);
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        StringDataEntity QueryFirstOrDefault2B(DbConnection con, long id);
 
-        [Query]
-        List<DataEntity> QueryBufferd(DbConnection con);
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        LongDataEntity QueryFirstOrDefault4A(DbConnection con, long id);
 
-        [QueryFirstOrDefault]
-        DataEntity QueryFirstOrDefault(DbConnection con, long id);
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        StringDataEntity QueryFirstOrDefault4B(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        LongDataEntity QueryFirstOrDefault8A(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        StringDataEntity QueryFirstOrDefault8B(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        LongDataEntity QueryFirstOrDefault16A(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        StringDataEntity QueryFirstOrDefault16B(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        LongDataEntity QueryFirstOrDefault32A(DbConnection con, long id);
+
+        [DirectSql(CommandType.Text, MethodType.QueryFirstOrDefault, "SELECT * FROM Data WHERE Id = /*@ id */0")]
+        StringDataEntity QueryFirstOrDefault32B(DbConnection con, long id);
     }
 
     public interface IBenchmarkAccessorForDapper
     {
-        int Execute(DbConnection con, DataEntity entity);
+        LongDataEntity QueryFirstOrDefault2A(DbConnection con, long id);
 
-        long ExecuteScalar(DbConnection con);
+        StringDataEntity QueryFirstOrDefault2B(DbConnection con, long id);
 
-        IEnumerable<DataEntity> QueryBufferd(DbConnection con);
+        LongDataEntity QueryFirstOrDefault4A(DbConnection con, long id);
 
-        DataEntity QueryFirstOrDefault(DbConnection con, long id);
+        StringDataEntity QueryFirstOrDefault4B(DbConnection con, long id);
+
+        LongDataEntity QueryFirstOrDefault8A(DbConnection con, long id);
+
+        StringDataEntity QueryFirstOrDefault8B(DbConnection con, long id);
+
+        LongDataEntity QueryFirstOrDefault16A(DbConnection con, long id);
+
+        StringDataEntity QueryFirstOrDefault16B(DbConnection con, long id);
+
+        LongDataEntity QueryFirstOrDefault32A(DbConnection con, long id);
+
+        StringDataEntity QueryFirstOrDefault32B(DbConnection con, long id);
     }
 
     public sealed class DapperAccessor : IBenchmarkAccessorForDapper
     {
-        public int Execute(DbConnection con, DataEntity entity)
-        {
-            return con.Execute("INSERT INTO Data (Id, Name) VALUES (@Id, @Name)", entity);
-        }
+        public LongDataEntity QueryFirstOrDefault2A(DbConnection con, long id)
+            => con.QueryFirstOrDefault<LongDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
 
-        public long ExecuteScalar(DbConnection con)
-        {
-            return con.ExecuteScalar<long>("SELECT COUNT(*) FROM Data");
-        }
+        public StringDataEntity QueryFirstOrDefault2B(DbConnection con, long id)
+            => con.QueryFirstOrDefault<StringDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
 
-        public IEnumerable<DataEntity> QueryBufferd(DbConnection con)
-        {
-            return con.Query<DataEntity>("SELECT * FROM Data");
-        }
+        public LongDataEntity QueryFirstOrDefault4A(DbConnection con, long id)
+            => con.QueryFirstOrDefault<LongDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
 
-        public DataEntity QueryFirstOrDefault(DbConnection con, long id)
-        {
-            return con.QueryFirstOrDefault<DataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
-        }
+        public StringDataEntity QueryFirstOrDefault4B(DbConnection con, long id)
+            => con.QueryFirstOrDefault<StringDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public LongDataEntity QueryFirstOrDefault8A(DbConnection con, long id)
+            => con.QueryFirstOrDefault<LongDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public StringDataEntity QueryFirstOrDefault8B(DbConnection con, long id)
+            => con.QueryFirstOrDefault<StringDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public LongDataEntity QueryFirstOrDefault16A(DbConnection con, long id)
+            => con.QueryFirstOrDefault<LongDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public StringDataEntity QueryFirstOrDefault16B(DbConnection con, long id)
+            => con.QueryFirstOrDefault<StringDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public LongDataEntity QueryFirstOrDefault32A(DbConnection con, long id)
+            => con.QueryFirstOrDefault<LongDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
+
+        public StringDataEntity QueryFirstOrDefault32B(DbConnection con, long id)
+            => con.QueryFirstOrDefault<StringDataEntity>("SELECT * FROM Data WHERE Id = @Id", new { Id = id });
     }
 
-    public class DataEntity
+    public class LongDataEntity
     {
-        public long Id { get; set; }
+        public long Id1 { get; set; }
+        public long Id2 { get; set; }
+        public long Id3 { get; set; }
+        public long Id4 { get; set; }
+        public long Id5 { get; set; }
+        public long Id6 { get; set; }
+        public long Id7 { get; set; }
+        public long Id8 { get; set; }
+        public long Id9 { get; set; }
+        public long Id10 { get; set; }
+        public long Id11 { get; set; }
+        public long Id12 { get; set; }
+        public long Id13 { get; set; }
+        public long Id14 { get; set; }
+        public long Id15 { get; set; }
+        public long Id16 { get; set; }
+        public long Id17 { get; set; }
+        public long Id18 { get; set; }
+        public long Id19 { get; set; }
+        public long Id20 { get; set; }
+        public long Id21 { get; set; }
+        public long Id22 { get; set; }
+        public long Id23 { get; set; }
+        public long Id24 { get; set; }
+        public long Id25 { get; set; }
+        public long Id26 { get; set; }
+        public long Id27 { get; set; }
+        public long Id28 { get; set; }
+        public long Id29 { get; set; }
+        public long Id30 { get; set; }
+        public long Id31 { get; set; }
+        public long Id32 { get; set; }
+    }
 
-        public string Name { get; set; }
+    public class StringDataEntity
+    {
+        public string Name1 { get; set; }
+        public string Name2 { get; set; }
+        public string Name3 { get; set; }
+        public string Name4 { get; set; }
+        public string Name5 { get; set; }
+        public string Name6 { get; set; }
+        public string Name7 { get; set; }
+        public string Name8 { get; set; }
+        public string Name9 { get; set; }
+        public string Name10 { get; set; }
+        public string Name11 { get; set; }
+        public string Name12 { get; set; }
+        public string Name13 { get; set; }
+        public string Name14 { get; set; }
+        public string Name15 { get; set; }
+        public string Name16 { get; set; }
+        public string Name17 { get; set; }
+        public string Name18 { get; set; }
+        public string Name19 { get; set; }
+        public string Name20 { get; set; }
+        public string Name21 { get; set; }
+        public string Name22 { get; set; }
+        public string Name23 { get; set; }
+        public string Name24 { get; set; }
+        public string Name25 { get; set; }
+        public string Name26 { get; set; }
+        public string Name27 { get; set; }
+        public string Name28 { get; set; }
+        public string Name29 { get; set; }
+        public string Name30 { get; set; }
+        public string Name31 { get; set; }
+        public string Name32 { get; set; }
     }
 }
