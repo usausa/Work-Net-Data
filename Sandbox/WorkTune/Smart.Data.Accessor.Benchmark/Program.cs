@@ -102,59 +102,59 @@ namespace Smart.Data.Accessor.Benchmark
         // Execute
         //--------------------------------------------------------------------------------
 
-        [Benchmark]
-        public LongDataEntity DapperQueryFirstOrDefault2A() => dapperExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
+        //[Benchmark]
+        //public LongDataEntity DapperQueryFirstOrDefault2A() => dapperExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
 
-        [Benchmark]
-        public LongDataEntity SmartQueryFirstOrDefault2A() => smartExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
+        //[Benchmark]
+        //public LongDataEntity SmartQueryFirstOrDefault2A() => smartExecuteAccessor.QueryFirstOrDefault2A(mockQueryFirst2A, 1);
 
-        [Benchmark]
-        public StringDataEntity DapperQueryFirstOrDefault2B() => dapperExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
+        //[Benchmark]
+        //public StringDataEntity DapperQueryFirstOrDefault2B() => dapperExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
 
-        [Benchmark]
-        public StringDataEntity SmartQueryFirstOrDefault2B() => smartExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
+        //[Benchmark]
+        //public StringDataEntity SmartQueryFirstOrDefault2B() => smartExecuteAccessor.QueryFirstOrDefault2B(mockQueryFirst2B, 1);
 
-        [Benchmark]
-        public LongDataEntity DapperQueryFirstOrDefault4A() => dapperExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
+        //[Benchmark]
+        //public LongDataEntity DapperQueryFirstOrDefault4A() => dapperExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
 
-        [Benchmark]
-        public LongDataEntity SmartQueryFirstOrDefault4A() => smartExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
+        //[Benchmark]
+        //public LongDataEntity SmartQueryFirstOrDefault4A() => smartExecuteAccessor.QueryFirstOrDefault4A(mockQueryFirst4A, 1);
 
-        [Benchmark]
-        public StringDataEntity DapperQueryFirstOrDefault4B() => dapperExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
+        //[Benchmark]
+        //public StringDataEntity DapperQueryFirstOrDefault4B() => dapperExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
 
-        [Benchmark]
-        public StringDataEntity SmartQueryFirstOrDefault4B() => smartExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
+        //[Benchmark]
+        //public StringDataEntity SmartQueryFirstOrDefault4B() => smartExecuteAccessor.QueryFirstOrDefault4B(mockQueryFirst4B, 1);
 
-        [Benchmark]
-        public LongDataEntity DapperQueryFirstOrDefault8A() => dapperExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
+        //[Benchmark]
+        //public LongDataEntity DapperQueryFirstOrDefault8A() => dapperExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
 
-        [Benchmark]
-        public LongDataEntity SmartQueryFirstOrDefault8A() => smartExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
+        //[Benchmark]
+        //public LongDataEntity SmartQueryFirstOrDefault8A() => smartExecuteAccessor.QueryFirstOrDefault8A(mockQueryFirst8A, 1);
 
-        [Benchmark]
-        public StringDataEntity DapperQueryFirstOrDefault8B() => dapperExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
+        //[Benchmark]
+        //public StringDataEntity DapperQueryFirstOrDefault8B() => dapperExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
 
-        [Benchmark]
-        public StringDataEntity SmartQueryFirstOrDefault8B() => smartExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
+        //[Benchmark]
+        //public StringDataEntity SmartQueryFirstOrDefault8B() => smartExecuteAccessor.QueryFirstOrDefault8B(mockQueryFirst8B, 1);
 
-        [Benchmark]
-        public LongDataEntity DapperQueryFirstOrDefault16A() => dapperExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
+        //[Benchmark]
+        //public LongDataEntity DapperQueryFirstOrDefault16A() => dapperExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
 
-        [Benchmark]
-        public LongDataEntity SmartQueryFirstOrDefault16A() => smartExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
+        //[Benchmark]
+        //public LongDataEntity SmartQueryFirstOrDefault16A() => smartExecuteAccessor.QueryFirstOrDefault16A(mockQueryFirst16A, 1);
 
-        [Benchmark]
-        public StringDataEntity DapperQueryFirstOrDefault16B() => dapperExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
+        //[Benchmark]
+        //public StringDataEntity DapperQueryFirstOrDefault16B() => dapperExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
 
-        [Benchmark]
-        public StringDataEntity SmartQueryFirstOrDefault16B() => smartExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
+        //[Benchmark]
+        //public StringDataEntity SmartQueryFirstOrDefault16B() => smartExecuteAccessor.QueryFirstOrDefault16B(mockQueryFirst16B, 1);
 
-        [Benchmark]
-        public LongDataEntity DapperQueryFirstOrDefault32A() => dapperExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
+        //[Benchmark]
+        //public LongDataEntity DapperQueryFirstOrDefault32A() => dapperExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
 
-        [Benchmark]
-        public LongDataEntity SmartQueryFirstOrDefault32A() => smartExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
+        //[Benchmark]
+        //public LongDataEntity SmartQueryFirstOrDefault32A() => smartExecuteAccessor.QueryFirstOrDefault32A(mockQueryFirst32A, 1);
 
         [Benchmark]
         public StringDataEntity DapperQueryFirstOrDefault32B() => dapperExecuteAccessor.QueryFirstOrDefault32B(mockQueryFirst32B, 1);

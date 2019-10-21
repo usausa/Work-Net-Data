@@ -1,4 +1,6 @@
-﻿namespace ReaderBenchmark
+﻿using Smart.Reflection.Emit;
+
+namespace ReaderBenchmark
 {
     using System;
     using System.Collections.Generic;
@@ -48,6 +50,8 @@
                 throw new ArgumentException($"Default constructor not found. type=[{type.FullName}]", nameof(type));
             }
 
+            var getValue = typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetValue));
+
             var dynamicMethod = new DynamicMethod(string.Empty, type, new[] { holderType, typeof(IDataRecord) }, true);
             var ilGenerator = dynamicMethod.GetILGenerator();
 
@@ -55,8 +59,6 @@
 
             foreach (var entry in entries)
             {
-                ilGenerator.Emit(OpCodes.Dup);
-
                 // TODO
                 // GetValue
                 // isnull
@@ -68,8 +70,49 @@
                 //   nullable
                 //   other? exp?
 
-                //ilGenerator.Emit(OpCodes.Ldarg_1);
-                //ilGenerator.EmitLdcI4(entry.Index);
+                var hasValueLabel = ilGenerator.DefineLabel();
+                var setPropertyLabel = ilGenerator.DefineLabel();
+
+                ilGenerator.Emit(OpCodes.Dup);  // [T][T]
+
+                ilGenerator.Emit(OpCodes.Ldarg_1); // [T][T][IDataRecord]
+                ilGenerator.EmitLdcI4(entry.Index); // [T][T][IDataRecord][index]
+
+                ilGenerator.Emit(OpCodes.Callvirt, getValue);   // [T][T][Value]
+
+                // Check DBNull
+                ilGenerator.Emit(OpCodes.Dup);  // [T][T][Value][Value]
+                ilGenerator.Emit(OpCodes.Isinst, typeof(DBNull));   // [T][T][Value]
+                ilGenerator.Emit(OpCodes.Brfalse_S, hasValueLabel);
+
+                // Null
+                ilGenerator.Emit(OpCodes.Pop);
+                if (entry.Property.PropertyType.IsValueType)
+                {
+                    // TODO Nullable, Struct, Ex
+                    ilGenerator.Emit(OpCodes.Ldc_I4_0);
+                }
+                else
+                {
+                    ilGenerator.Emit(OpCodes.Ldnull);
+                }
+
+                ilGenerator.Emit(OpCodes.Br_S, setPropertyLabel);
+
+                // Value
+                ilGenerator.MarkLabel(hasValueLabel);
+
+                if (entry.Property.PropertyType.IsValueType)
+                {
+                    ilGenerator.Emit(OpCodes.Unbox_Any, entry.Property.PropertyType);
+                    // TODO Nullable, Struct, Ex
+                }
+
+                // Set
+                ilGenerator.MarkLabel(setPropertyLabel);
+
+                ilGenerator.Emit(OpCodes.Callvirt, entry.Property.SetMethod);
+
                 //if (entry.Converter == null)
                 //{
                 //    var method = getValueMethod.MakeGenericMethod(entry.Property.PropertyType);
@@ -83,9 +126,6 @@
                 //    var method = getValueWithConvertMethod.MakeGenericMethod(entry.Property.PropertyType);
                 //    ilGenerator.Emit(OpCodes.Call, method);
                 //}
-                ilGenerator.Emit(OpCodes.Ldnull);
-
-                ilGenerator.Emit(OpCodes.Callvirt, entry.Property.SetMethod);
             }
 
             // TODO ValueType ?

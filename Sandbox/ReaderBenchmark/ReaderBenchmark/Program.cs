@@ -16,6 +16,10 @@ namespace ReaderBenchmark
     {
         public static void Main()
         {
+            var b = new Benchmark();
+            b.Setup();
+            var ret = b.Map2();
+
             BenchmarkRunner.Run<Benchmark>();
         }
     }
@@ -43,7 +47,25 @@ namespace ReaderBenchmark
         {
             var properties = typeof(Data).GetProperties().ToArray();
             var columns = properties.Select(x => new ColumnInfo(x.Name, x.PropertyType)).ToArray();
-            reader = CreateDataReader(columns.Length, x => properties[x].Name, x => $"Data-{x}");
+            reader = CreateDataReader(
+                columns.Length,
+                x => properties[x].Name,
+                x =>
+                {
+                    switch (x)
+                    {
+                        case 0: return "test";
+                        case 1: return "test";
+                        case 2: return "test";
+                        case 3: return "test";
+                        case 4: return 1;
+                        case 5: return 1;
+                        case 6: return 1;
+                        case 7: return 1;
+                    }
+
+                    return DBNull.Value;
+                });
             reader.Read();
 
             mapper1 = ObjectResultMapperFactory.Instance.CreateMapper<Data>(typeof(Data), columns);
@@ -75,9 +97,9 @@ namespace ReaderBenchmark
         public string Name02 { get; set; }
         public string Name03 { get; set; }
         public string Name04 { get; set; }
-        public string Name05 { get; set; }
-        public string Name06 { get; set; }
-        public string Name07 { get; set; }
-        public string Name08 { get; set; }
+        public int Id1 { get; set; }
+        public int Id2 { get; set; }
+        public int Id3 { get; set; }
+        public int Id4 { get; set; }
     }
 }
