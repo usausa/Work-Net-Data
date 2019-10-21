@@ -52,22 +52,9 @@
             reader1 = CreateDataReader(
                 columns1.Length,
                 x => new MockColumn(properties[x].PropertyType, properties[x].Name),
-                x =>
-                {
-                    switch (x)
-                    {
-                        case 0: return "test";
-                        case 1: return "test";
-                        case 2: return "test";
-                        case 3: return "test";
-                        case 4: return 1;
-                        case 5: return 1;
-                        case 6: return 1;
-                        case 7: return 1;
-                    }
-
-                    return DBNull.Value;
-                });
+                x => properties[x].PropertyType == typeof(string)
+                    ? (object)"test"
+                    : 1);
             reader1.Read();
 
             emulator1 = new HashEmulator();
@@ -79,19 +66,14 @@
                 x => new MockColumn(properties[x].PropertyType, properties[x].Name),
                 x =>
                 {
-                    switch (x)
+                    if (((x >= 4) && (x <= 7)) || ((x >= 12) && (x <= 15)))
                     {
-                        case 0: return "test";
-                        case 1: return "test";
-                        case 2: return "test";
-                        case 3: return "test";
-                        case 4: return 1;
-                        case 5: return 1;
-                        case 6: return 1;
-                        case 7: return 1;
+                        return DBNull.Value;
                     }
 
-                    return DBNull.Value;
+                    return properties[x].PropertyType == typeof(string)
+                        ? (object)"test"
+                        : 1;
                 });
             reader2.Read();
 
@@ -305,10 +287,34 @@
         public string Name02 { get; set; }
         public string Name03 { get; set; }
         public string Name04 { get; set; }
-        public int Id1 { get; set; }
-        public int Id2 { get; set; }
-        public int Id3 { get; set; }
-        public int Id4 { get; set; }
+        public string Name05 { get; set; }
+        public string Name06 { get; set; }
+        public string Name07 { get; set; }
+        public string Name08 { get; set; }
+        public string Name09 { get; set; }
+        public string Name10 { get; set; }
+        public string Name11 { get; set; }
+        public string Name12 { get; set; }
+        public string Name13 { get; set; }
+        public string Name14 { get; set; }
+        public string Name15 { get; set; }
+        public string Name16 { get; set; }
+        public int Value01 { get; set; }
+        public int Value02 { get; set; }
+        public int Value03 { get; set; }
+        public int Value04 { get; set; }
+        public int Value05 { get; set; }
+        public int Value06 { get; set; }
+        public int Value07 { get; set; }
+        public int Value08 { get; set; }
+        public int Value09 { get; set; }
+        public int Value10 { get; set; }
+        public int Value11 { get; set; }
+        public int Value12 { get; set; }
+        public int Value13 { get; set; }
+        public int Value14 { get; set; }
+        public int Value15 { get; set; }
+        public int Value16 { get; set; }
     }
 
     public class ColumnInfo
