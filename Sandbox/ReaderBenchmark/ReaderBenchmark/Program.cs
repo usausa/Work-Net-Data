@@ -49,7 +49,7 @@ namespace ReaderBenchmark
             var columns = properties.Select(x => new ColumnInfo(x.Name, x.PropertyType)).ToArray();
             reader = CreateDataReader(
                 columns.Length,
-                x => properties[x].Name,
+                x => new MockColumn(properties[x].PropertyType, properties[x].Name),
                 x =>
                 {
                     switch (x)
@@ -72,9 +72,9 @@ namespace ReaderBenchmark
             mapper2 = NewResultMapperFactory.Instance.CreateMapper<Data>(typeof(Data), columns);
         }
 
-        private static MockDataReader CreateDataReader(int count, Func<int, string> naming, Func<int, object> valueFactory)
+        private static MockDataReader CreateDataReader(int count, Func<int, MockColumn> columnFactory, Func<int, object> valueFactory)
         {
-            var columns = Enumerable.Range(0, count).Select(x => new MockColumn(typeof(long), naming(x))).ToArray();
+            var columns = Enumerable.Range(0, count).Select(columnFactory).ToArray();
             var values = Enumerable.Range(0, count).Select(valueFactory).ToArray();
             return new MockDataReader(columns, new[] { values });
         }
