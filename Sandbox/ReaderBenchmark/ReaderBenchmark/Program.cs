@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -16,10 +15,6 @@ namespace ReaderBenchmark
     {
         public static void Main()
         {
-            var b = new Benchmark();
-            b.Setup();
-            var ret = b.Map2();
-
             BenchmarkRunner.Run<Benchmark>();
         }
     }
