@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Smart.Mock.Data;
 
 namespace ResultMapperCacheWork
 {
@@ -9,6 +11,22 @@ namespace ResultMapperCacheWork
     {
         static void Main()
         {
+            var engine = new Engine();
+            var cache = new ResultMapperCache<DataEntity>(engine);
+
+            var reader1 = new MockDataReader(new []{
+                new MockColumn(typeof(long), "Id"),
+                new MockColumn(typeof(string), "Name")
+            }, new List<object[]>());
+
+            var mapper1 = cache.ResolveMapper(reader1);
+
+            var reader2 = new MockDataReader(new []{
+                new MockColumn(typeof(long), "Id")
+            }, new List<object[]>());
+
+            var mapper2 = cache.ResolveMapper(reader2);
+
         }
     }
 
@@ -28,12 +46,13 @@ namespace ResultMapperCacheWork
 
     public sealed class ResultMapperCache<T>
     {
+        private static readonly Node EmptyNode = new Node(Array.Empty<ColumnInfo>(), null);
 
         private readonly Engine engine;
 
         private readonly object sync = new object();
 
-        private Node[] nodes = Array.Empty<Node>();
+        private Node firstNode = EmptyNode;
 
         public ResultMapperCache(Engine engine)
         {
@@ -49,7 +68,6 @@ namespace ResultMapperCacheWork
                 ThreadLocalCache.ColumnInfoPool = new ColumnInfo[fieldCount];
             }
 
-            var type = typeof(T);
             for (var i = 0; i < reader.FieldCount; i++)
             {
                 ThreadLocalCache.ColumnInfoPool[i] = new ColumnInfo(reader.GetName(i), reader.GetFieldType(i));
@@ -68,14 +86,16 @@ namespace ResultMapperCacheWork
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Func<IDataRecord, T> FindMapper(Span<ColumnInfo> columns)
         {
-            for (var i = 0; i < nodes.Length; i++)
+            var node = firstNode;
+            do
             {
-                var node = nodes[i];
                 if (IsMatchColumn(node.Columns, columns))
                 {
                     return node.Value;
                 }
-            }
+
+                node = node.Next;
+            } while (node != null);
 
             return null;
         }
@@ -96,19 +116,32 @@ namespace ResultMapperCacheWork
 
                 mapper = engine.CreateMapper<T>(copyColumns);
 
-                AddNode(copyColumns, mapper);
+                var newNode = new Node(copyColumns, mapper);
+
+                Interlocked.MemoryBarrier();
+
+                UpdateLink(ref firstNode, newNode);
 
                 return mapper;
             }
         }
 
-        private void AddNode(ColumnInfo[] columns, Func<IDataRecord, T> mapper)
+        private void UpdateLink(ref Node node, Node newNode)
         {
-            // TODO
+            if (node == EmptyNode)
+            {
+                node = newNode;
+            }
+            else
+            {
+                var lastNode = node;
+                while (lastNode.Next != null)
+                {
+                    lastNode = lastNode.Next;
+                }
 
-            Interlocked.MemoryBarrier();
-
-            // TODO
+                lastNode.Next = newNode;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -139,11 +172,13 @@ namespace ResultMapperCacheWork
         }
 
 
-        private readonly struct Node
+        private sealed class Node
         {
             public readonly ColumnInfo[] Columns;
 
             public readonly Func<IDataRecord, T> Value;
+
+            public Node Next;
 
             public Node(ColumnInfo[] columns, Func<IDataRecord, T> value)
             {
@@ -164,4 +199,9 @@ namespace ResultMapperCacheWork
             Name = name;
             Type = type;
         }
-    }}
+    }
+
+    public class DataEntity
+    {
+    }
+}
