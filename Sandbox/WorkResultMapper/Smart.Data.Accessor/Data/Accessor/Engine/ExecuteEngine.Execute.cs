@@ -68,6 +68,20 @@ namespace Smart.Data.Accessor.Engine
             throw new AccessorRuntimeException($"Result type is not supported. type=[{type.FullName}]");
         }
 
+        public Func<IDataRecord, T> CreateResultMapper<T>(ColumnInfo[] columns)
+        {
+            var type = typeof(T);
+            foreach (var factory in resultMapperFactories)
+            {
+                if (factory.IsMatch(type))
+                {
+                    return factory.CreateMapper<T>(this, type, columns);
+                }
+            }
+
+            throw new AccessorRuntimeException($"Result type is not supported. type=[{type.FullName}]");
+        }
+
         //--------------------------------------------------------------------------------
         // Execute
         //--------------------------------------------------------------------------------
