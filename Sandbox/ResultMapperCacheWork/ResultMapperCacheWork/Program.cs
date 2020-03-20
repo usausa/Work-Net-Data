@@ -26,7 +26,6 @@ namespace ResultMapperCacheWork
             }, new List<object[]>());
 
             var mapper2 = cache.ResolveMapper(reader2);
-
         }
     }
 
@@ -61,7 +60,6 @@ namespace ResultMapperCacheWork
 
         public Func<IDataRecord, T> ResolveMapper(IDataReader reader)
         {
-            // TODO stackalloc?
             var fieldCount = reader.FieldCount;
             if ((ThreadLocalCache.ColumnInfoPool == null) || (ThreadLocalCache.ColumnInfoPool.Length < fieldCount))
             {
