@@ -59,17 +59,6 @@ namespace ReaderBenchmark
 
             foreach (var entry in entries)
             {
-                // TODO
-                // GetValue
-                // isnull
-                //   class
-                //   struct init
-                // value
-                //   class
-                //   basic
-                //   nullable
-                //   other? exp?
-
                 var hasValueLabel = ilGenerator.DefineLabel();
                 var setPropertyLabel = ilGenerator.DefineLabel();
 
@@ -89,7 +78,7 @@ namespace ReaderBenchmark
                 ilGenerator.Emit(OpCodes.Pop);
                 if (entry.Property.PropertyType.IsValueType)
                 {
-                    // TODO Nullable, Struct, Ex
+                    // TODO BCL, [Nullable, OtherStruct]
                     ilGenerator.Emit(OpCodes.Ldc_I4_0);
                 }
                 else
@@ -102,15 +91,18 @@ namespace ReaderBenchmark
                 // Value
                 ilGenerator.MarkLabel(hasValueLabel);
 
+                // TODO Converter
+
                 if (entry.Property.PropertyType.IsValueType)
                 {
                     ilGenerator.Emit(OpCodes.Unbox_Any, entry.Property.PropertyType);
-                    // TODO Nullable, Struct, Ex
+                    // TODO BCL, Nullable
                 }
 
                 // Set
                 ilGenerator.MarkLabel(setPropertyLabel);
 
+                // TODO ValueType
                 ilGenerator.Emit(OpCodes.Callvirt, entry.Property.SetMethod);
 
                 //if (entry.Converter == null)
