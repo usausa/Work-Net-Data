@@ -1,4 +1,5 @@
-﻿using Smart.Reflection.Emit;
+﻿using Smart;
+using Smart.Reflection.Emit;
 
 namespace ReaderBenchmark
 {
@@ -11,6 +12,24 @@ namespace ReaderBenchmark
     public sealed class NewResultMapperFactory
     {
         public static NewResultMapperFactory Instance { get; } = new NewResultMapperFactory();
+
+        private static readonly Dictionary<Type, Action<ILGenerator>> LdcDictionary = new Dictionary<Type, Action<ILGenerator>>
+        {
+            { typeof(bool), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(byte), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(char), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(short), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(int), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(sbyte), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(ushort), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(uint), il => il.Emit(OpCodes.Ldc_I4_0) },      // Simplicity
+            { typeof(long), il => il.Emit(OpCodes.Ldc_I8, 0L) },
+            { typeof(ulong), il => il.Emit(OpCodes.Ldc_I8, 0L) },   // Simplicity
+            { typeof(float), il => il.Emit(OpCodes.Ldc_R4, 0f) },
+            { typeof(double), il => il.Emit(OpCodes.Ldc_R8, 0d) },
+            { typeof(IntPtr), il => il.Emit(OpCodes.Ldc_I4_0) },    // Simplicity
+            { typeof(UIntPtr), il => il.Emit(OpCodes.Ldc_I4_0) },   // Simplicity
+        };
 
         private int typeNo;
 
@@ -59,8 +78,10 @@ namespace ReaderBenchmark
 
             foreach (var entry in entries)
             {
+                var propertyType = entry.Property.PropertyType;
+
                 var hasValueLabel = ilGenerator.DefineLabel();
-                var setPropertyLabel = ilGenerator.DefineLabel();
+                var next = ilGenerator.DefineLabel();
 
                 ilGenerator.Emit(OpCodes.Dup);  // [T][T]
 
@@ -74,10 +95,32 @@ namespace ReaderBenchmark
                 ilGenerator.Emit(OpCodes.Isinst, typeof(DBNull));   // [T][T][Value]
                 ilGenerator.Emit(OpCodes.Brfalse_S, hasValueLabel);
 
+                // ----------------------------------------
                 // Null
-                ilGenerator.Emit(OpCodes.Pop);
-                if (entry.Property.PropertyType.IsValueType)
+                // ----------------------------------------
+
+                // [T][T][Value]
+
+                ilGenerator.Emit(OpCodes.Pop);  // [T][T]
+                if (propertyType.IsValueType)
                 {
+                    if (propertyType.IsNullableType())
+                    {
+                        ilGenerator.Emit(OpCodes.Ldnull);
+                    }
+                    if (LdcDictionary.TryGetValue(propertyType.IsEnum  ? propertyType.GetEnumUnderlyingType() : propertyType, out var action))
+                    {
+                        action(ilGenerator);
+                    }
+                    else
+                    {
+                        //var local = ilGenerator.DeclareLocal(tpi.PropertyType);
+                        //ilGenerator.Emit(OpCodes.Ldloca_S, local);
+                        //ilGenerator.Emit(OpCodes.Initobj, tpi.PropertyType);
+                        //ilGenerator.Emit(OpCodes.Ldloc_0);
+                    }
+
+
                     // TODO BCL, [Nullable, OtherStruct]
                     ilGenerator.Emit(OpCodes.Ldc_I4_0);
                 }
@@ -86,24 +129,60 @@ namespace ReaderBenchmark
                     ilGenerator.Emit(OpCodes.Ldnull);
                 }
 
-                ilGenerator.Emit(OpCodes.Br_S, setPropertyLabel);
+                // TODO ValueType
+                ilGenerator.Emit(OpCodes.Callvirt, entry.Property.SetMethod);
 
+                ilGenerator.Emit(OpCodes.Br_S, next);
+
+                // ----------------------------------------
                 // Value
+                // ----------------------------------------
+
+                // [T][T][Value]
+
                 ilGenerator.MarkLabel(hasValueLabel);
 
-                // TODO Converter
-
-                if (entry.Property.PropertyType.IsValueType)
+                if (entry.Converter != null)
                 {
-                    ilGenerator.Emit(OpCodes.Unbox_Any, entry.Property.PropertyType);
-                    // TODO BCL, Nullable
+                    // TODO 確認
+                    ilGenerator.Emit(OpCodes.Stloc_0);  // [Value] : [T][T]
+
+                    var field = holderType.GetField($"parser{entry.Index}");
+                    ilGenerator.Emit(OpCodes.Ldarg_0);  // [Value] : [T][T][Holder]
+                    ilGenerator.Emit(OpCodes.Ldfld, field); // [Value] : [T][T][Converter]
+
+                    ilGenerator.Emit(OpCodes.Ldloc_0); // [T][T][Converter][Value]
+
+                    var method = typeof(Func<object, object>).GetMethod("Invoke");
+                    ilGenerator.Emit(OpCodes.Callvirt, method); // [T][T][Value(Converted)]
                 }
 
-                // Set
-                ilGenerator.MarkLabel(setPropertyLabel);
+                // [MEMO] 最適化Converterがある場合、以下のステップは不要？
+                if (entry.Property.PropertyType.IsValueType)
+                {
+                    if (entry.Property.PropertyType.IsNullableType())
+                    {
+                        // TODO Nullable
+                    }
+                    else
+                    {
+                        ilGenerator.Emit(OpCodes.Unbox_Any, entry.Property.PropertyType);
+                    }
+                }
+                //else
+                //{
+                //    // [?] 同じ型のobjectなので省略可能？
+                //    ilGenerator.Emit(OpCodes.Castclass, entry.Property.PropertyType);
+                //}
 
                 // TODO ValueType
                 ilGenerator.Emit(OpCodes.Callvirt, entry.Property.SetMethod);
+
+                // ----------------------------------------
+                // Next
+                // ----------------------------------------
+
+                ilGenerator.MarkLabel(next);
 
                 //if (entry.Converter == null)
                 //{
@@ -112,11 +191,6 @@ namespace ReaderBenchmark
                 //}
                 //else
                 //{
-                //    var field = holderType.GetField($"parser{entry.Index}");
-                //    ilGenerator.Emit(OpCodes.Ldarg_0);
-                //    ilGenerator.Emit(OpCodes.Ldfld, field);
-                //    var method = getValueWithConvertMethod.MakeGenericMethod(entry.Property.PropertyType);
-                //    ilGenerator.Emit(OpCodes.Call, method);
                 //}
             }
 

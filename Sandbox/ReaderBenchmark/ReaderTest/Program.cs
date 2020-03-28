@@ -11,6 +11,10 @@ namespace ReaderTest
         }
     }
 
+    public enum MyEnum
+    {
+    }
+
     public struct MyStruct
     {
     }
@@ -41,6 +45,17 @@ namespace ReaderTest
 
 
     public class Data
+    {
+        public int StructValue { get; set; }
+
+        public int? NullableStructValue { get; set; }
+
+        public string ClassValue { get; set; }
+
+        public string ConvertValue { get; set; }
+    }
+
+    public struct Data2
     {
         public int StructValue { get; set; }
 
@@ -109,6 +124,145 @@ namespace ReaderTest
             }
 
             return data;
+        }
+
+        public Data2 Map2(IDataReader reader)
+        {
+            var data = new Data2();
+
+            var value = reader.GetValue(0);
+            if (value is DBNull)
+            {
+                data.StructValue = default(int);
+            }
+            else
+            {
+                data.StructValue = (int)value;
+            }
+
+            value = reader.GetValue(1);
+            if (value is DBNull)
+            {
+                data.NullableStructValue = null;
+            }
+            else
+            {
+                data.NullableStructValue = (int)value;
+            }
+
+            value = reader.GetValue(2);
+            if (value is DBNull)
+            {
+                data.ClassValue = null;
+            }
+            else
+            {
+                data.ClassValue = (string)value;
+            }
+
+            value = reader.GetValue(3);
+            if (value is DBNull)
+            {
+                data.ConvertValue = null;
+            }
+            else
+            {
+                data.ConvertValue = (string)converter(value);
+            }
+
+            return data;
+        }
+    }
+
+
+    public class Target
+    {
+        public string StringValue { get; set; }
+        public int? IntNullableValue { get; set; }
+        public int IntValue { get; set; }
+        public MyStruct StructValue { get; set; }
+        public MyEnum EnumValue { get; set; }
+        public MyStruct? NullableStructValue { get; set; }
+        public MyEnum? NullableEnumValue { get; set; }
+    }
+
+    public static class TargetNull
+    {
+        public static Target Mix()
+        {
+            var o = new Target();
+            o.StringValue = null;
+            o.IntNullableValue = null;
+            o.IntValue = default;
+            o.StructValue = default;
+            o.NullableStructValue = default;
+            o.EnumValue = default;
+            o.NullableEnumValue = default;
+
+            return o;
+        }
+
+        public static Target String()
+        {
+            var o = new Target();
+            o.StringValue = null;
+            o.StringValue = null;
+            o.StringValue = null;
+            return o;
+        }
+
+        public static Target IntNullable()
+        {
+            var o = new Target();
+            o.IntNullableValue = null;
+            o.IntNullableValue = null;
+            o.IntNullableValue = null;
+            return o;
+        }
+
+        public static Target Int()
+        {
+            var o = new Target();
+            o.IntValue = default;
+            o.IntValue = default;
+            o.IntValue = default;
+            return o;
+        }
+
+        public static Target Struct()
+        {
+            var o = new Target();
+            o.StructValue = default;
+            o.StructValue = default;
+            o.StructValue = default;
+            return o;
+        }
+
+        public static Target NullableStruct()
+        {
+            var o = new Target();
+            o.NullableStructValue = default;
+            o.NullableStructValue = default;
+            o.NullableStructValue = default;
+            return o;
+        }
+
+        public static Target Enum()
+        {
+            var o = new Target();
+            o.EnumValue = default;
+            o.EnumValue = default;
+            o.EnumValue = default;
+            return o;
+        }
+
+        public static Target NullableEnum()
+        {
+            var o = new Target();
+            o.NullableEnumValue = default;
+            o.NullableEnumValue = default;
+            o.NullableEnumValue = default;
+            return o;
         }
     }
 }
