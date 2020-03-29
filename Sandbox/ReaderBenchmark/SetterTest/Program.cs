@@ -16,37 +16,74 @@ namespace SetterTest
             var generator = new Generator();
 
             //var stringSetter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.StringValue)));
-            //stringSetter(instance);
-
-            //var intNullableSetter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.IntNullableValue)));
-            //intNullableSetter(instance);
-
-            var intSetter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.IntValue)));
-            intSetter(instance);
+            var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.IntNullableValue)));
+            //var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.IntValue)));
+            //var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.MyEnumNullableValue)));
+            //var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.MyEnumValue)));
+            //var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.MyStructNullableValue)));
+            //var setter = generator.CreateNullSetter<Target>(type.GetProperty(nameof(Target.MyStructValue)));
+            setter(instance);
         }
+    }
+
+    public struct MyStruct
+    {
+    }
+
+    public enum MyEnum
+    {
     }
 
     public class Target
     {
         private string stringValue;
+        private int? intNullableValue;
+        private int intValue;
+        private MyEnum? myEnumNullableValue;
+        private MyEnum myEnumValue;
+        private MyStruct? myStructNullableValue;
+        private MyStruct myStructValue;
+
         public string StringValue
         {
             get => stringValue;
             set => stringValue = value;
         }
 
-        private int? intNullableValue;
         public int? IntNullableValue
         {
             get => intNullableValue;
             set => intNullableValue = value;
         }
 
-        private int intValue;
         public int IntValue
         {
             get => intValue;
             set => intValue = value;
+        }
+
+        public MyEnum? MyEnumNullableValue
+        {
+            get => myEnumNullableValue;
+            set => myEnumNullableValue = value;
+        }
+
+        public MyEnum MyEnumValue
+        {
+            get => myEnumValue;
+            set => myEnumValue = value;
+        }
+
+        public MyStruct? MyStructNullableValue
+        {
+            get => myStructNullableValue;
+            set => myStructNullableValue = value;
+        }
+
+        public MyStruct MyStructValue
+        {
+            get => myStructValue;
+            set => myStructValue = value;
         }
     }
 
