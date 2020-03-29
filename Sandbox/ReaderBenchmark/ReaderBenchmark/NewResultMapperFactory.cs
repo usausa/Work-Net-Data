@@ -203,7 +203,6 @@ namespace ReaderBenchmark
                 var column = columns[i];
                 var pi = type.GetProperty(column.Name);
 
-                // TODO Converter
                 list.Add(new MapEntry(i, pi, null));
             }
 
