@@ -265,4 +265,37 @@ namespace ReaderTest
             return o;
         }
     }
+
+    public sealed class ConverterCall
+    {
+        public static int ObjectToObjectInt(object value, Func<object, object> converter)
+        {
+            return (int)converter(value);
+        }
+
+        public static string ObjectToObjectString(object value, Func<object, object> converter)
+        {
+            return (string)converter(value);
+        }
+
+        public static int ObjectToInt(object value, Func<object, int> converter)
+        {
+            return converter(value);
+        }
+
+        public static string ObjectToString(object value, Func<object, string> converter)
+        {
+            return converter(value);
+        }
+
+        public static int TypedInt(object value, Func<int, int> converter)
+        {
+            return converter((int)value);
+        }
+
+        public static string TypedString(object value, Func<string, string> converter)
+        {
+            return converter((string)value);
+        }
+    }
 }

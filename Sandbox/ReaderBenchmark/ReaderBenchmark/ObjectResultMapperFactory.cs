@@ -47,7 +47,7 @@
                 GetType().GetMethod(nameof(GetValueWithConvert), BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public bool IsMatch(Type type) => true;
+        //public bool IsMatch(Type type) => true;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:ValidateArgumentsOfPublicMethods",
             Justification = "Ignore")]

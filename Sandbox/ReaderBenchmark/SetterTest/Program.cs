@@ -86,19 +86,19 @@ namespace SetterTest
 
             if (pi.PropertyType.IsValueType)
             {
-                if (pi.PropertyType.IsNullableType())
-                {
-                    // TODO これで良いか？
-                    il.Emit(OpCodes.Ldnull);
-                }
                 if (LdcDictionary.TryGetValue(pi.PropertyType.IsEnum  ? pi.PropertyType.GetEnumUnderlyingType() : pi.PropertyType, out var action))
                 {
                     action(il);
                 }
                 else
                 {
+                    var local = il.DeclareLocal(pi.PropertyType);
 
+                    il.Emit(OpCodes.Ldloca_S, local);
+                    il.Emit(OpCodes.Initobj, pi.PropertyType);
+                    il.Emit(OpCodes.Ldloc_S, local);
                 }
+
 
                 il.Emit(OpCodes.Callvirt, pi.GetSetMethod());
             }
