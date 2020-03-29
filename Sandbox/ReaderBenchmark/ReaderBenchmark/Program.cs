@@ -11,6 +11,11 @@ using Smart.Mock.Data;
 
 namespace ReaderBenchmark
 {
+    public class TestData
+    {
+        public int? Id { get; set; }
+    }
+
     public static class Program
     {
         public static void Main()
@@ -51,12 +56,8 @@ namespace ReaderBenchmark
                     {
                         case 0: return "test";
                         case 1: return "test";
-                        case 2: return "test";
-                        case 3: return "test";
                         case 4: return 1;
                         case 5: return 1;
-                        case 6: return 1;
-                        case 7: return 1;
                     }
 
                     return DBNull.Value;
@@ -94,7 +95,7 @@ namespace ReaderBenchmark
         public string Name04 { get; set; }
         public int Id1 { get; set; }
         public int Id2 { get; set; }
-        public int Id3 { get; set; }
-        public int Id4 { get; set; }
+        public int? Id3 { get; set; }
+        public int? Id4 { get; set; }
     }
 }

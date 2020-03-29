@@ -188,6 +188,16 @@ namespace ReaderTest
 
     public static class TargetNull
     {
+        public static Target NullableValue()
+        {
+            var o = new Target();
+            o.IntNullableValue = 0;
+            o.NullableStructValue = new MyStruct();
+            o.NullableEnumValue = 0;
+
+            return o;
+        }
+
         public static Target Mix()
         {
             var o = new Target();

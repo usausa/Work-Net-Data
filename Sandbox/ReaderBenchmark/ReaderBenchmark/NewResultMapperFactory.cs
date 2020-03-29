@@ -115,7 +115,7 @@ namespace ReaderBenchmark
                 ilGenerator.Emit(OpCodes.Pop);  // [T][T]
                 if (propertyType.IsValueType)
                 {
-                    if (LdcDictionary.TryGetValue(propertyType.IsEnum  ? propertyType.GetEnumUnderlyingType() : propertyType, out var action))
+                    if (LdcDictionary.TryGetValue(propertyType.IsEnum ? propertyType.GetEnumUnderlyingType() : propertyType, out var action))
                     {
                         action(ilGenerator);
                     }
@@ -165,10 +165,10 @@ namespace ReaderBenchmark
                     if (entry.Property.PropertyType.IsNullableType())
                     {
                         var underlyingType = Nullable.GetUnderlyingType(entry.Property.PropertyType);
-                        var nullableCtor = entry.Property.PropertyType.GetConstructor(new[] {underlyingType});
+                        var nullableCtor = entry.Property.PropertyType.GetConstructor(new[] { underlyingType });
 
                         ilGenerator.Emit(OpCodes.Unbox_Any, underlyingType);
-                        ilGenerator.Emit(OpCodes.Initobj, nullableCtor);
+                        ilGenerator.Emit(OpCodes.Newobj, nullableCtor);
                     }
                     else
                     {
