@@ -81,10 +81,10 @@ namespace ReaderBenchmark
         }
 
         [Benchmark]
-        public Data Map1() => mapper1(reader);
+        public Data Old() => mapper1(reader);
 
         [Benchmark]
-        public Data Map2() => mapper2(reader);
+        public Data New() => mapper2(reader);
     }
 
     public class Data
