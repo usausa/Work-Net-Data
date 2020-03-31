@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReaderTest", "ReaderTest\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SetterTest", "SetterTest\SetterTest.csproj", "{45672140-DA79-4523-8C80-B4CD68B4EAF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelectorTest", "SelectorTest\SelectorTest.csproj", "{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{45672140-DA79-4523-8C80-B4CD68B4EAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45672140-DA79-4523-8C80-B4CD68B4EAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45672140-DA79-4523-8C80-B4CD68B4EAF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
