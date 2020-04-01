@@ -1,9 +1,10 @@
 ﻿namespace SelectorTest
 {
     using System;
+    using System.Reflection;
 
     public interface IMappingSelector
     {
-        TypeMapInfo Select(Type type, ColumnInfo[] columns);
+        TypeMapInfo Select(MethodInfo mi, Type type, ColumnInfo[] columns);
     }
 }
