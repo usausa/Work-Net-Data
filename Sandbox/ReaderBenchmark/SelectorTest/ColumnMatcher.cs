@@ -8,56 +8,38 @@
     using Smart.Data.Accessor.Attributes;
     using Smart.Data.Accessor.Configs;
 
-    public class DefaultMappingSelector : IMappingSelector
+    public class ColumnMatcher
     {
-        public TypeMapInfo Select(MethodInfo mi, Type type, ColumnInfo[] columns)
-        {
-            var columnMap = columns
-                .Select((x, i) => new ColumnAndIndex { Column = x, Index = i })
-                .ToDictionary(x => x.Column.Name, StringComparer.OrdinalIgnoreCase);
+        private readonly MethodInfo mi;
 
-            // Find constructor
+        private readonly List<ColumnAndIndex> columns;
+
+        public ColumnMatcher(MethodInfo mi, IEnumerable<ColumnInfo> columns, int offset)
+        {
+            this.mi = mi;
+            this.columns = columns.Select((x, i) => new ColumnAndIndex { Column = x, Index = i + offset }).ToList();
+        }
+
+        public ConstructorMapInfo ResolveConstructor(Type type)
+        {
             var ctor = type.GetConstructors()
-                .Select(x => MatchConstructor(mi, x, columnMap))
+                .Select(MatchConstructor)
                 .Where(x => x != null)
                 .OrderByDescending(x => x.Map.Indexes.Length)
                 .ThenByDescending(x => x.TypeMatch)
                 .FirstOrDefault();
-            if (ctor == null)
-            {
-                return null;
-            }
-
-            // Remove constructor columns
-            foreach (var index in ctor.Map.Indexes)
-            {
-                columnMap.Remove(columns[index].Name);
-            }
-
-            // Gather property map
-            var propertyMaps = new List<PropertyMapInfo>();
-            foreach (var pi in type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(IsTargetProperty))
-            {
-                var name = ConfigHelper.GetMethodPropertyColumnName(mi, pi);
-                if (!columnMap.TryGetValue(name, out var column))
-                {
-                    continue;
-                }
-
-                propertyMaps.Add(new PropertyMapInfo(pi, column.Index));
-            }
-
-            return new TypeMapInfo(ctor.Map, propertyMaps.ToArray());
+            return ctor?.Map;
         }
 
-        private ConstructorMatch MatchConstructor(MethodInfo mi, ConstructorInfo ci, Dictionary<string, ColumnAndIndex> columnMap)
+        private ConstructorMatch MatchConstructor(ConstructorInfo ci)
         {
             var indexes = new List<int>();
             var typeMatch = 0;
             foreach (var pi in ci.GetParameters())
             {
                 var name = ConfigHelper.GetMethodParameterColumnName(mi, pi);
-                if (!columnMap.TryGetValue(name, out var column))
+                var column = FindMatchColumn(name);
+                if (column is null)
                 {
                     return null;
                 }
@@ -73,12 +55,30 @@
             };
         }
 
+        public PropertyMapInfo[] ResolveProperties(Type type)
+        {
+            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(IsTargetProperty)
+                .Select(x =>
+                {
+                    var name = ConfigHelper.GetMethodPropertyColumnName(mi, x);
+                    var column = FindMatchColumn(name);
+                    return column is null ? null : new PropertyMapInfo(x, column.Index);
+                })
+                .Where(x => x != null)
+                .ToArray();
+        }
+
+        private ColumnAndIndex FindMatchColumn(string name)
+        {
+            return columns.FirstOrDefault(x => String.Equals(x.Column.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
         private static bool IsTargetProperty(PropertyInfo pi)
         {
             return pi.CanWrite && (pi.GetCustomAttribute<IgnoreAttribute>() == null);
         }
 
-        private class ColumnAndIndex
+        private  class ColumnAndIndex
         {
             public ColumnInfo Column { get; set; }
 
