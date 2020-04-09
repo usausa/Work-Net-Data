@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReaderBenchmark", "ReaderBe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReaderTest", "ReaderTest\ReaderTest.csproj", "{096AC4EF-EAFA-4B7C-9653-E4D5076FF8D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SetterTest", "SetterTest\SetterTest.csproj", "{45672140-DA79-4523-8C80-B4CD68B4EAF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SetterTest", "SetterTest\SetterTest.csproj", "{45672140-DA79-4523-8C80-B4CD68B4EAF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelectorTest", "SelectorTest\SelectorTest.csproj", "{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SelectorTest", "SelectorTest\SelectorTest.csproj", "{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructorTest", "ConstructorTest\ConstructorTest.csproj", "{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC9EB394-238A-47F2-9D06-AB47BA64A3EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -194,6 +194,24 @@ namespace ReaderTest
 
             return data;
         }
+
+        public Data3 Map3(IDataReader reader)
+        {
+            var value1 = reader.GetValue(0);
+            var value2 = reader.GetValue(0);
+            var value3 = reader.GetValue(0);
+            var value4 = reader.GetValue(0);
+            var value5 = reader.GetValue(0);
+
+            var data = new Data3(
+                value1 is DBNull ? default : (int) value1,
+                value2 is DBNull ? default : (int) value2,
+                value3 is DBNull ? default : (string) value3,
+                value4 is DBNull ? default : (int) converter(value4),
+                value5 is DBNull ? default : (string) converter(value5));
+
+            return data;
+        }
     }
 
 
