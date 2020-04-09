@@ -66,6 +66,28 @@ namespace ReaderTest
         public string ConvertValue { get; set; }
     }
 
+    public class Data3
+    {
+        public int StructValue { get; set; }
+
+        public int? NullableStructValue { get; set; }
+
+        public string ClassValue { get; set; }
+
+        public int ConvertStructValue { get; set; }
+
+        public string ConvertClassValue { get; set; }
+
+        public Data3(int structValue, int? nullableStructValue, string classValue, int convertStructValue, string convertClassValue)
+        {
+            StructValue = structValue;
+            NullableStructValue = nullableStructValue;
+            ClassValue = classValue;
+            ConvertStructValue = convertStructValue;
+            ConvertClassValue = convertClassValue;
+        }
+    }
+
     public sealed class Mapper
     {
         public Func<object, object> converter;
