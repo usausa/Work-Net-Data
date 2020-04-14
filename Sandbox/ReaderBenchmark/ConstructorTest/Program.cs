@@ -31,12 +31,19 @@ namespace ConstructorTest
                     new object[] { DBNull.Value},
                 });
 
+            reader.Read();
             var entity = mapper(reader);
         }
     }
 
     public class Data
     {
+        public int Id { get; set; }
+
+        public Data(int id)
+        {
+            Id = id;
+        }
     }
 
     public class Factory
