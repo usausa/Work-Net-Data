@@ -24,15 +24,19 @@ namespace ConstructorTest
                 new[]
                 {
                     new MockColumn(typeof(int), "Id"),
+                    new MockColumn(typeof(string), "Name"),
                 },
                 new []
                 {
-                    new object[] { 1},
-                    new object[] { DBNull.Value},
+                    new object[] { 1, "Test" },
+                    new object[] { DBNull.Value, DBNull.Value},
                 });
 
             reader.Read();
-            var entity = mapper(reader);
+            var entity1 = mapper(reader);
+
+            reader.Read();
+            var entity2 = mapper(reader);
         }
     }
 
@@ -40,9 +44,12 @@ namespace ConstructorTest
     {
         public int Id { get; set; }
 
-        public Data(int id)
+        public string Name { get; set; }
+
+        public Data(int id, string name)
         {
             Id = id;
+            Name = name;
         }
     }
 
