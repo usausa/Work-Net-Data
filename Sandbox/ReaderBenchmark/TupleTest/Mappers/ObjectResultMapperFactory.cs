@@ -54,7 +54,7 @@ namespace Smart.Data.Accessor.Mappers
                 .Where(x => x.Converter != null)
                 .ToDictionary(x => x.Index, x => x.Converter);
 
-            var holder = CreateHolder(typeMap, converters);
+            var holder = CreateHolder(converters);
             var holderType = holder.GetType();
 
             var dynamicMethod = new DynamicMethod(string.Empty, type, new[] { holderType, typeof(IDataRecord) }, true);
@@ -152,30 +152,21 @@ namespace Smart.Data.Accessor.Mappers
             return (Func<IDataRecord, T>)dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>), holder);
         }
 
-        private object CreateHolder(TypeMapInfo typeMap, Dictionary<int, Func<object, object>> converters)
+        private object CreateHolder(Dictionary<int, Func<object, object>> converters)
         {
             var typeBuilder = ModuleBuilder.DefineType(
                 $"Holder_{typeNo}",
                 TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.AnsiClass | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit);
             typeNo++;
 
-            foreach (var parameterMap in typeMap.Constructor.Parameters)
-            {
-                if (converters.ContainsKey(parameterMap.Index))
-                {
-                    typeBuilder.DefineField(
-                        $"parser{parameterMap.Index}",
-                        typeof(Func<object, object>),
-                        FieldAttributes.Public);
-                }
-            }
+            var indexes = converters.Select(x => x.Key).OrderBy(x => x).ToList();
 
-            foreach (var propertyMap in typeMap.Properties)
+            foreach (var index in indexes)
             {
-                if (converters.ContainsKey(propertyMap.Index))
+                if (converters.ContainsKey(index))
                 {
                     typeBuilder.DefineField(
-                        $"parser{propertyMap.Index}",
+                        $"parser{index}",
                         typeof(Func<object, object>),
                         FieldAttributes.Public);
                 }
@@ -185,20 +176,11 @@ namespace Smart.Data.Accessor.Mappers
             var holderType = typeInfo.AsType();
             var holder = Activator.CreateInstance(holderType);
 
-            foreach (var parameterMap in typeMap.Constructor.Parameters)
+            foreach (var index in indexes)
             {
-                if (converters.TryGetValue(parameterMap.Index, out var converter))
+                if (converters.TryGetValue(index, out var converter))
                 {
-                    var field = holderType.GetField($"parser{parameterMap.Index}");
-                    field.SetValue(holder, converter);
-                }
-            }
-
-            foreach (var propertyMap in typeMap.Properties)
-            {
-                if (converters.TryGetValue(propertyMap.Index, out var converter))
-                {
-                    var field = holderType.GetField($"parser{propertyMap.Index}");
+                    var field = holderType.GetField($"parser{index}");
                     field.SetValue(holder, converter);
                 }
             }
