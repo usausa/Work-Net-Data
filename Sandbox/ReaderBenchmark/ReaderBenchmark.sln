@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SelectorTest", "SelectorTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstructorTest", "ConstructorTest\ConstructorTest.csproj", "{6D3711E7-3F75-4CFB-88E7-7EB043314D5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TupleTest", "TupleTest\TupleTest.csproj", "{018FB2B8-1386-4E4F-9988-F48BC35A80A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TupleTest", "TupleTest\TupleTest.csproj", "{018FB2B8-1386-4E4F-9988-F48BC35A80A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NestedTest", "NestedTest\NestedTest.csproj", "{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{018FB2B8-1386-4E4F-9988-F48BC35A80A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{018FB2B8-1386-4E4F-9988-F48BC35A80A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{018FB2B8-1386-4E4F-9988-F48BC35A80A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
