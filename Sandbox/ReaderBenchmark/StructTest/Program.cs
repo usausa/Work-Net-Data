@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -12,6 +13,16 @@ namespace StructTest
     public class Class0
     {
         public int Value { get; set; }
+    }
+
+    public class Class1
+    {
+        public int Value { get; set; }
+
+        public Class1(int value)
+        {
+            Value = value;
+        }
     }
 
     public struct Struct0
@@ -36,11 +47,12 @@ namespace StructTest
         {
             var factory = new CreateAndSetFactory();
             //var action = factory.Create<Class0, int>(0, "Value");
-            var action = factory.Create<Struct0, int>(0, "Value");
+            //var action = factory.Create<Class1, int>(1, "Value");
+            //var action = factory.Create<Struct0, int>(0, "Value");
+            var action = factory.Create<Struct1, int>(1, "Value");
             var obj = action(123);
+            Debug.WriteLine(obj.Value);
 
-            // TODO struct
-            // TODO struct with ctor
             // TODO struct nullable ?
         }
     }
@@ -91,26 +103,43 @@ namespace StructTest
             var ilGenerator = dynamicMethod.GetILGenerator();
 
             // Variables
-            var ctorLocal = ci is null ? ilGenerator.DeclareLocal(type) : null;
+            // TODO nullable ?
+            var ctorLocal = type.IsValueType ? ilGenerator.DeclareLocal(type) : null;
             var valueTypeLocals = ilGenerator.DeclareValueTypeLocals(
                 (ci?.GetParameters().Select(x => x.ParameterType) ?? Array.Empty<Type>()).Append(pi.PropertyType));
-            var isShort = valueTypeLocals.Count + (ctorLocal is null ? 0 : 1) <= 256;
 
             // IL
-            if (ctorLocal is null)
+            if (ctorLocal != null)
+            {
+                ilGenerator.Emit(OpCodes.Ldloca, ctorLocal);
+            }
+
+            if (ci != null)
             {
                 foreach (var pmi in ci.GetParameters())
                 {
-                    ilGenerator.EmitStackDefault(pmi.ParameterType, valueTypeLocals, isShort);
+                    ilGenerator.EmitStackDefault(pmi.ParameterType, valueTypeLocals);
                 }
 
-                // New
-                ilGenerator.Emit(OpCodes.Newobj, ci);
+                if (ctorLocal != null)
+                {
+                    // Struct call constructor
+                    ilGenerator.Emit(OpCodes.Call, ci);
+                }
+                else
+                {
+                    // Class new
+                    ilGenerator.Emit(OpCodes.Newobj, ci);
+                }
             }
             else
             {
-                ilGenerator.Emit(OpCodes.Ldloca, ctorLocal);
+                // Struct init
                 ilGenerator.Emit(OpCodes.Initobj, type);
+            }
+
+            if (ctorLocal != null)
+            {
                 ilGenerator.Emit(OpCodes.Ldloca, ctorLocal);
             }
 
@@ -176,7 +205,7 @@ namespace StructTest
             ilGenerator.Emit(OpCodes.Isinst, typeof(DBNull));
         }
 
-        public static void EmitStackDefault(this ILGenerator ilGenerator, Type type, Dictionary<Type, LocalBuilder> valueTypeLocals, bool isShort)
+        public static void EmitStackDefault(this ILGenerator ilGenerator, Type type, Dictionary<Type, LocalBuilder> valueTypeLocals)
         {
             if (type.IsValueType)
             {
@@ -188,9 +217,9 @@ namespace StructTest
                 {
                     var local = valueTypeLocals[type];
 
-                    ilGenerator.Emit(isShort ? OpCodes.Ldloca_S : OpCodes.Ldloca, local);
+                    ilGenerator.Emit(local.LocalIndex < 256 ? OpCodes.Ldloca_S : OpCodes.Ldloca, local);
                     ilGenerator.Emit(OpCodes.Initobj, type);
-                    ilGenerator.Emit(isShort ? OpCodes.Ldloc_S : OpCodes.Ldloc, local);
+                    ilGenerator.Emit(local.LocalIndex < 256 ? OpCodes.Ldloc_S : OpCodes.Ldloc, local);
                 }
             }
             else
@@ -199,17 +228,17 @@ namespace StructTest
             }
         }
 
-        public static void EmitConvertByField(this ILGenerator ilGenerator, FieldInfo field, LocalBuilder objectLocal, bool isShort)
+        public static void EmitConvertByField(this ILGenerator ilGenerator, FieldInfo field, LocalBuilder local)
         {
-            ilGenerator.Emit(isShort ? OpCodes.Stloc_S : OpCodes.Stloc, objectLocal);  // [Value] :
+            ilGenerator.Emit(local.LocalIndex < 256 ? OpCodes.Stloc_S : OpCodes.Stloc, local);      // [Value] :
 
-            ilGenerator.Emit(OpCodes.Ldarg_0);                                          // [Value] : [Holder]
-            ilGenerator.Emit(OpCodes.Ldfld, field);                                     // [Value] : [Converter]
+            ilGenerator.Emit(OpCodes.Ldarg_0);                                                      // [Value] : [Holder]
+            ilGenerator.Emit(OpCodes.Ldfld, field);                                                 // [Value] : [Converter]
 
-            ilGenerator.Emit(isShort ? OpCodes.Ldloc_S : OpCodes.Ldloc, objectLocal);  // [Converter][Value]
+            ilGenerator.Emit(local.LocalIndex < 256 ? OpCodes.Ldloc_S : OpCodes.Ldloc, local);      // [Converter][Value]
 
             var method = typeof(Func<object, object>).GetMethod("Invoke");
-            ilGenerator.Emit(OpCodes.Callvirt, method);                                 // [Value(Converted)]
+            ilGenerator.Emit(OpCodes.Callvirt, method);                                             // [Value(Converted)]
         }
 
         public static void EmitTypeConversion(this ILGenerator ilGenerator, Type type)
