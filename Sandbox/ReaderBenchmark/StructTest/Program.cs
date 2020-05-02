@@ -21,6 +21,7 @@ namespace StructTest
 
         public Class1(int value)
         {
+            Debug.WriteLine("** Class1 ** " + value);
             Value = value;
         }
     }
@@ -36,6 +37,7 @@ namespace StructTest
 
         public Struct1(int value)
         {
+            Debug.WriteLine("** Struct1 ** " + value);
             Value = value;
         }
     }
@@ -46,14 +48,46 @@ namespace StructTest
         static void Main(string[] args)
         {
             var factory = new CreateAndSetFactory();
-            //var action = factory.Create<Class0, int>(0, "Value");
-            //var action = factory.Create<Class1, int>(1, "Value");
-            //var action = factory.Create<Struct0, int>(0, "Value");
-            var action = factory.Create<Struct1, int>(1, "Value");
-            var obj = action(123);
-            Debug.WriteLine(obj.Value);
 
-            // TODO struct nullable ?
+            Debug.WriteLine("----------");
+            var actionC0 = factory.Create<Class0, int>(0, "Value");
+            var objC0 = actionC0(123);
+            Debug.WriteLine(objC0.Value);
+
+            Debug.WriteLine("----------");
+            var actionC1 = factory.Create<Class1, int>(1, "Value");
+            var objC1 = actionC1(123);
+            Debug.WriteLine(objC1.Value);
+
+            Debug.WriteLine("----------");
+            var actionS0 = factory.Create<Struct0, int>(0, "Value");
+            var objS0 = actionS0(123);
+            Debug.WriteLine(objS0.Value);
+
+            Debug.WriteLine("----------");
+            var actionS1 = factory.Create<Struct1, int>(1, "Value");
+            var objS1 = actionS1(123);
+            Debug.WriteLine(objS1.Value);
+
+            Debug.WriteLine("----------");
+            var actionS10 = factory.Create<Struct1, int>(0, "Value");
+            var objS10 = actionS10(123);
+            Debug.WriteLine(objS10.Value);
+
+            Debug.WriteLine("----------");
+            var actionS0N = factory.Create<Struct0?, int>(0, "Value");
+            var objS0N = actionS0N(123);
+            Debug.WriteLine(objS0N.Value.Value);
+
+            Debug.WriteLine("----------");
+            var actionS1N = factory.Create<Struct1?, int>(1, "Value");
+            var objS1N = actionS1N(123);
+            Debug.WriteLine(objS1N.Value.Value);
+
+            Debug.WriteLine("----------");
+            var actionS10N = factory.Create<Struct1?, int>(0, "Value");
+            var objS10N = actionS10N(123);
+            Debug.WriteLine(objS10N.Value.Value);
         }
     }
 
@@ -85,8 +119,10 @@ namespace StructTest
         public Func<TProperty, T> Create<T, TProperty>(int ctorArgumentCount, string propertyName)
         {
             var type = typeof(T);
-            var pi = type.GetProperty(propertyName);
-            var ci = type.GetConstructors().FirstOrDefault(x => x.GetParameters().Length == ctorArgumentCount);
+            var isNullableType = type.IsValueType && type.IsNullableType();
+            var targetType = isNullableType ? Nullable.GetUnderlyingType(type) : type;
+            var pi = targetType.GetProperty(propertyName);
+            var ci = targetType.GetConstructors().FirstOrDefault(x => x.GetParameters().Length == ctorArgumentCount);
 
             // Prepare
             var typeBuilder = ModuleBuilder.DefineType(
@@ -99,12 +135,12 @@ namespace StructTest
             var holderType = typeInfo.AsType();
             var holder = Activator.CreateInstance(holderType);
 
-            var dynamicMethod = new DynamicMethod(string.Empty, type, new[] {holderType, typeof(int)}, true);
+            var dynamicMethod = new DynamicMethod(string.Empty, type, new[] { holderType, pi.PropertyType }, true);
             var ilGenerator = dynamicMethod.GetILGenerator();
 
             // Variables
             // TODO nullable ?
-            var ctorLocal = type.IsValueType ? ilGenerator.DeclareLocal(type) : null;
+            var ctorLocal = targetType.IsValueType ? ilGenerator.DeclareLocal(targetType) : null;
             var valueTypeLocals = ilGenerator.DeclareValueTypeLocals(
                 (ci?.GetParameters().Select(x => x.ParameterType) ?? Array.Empty<Type>()).Append(pi.PropertyType));
 
@@ -118,7 +154,8 @@ namespace StructTest
             {
                 foreach (var pmi in ci.GetParameters())
                 {
-                    ilGenerator.EmitStackDefault(pmi.ParameterType, valueTypeLocals);
+                    ilGenerator.Emit(OpCodes.Ldc_I4, 234);
+                    //ilGenerator.EmitStackDefault(pmi.ParameterType, valueTypeLocals);
                 }
 
                 if (ctorLocal != null)
@@ -135,7 +172,7 @@ namespace StructTest
             else
             {
                 // Struct init
-                ilGenerator.Emit(OpCodes.Initobj, type);
+                ilGenerator.Emit(OpCodes.Initobj, targetType);
             }
 
             if (ctorLocal != null)
@@ -152,7 +189,12 @@ namespace StructTest
             // Return
             if (ctorLocal != null)
             {
-                ilGenerator.Emit(OpCodes.Ldobj, type);
+                ilGenerator.Emit(OpCodes.Ldobj, targetType);
+            }
+
+            if (isNullableType)
+            {
+                ilGenerator.EmitChangeToNullable(type);
             }
 
             ilGenerator.Emit(OpCodes.Ret);
@@ -262,6 +304,14 @@ namespace StructTest
             {
                 ilGenerator.Emit(OpCodes.Castclass, type);
             }
+        }
+
+        public static void EmitChangeToNullable(this ILGenerator ilGenerator, Type type)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(type);
+            var nullableCtor = type.GetConstructor(new[] { underlyingType });
+
+            ilGenerator.Emit(OpCodes.Newobj, nullableCtor);
         }
 
         public static void EmitSetter(this ILGenerator ilGenerator, PropertyInfo pi)
