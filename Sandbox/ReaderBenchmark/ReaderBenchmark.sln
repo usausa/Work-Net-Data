@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstructorTest", "Construc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TupleTest", "TupleTest\TupleTest.csproj", "{018FB2B8-1386-4E4F-9988-F48BC35A80A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NestedTest", "NestedTest\NestedTest.csproj", "{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NestedTest", "NestedTest\NestedTest.csproj", "{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StructTest", "StructTest\StructTest.csproj", "{F22A1732-8311-496E-BE92-A0ADAC027ECC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
