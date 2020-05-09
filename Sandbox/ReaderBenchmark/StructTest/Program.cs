@@ -91,6 +91,14 @@ namespace StructTest
         }
     }
 
+    public static class NullableFactory
+    {
+        public static Struct0? Create()
+        {
+            return null;
+        }
+    }
+
     public class CreateAndSetFactory
     {
         private int typeNo;
