@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TupleTest", "TupleTest\Tupl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NestedTest", "NestedTest\NestedTest.csproj", "{5122ED24-20A7-45A9-8688-C98ADA8F1EC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StructTest", "StructTest\StructTest.csproj", "{F22A1732-8311-496E-BE92-A0ADAC027ECC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StructTest", "StructTest\StructTest.csproj", "{F22A1732-8311-496E-BE92-A0ADAC027ECC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StructTupleTest", "..\..\..\..\StructTupleTest\StructTupleTest.csproj", "{F49ADE74-11BC-4283-8110-E9A886654C51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F22A1732-8311-496E-BE92-A0ADAC027ECC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F49ADE74-11BC-4283-8110-E9A886654C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F49ADE74-11BC-4283-8110-E9A886654C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F49ADE74-11BC-4283-8110-E9A886654C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F49ADE74-11BC-4283-8110-E9A886654C51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
