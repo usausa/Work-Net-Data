@@ -8,8 +8,8 @@ namespace NestedTest
     {
         static void Main(string[] args)
         {
-            Dump(Query1().ToNested(p => p.Id, (p, cs) => p.Children = cs));
-            Dump(Query2().ToNested(p => p.Id, (p, cs) => p.Children = cs));
+            Dump(Query1().MapOneToMany(p => p.Id, (p, cs) => p.Children = cs));
+            Dump(Query2().MapOneToMany(p => p.Id, (p, cs) => p.Children = cs));
         }
 
         static void Dump(IEnumerable<ParentEntity> source)
@@ -58,12 +58,12 @@ namespace NestedTest
 
     public static class NestedExtensions
     {
-        public static IEnumerable<TP> ToNested<TP, TC, TPKey>(
+        public static IEnumerable<TP> MapOneToMany<TP, TC, TPKey>(
             this IEnumerable<Tuple<TP, TC>> source,
             Func<TP, TPKey> parentKeySelector,
             Action<TP, List<TC>> combiner)
         {
-            return ToNested(
+            return MapOneToMany(
                 source,
                 x => x.Item1,
                 x => x.Item2,
@@ -72,8 +72,7 @@ namespace NestedTest
                 combiner);
         }
 
-        // TODO versions keyComparer, Tuple, combiner(ListSelector)
-        public static IEnumerable<TP> ToNested<T, TP, TC, TPKey>(
+        public static IEnumerable<TP> MapOneToMany<T, TP, TC, TPKey>(
             this IEnumerable<T> source,
             Func<T, TP> parentSelector,
             Func<T, TC> childSelector,
