@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
-
-namespace WorkStringCompare
+﻿namespace WorkStringCompare
 {
     using System;
-    using System.Reflection;
+    using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Runtime.Intrinsics.X86;
 
     using BenchmarkDotNet.Attributes;
+    using BenchmarkDotNet.Columns;
     using BenchmarkDotNet.Configs;
     using BenchmarkDotNet.Diagnosers;
     using BenchmarkDotNet.Exporters;
@@ -16,7 +17,7 @@ namespace WorkStringCompare
     {
         public static void Main(string[] args)
         {
-            BenchmarkSwitcher.FromAssembly(typeof(Program).GetTypeInfo().Assembly).Run(args);
+            BenchmarkRunner.Run<Benchmark>();
         }
     }
 
@@ -24,11 +25,33 @@ namespace WorkStringCompare
     {
         public BenchmarkConfig()
         {
-            Add(MarkdownExporter.Default, MarkdownExporter.GitHub);
-            Add(MemoryDiagnoser.Default);
-            Add(Job.MediumRun);
-            //Add(Job.ShortRun);
+            AddExporter(MarkdownExporter.Default, MarkdownExporter.GitHub);
+            AddColumn(
+                StatisticColumn.Mean,
+                StatisticColumn.Min,
+                StatisticColumn.Max,
+                StatisticColumn.P90,
+                StatisticColumn.Error,
+                StatisticColumn.StdDev);
+            AddDiagnoser(MemoryDiagnoser.Default);
+            AddJob(Job.MediumRun);
+            //AddJob(Job.ShortRun);
         }
+    }
+
+    public class Strings
+    {
+        public string Value1 { get; }
+
+        public string Value2 { get; }
+
+        public Strings(char c, int length)
+        {
+            Value1 = new string(c, length);
+            Value2 = new string(c, length);
+        }
+
+        public override string ToString() => $"Length={Value1.Length:D2}";
     }
 
     [Config(typeof(BenchmarkConfig))]
@@ -36,155 +59,106 @@ namespace WorkStringCompare
     {
         private const int N = 1000;
 
-        private readonly string valueS1 = new string('X', 2);
-        private readonly string valueS2 = new string('X', 2);
-        private readonly string valueM1 = new string('X', 4);
-        private readonly string valueM2 = new string('X', 4);
-        private readonly string valueL1 = new string('X', 8);
-        private readonly string valueL2 = new string('X', 8);
-        private readonly string valueX1 = new string('X', 16);
-        private readonly string valueX2 = new string('X', 16);
+        [ParamsSource(nameof(Values))]
+        public Strings Value { get; set; }
 
-        //--------------------------------------------------------------------------------
-        // Equals
-        //--------------------------------------------------------------------------------
 
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool EqualsS()
+        public IEnumerable<Strings> Values()
         {
+            foreach (var length in new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20 })
+            {
+                yield return new Strings('X', length);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = N, Baseline = true)]
+        public bool Equals()
+        {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueS1 == valueS2;
+                ret = value1 == value2;
+
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool EqualsM()
+        public bool Span()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueM1 == valueM2;
+                ret = value1.AsSpan().SequenceEqual(value2.AsSpan());
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool EqualsL()
+        public bool Native()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueL1 == valueL2;
+                ret = CustomStringCompare.Native(value1, value2);
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool EqualsX()
+        public bool Unsafe()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueX1 == valueX2;
-            }
-            return ret;
-        }
-
-        //--------------------------------------------------------------------------------
-        // Array
-        //--------------------------------------------------------------------------------
-
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool ArrayS()
-        {
-            var ret = false;
-            for (var i = 0; i < N; i++)
-            {
-                ret = valueS1.AsSpan().SequenceEqual(valueS2.AsSpan());
+                ret = CustomStringCompare.Unsafe(value1, value2);
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool ArrayM()
+        public bool UnsafeBlock()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueM1.AsSpan().SequenceEqual(valueM2.AsSpan());
+                ret = CustomStringCompare.UnsafeBlock(value1, value2);
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool ArrayL()
+        public bool UnsafeBlock2()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueL1.AsSpan().SequenceEqual(valueL2.AsSpan());
+                ret = CustomStringCompare.UnsafeBlock2(value1, value2);
             }
             return ret;
         }
 
         [Benchmark(OperationsPerInvoke = N)]
-        public bool ArrayX()
+        public bool Intrinsics()
         {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
             var ret = false;
             for (var i = 0; i < N; i++)
             {
-                ret = valueX1.AsSpan().SequenceEqual(valueX2.AsSpan());
-            }
-            return ret;
-        }
-
-        //--------------------------------------------------------------------------------
-        // Custom
-        //--------------------------------------------------------------------------------
-
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool CustomS()
-        {
-            var ret = false;
-            for (var i = 0; i < N; i++)
-            {
-                ret = CustomStringCompare.Compare(valueS1, valueS2);
-            }
-            return ret;
-        }
-
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool CustomM()
-        {
-            var ret = false;
-            for (var i = 0; i < N; i++)
-            {
-                ret = CustomStringCompare.Compare(valueM1, valueM2);
-            }
-            return ret;
-        }
-
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool CustomL()
-        {
-            var ret = false;
-            for (var i = 0; i < N; i++)
-            {
-                ret = CustomStringCompare.Compare(valueL1, valueL2);
-            }
-            return ret;
-        }
-
-        [Benchmark(OperationsPerInvoke = N)]
-        public bool CustomX()
-        {
-            var ret = false;
-            for (var i = 0; i < N; i++)
-            {
-                ret = CustomStringCompare.Compare(valueX1, valueX2);
+                ret = CustomStringCompare.Intrinsics(value1, value2);
             }
             return ret;
         }
@@ -192,7 +166,55 @@ namespace WorkStringCompare
 
     public static class CustomStringCompare
     {
-        public static unsafe bool Compare(string value1, string value2)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Native(string value1, string value2)
+        {
+            // NotNull & NotObjectEquals
+            if (value1.Length != value2.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value1.Length; i++)
+            {
+                if (value1[i] != value2[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool Unsafe(string value1, string value2)
+        {
+            // NotNull & NotObjectEquals
+            var length = value1.Length;
+            if (length != value2.Length)
+            {
+                return false;
+            }
+
+            fixed (char* pValue1 = value1)
+            fixed (char* pValue2 = value2)
+            {
+                var p1 = pValue1;
+                var p2 = pValue2;
+                for (var i = 0; i < length; i++)
+                {
+                    if (p1[i] != p2[i])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool UnsafeBlock(string value1, string value2)
         {
             // NotNull & NotObjectEquals
             var length = value1.Length;
@@ -232,6 +254,86 @@ namespace WorkStringCompare
             }
 
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool UnsafeBlock2(string value1, string value2)
+        {
+            // NotNull & NotObjectEquals
+            var length = value1.Length;
+            if (length != value2.Length)
+            {
+                return false;
+            }
+
+            fixed (char* pValue1 = value1)
+            fixed (char* pValue2 = value2)
+            {
+                var p1 = pValue1;
+                var p2 = pValue2;
+                var i = 0;
+                for (; i <= length - 4; i += 4)
+                {
+                    if (*(long*)(p1 + i) != *(long*)(p2 + i))
+                    {
+                        return false;
+                    }
+                }
+
+                for (; i < length; i++)
+                {
+                    if (p1[i] != p2[i])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool Intrinsics(string value1, string value2)
+        {
+            // NotNull & NotObjectEquals
+            var length = value1.Length;
+            if (length != value2.Length)
+            {
+                return false;
+            }
+
+            const int vectorSize = 128 / 8;
+            const int equalsMask = unchecked((int) (0b1111_1111_1111_1111_1111_1111_1111_1111));
+            fixed (char* pValue1 = value1)
+            fixed (char* pValue2 = value2)
+            {
+                var ptrA = (byte*)pValue1;
+                var ptrB = (byte*)pValue2;
+
+                var i = 0;
+                var size = length << 1;
+                for (; i <= size - vectorSize; i += vectorSize)
+                {
+                    var va = Sse2.LoadVector128(ptrA + i);
+                    var vb = Sse2.LoadVector128(ptrB + i);
+                    var areEqual = Sse2.CompareEqual(va, vb);
+                    if (Sse2.MoveMask(areEqual) != equalsMask)
+                    {
+                        return false;
+                    }
+                }
+
+                // Not suitable < 16
+                for (; i < size; i++)
+                {
+                    if (ptrA[i] != ptrB[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }
