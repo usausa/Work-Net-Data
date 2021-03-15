@@ -151,6 +151,19 @@
         }
 
         [Benchmark(OperationsPerInvoke = N)]
+        public bool UnsafeBlock3()
+        {
+            var value1 = Value.Value1;
+            var value2 = Value.Value2;
+            var ret = false;
+            for (var i = 0; i < N; i++)
+            {
+                ret = CustomStringCompare.UnsafeBlock3(value1, value2);
+            }
+            return ret;
+        }
+
+        [Benchmark(OperationsPerInvoke = N)]
         public bool Intrinsics()
         {
             var value1 = Value.Value1;
@@ -290,6 +303,56 @@
             }
 
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool UnsafeBlock3(string value1, string value2)
+        {
+            // NotNull & NotObjectEquals
+            var length = value1.Length;
+            if (length != value2.Length)
+            {
+                return false;
+            }
+
+            fixed (char* pValue1 = value1)
+            fixed (char* pValue2 = value2)
+            {
+                var p1 = pValue1;
+                var p2 = pValue2;
+                var i = 0;
+                for (; i <= length - 4; i += 4)
+                {
+                    if (*(long*)(p1 + i) != *(long*)(p2 + i))
+                    {
+                        return false;
+                    }
+                }
+
+                var left = length - i;
+                if (left >= 2)
+                {
+                    if (*(int*)(p1 + i) != *(int*)(p2 + i))
+                    {
+                        return false;
+                    }
+
+                    if (left == 3)
+                    {
+                        i += 2;
+                        return p1[i] == p2[i];
+                    }
+
+                    return true;
+                }
+
+                if (left == 1)
+                {
+                    return p1[i] == p2[i];
+                }
+
+                return true;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
